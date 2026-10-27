@@ -1,0 +1,91 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{json,yml,yaml,md,resx,xaml,props,targets,csproj,sln}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+indent_size = 4
+
+# --- Language conventions -------------------------------------------------
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+csharp_prefer_braces = true:suggestion
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = when_on_single_line:suggestion
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_prefer_primary_constructors = true:suggestion
+dotnet_style_prefer_conditional_expression_over_return = false:none
+csharp_style_throw_expression = true:suggestion
+
+# --- Naming ---------------------------------------------------------------
+dotnet_naming_rule.private_fields_underscore.severity = warning
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_prefix
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.required_modifiers =
+
+dotnet_naming_style.underscore_prefix.required_prefix = _
+dotnet_naming_style.underscore_prefix.capitalization = camel_case
+
+dotnet_naming_rule.interfaces_prefix.severity = warning
+dotnet_naming_rule.interfaces_prefix.symbols = interfaces
+dotnet_naming_rule.interfaces_prefix.style = interface_prefix
+
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+
+dotnet_naming_style.interface_prefix.required_prefix = I
+dotnet_naming_style.interface_prefix.capitalization = pascal_case
+
+# --- Design analyzers -----------------------------------------------------
+dotnet_diagnostic.CA1062.severity = warning          # validate public arguments
+dotnet_diagnostic.CA1031.severity = warning          # do not catch general Exception
+dotnet_diagnostic.CA1063.severity = warning          # IDisposable pattern
+dotnet_diagnostic.CA1816.severity = warning          # call GC.SuppressFinalize
+dotnet_diagnostic.CA1822.severity = warning          # mark members static
+dotnet_diagnostic.CA1848.severity = warning          # use LoggerMessage delegates
+dotnet_diagnostic.CA2000.severity = warning          # dispose objects before losing scope
+dotnet_diagnostic.CA2101.severity = warning          # specify marshaling for P/Invoke
+dotnet_diagnostic.CA2234.severity = warning          # pass System.Uri objects
+dotnet_diagnostic.CA2254.severity = warning          # template should be static expression
+dotnet_diagnostic.CA5350.severity = warning          # do not use weak crypto
+dotnet_diagnostic.CA5351.severity = warning          # do not use broken crypto
+dotnet_diagnostic.CA5399.severity = warning          # HttpClient cert validation
+dotnet_diagnostic.SYSLIB0051.severity = warning      # legacy serialization
+
+# --- WPF / desktop --------------------------------------------------------
+dotnet_diagnostic.CA1416.severity = warning          # platform compatibility
+
+[tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.xUnit1013.severity = warning
+
+# --- Generated code -------------------------------------------------------------------------
+# Entity Framework generates the migration and the model snapshot. They are machine-written, so the
+# hand-written style and nullability rules do not apply to them.
+[src/StoreFlow.Infrastructure/Persistence/Migrations/*.cs]
+generated_code = true
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.IDE0055.severity = none

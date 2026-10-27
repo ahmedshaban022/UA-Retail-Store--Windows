@@ -1,0 +1,86 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Base layer: typography, spacing and containers.
+
+    No literal colour appears in this file. Every colour is a DynamicResource pointing at a semantic
+    role that the theme engine fills in at run time, which is what lets the whole application repaint
+    when the owner changes the theme, with no restart and no lost window state.
+  -->
+
+  <!-- Typography -->
+
+  <Style x:Key="Type.Body" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Ui}" />
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.Primary}" />
+    <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+    <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+  </Style>
+
+  <Style x:Key="Type.Title" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Title}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style x:Key="Type.Display" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Display}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style x:Key="Type.Caption" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}">
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Small}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.Muted}" />
+  </Style>
+
+  <Style x:Key="Type.SectionLabel" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Caption}">
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.Secondary}" />
+  </Style>
+
+  <!-- The implicit style keeps bare TextBlocks on-brand without every screen restating it. -->
+  <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}" />
+
+  <!-- Containers -->
+
+  <Style x:Key="Surface.Card" TargetType="{x:Type Border}">
+    <Setter Property="Background" Value="{DynamicResource Surface.Raised}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Border.Subtle}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Size.CornerRadius}" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="SnapsToDevicePixels" Value="True" />
+  </Style>
+
+  <Style x:Key="Surface.Panel" TargetType="{x:Type Border}">
+    <Setter Property="Background" Value="{DynamicResource Surface.Sunken}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Border.Subtle}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Size.CornerRadius}" />
+    <Setter Property="SnapsToDevicePixels" Value="True" />
+  </Style>
+
+  <Style x:Key="Surface.Divider" TargetType="{x:Type Border}">
+    <Setter Property="Background" Value="{DynamicResource Border.Subtle}" />
+    <Setter Property="Height" Value="1" />
+    <Setter Property="SnapsToDevicePixels" Value="True" />
+  </Style>
+
+  <!-- Status badges. Every badge carries an icon slot and a text label, never colour alone. -->
+  <Style x:Key="Badge" TargetType="{x:Type Border}">
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="8,2" />
+    <Setter Property="Background" Value="{DynamicResource Surface.Sunken}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Border.Subtle}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="SnapsToDevicePixels" Value="True" />
+  </Style>
+
+  <!-- Numeric columns use tabular figures so digits line up vertically. -->
+  <Style x:Key="Type.Numeric" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}">
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="TextAlignment" Value="Right" />
+  </Style>
+
+</ResourceDictionary>

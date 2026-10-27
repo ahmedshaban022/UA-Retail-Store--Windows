@@ -1,0 +1,34 @@
+<Application x:Class="StoreFlow.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:StoreFlow.Desktop.Theming"
+             xmlns:controls="clr-namespace:StoreFlow.Desktop.Controls"
+             xmlns:viewModels="clr-namespace:StoreFlow.Desktop.ViewModels"
+             xmlns:views="clr-namespace:StoreFlow.Desktop.Views">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!-- The live theme dictionary is inserted at index 0 at run time by the theme engine.
+             Every style below binds its colours with DynamicResource, so replacing that dictionary
+             repaints the whole application without a restart. -->
+        <local:ThemeResourceDictionary />
+        <ResourceDictionary Source="Themes/Base.xaml" />
+        <ResourceDictionary Source="Themes/Controls.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+
+      <controls:StringToVisibilityConverter x:Key="StringToVisibility" />
+      <controls:BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+      <controls:IntEqualsVisibilityConverter x:Key="IntEqualsVisibility" />
+
+      <!-- The shell shows a page by handing it a view model. Without these templates the content
+           control would render the view model's type name instead of the screen. -->
+      <DataTemplate DataType="{x:Type viewModels:DashboardViewModel}">
+        <views:DashboardView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:SettingsViewModel}">
+        <views:SettingsView />
+      </DataTemplate>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>

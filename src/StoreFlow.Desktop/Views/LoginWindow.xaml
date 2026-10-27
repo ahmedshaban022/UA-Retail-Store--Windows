@@ -1,0 +1,58 @@
+<Window x:Class="StoreFlow.Desktop.Views.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:StoreFlow.Desktop.Controls"
+        Title="{Binding Title}"
+        Width="420"
+        Height="520"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Surface.Canvas}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+  <Grid Margin="32">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <StackPanel Grid.Row="0" Margin="0,0,0,24">
+      <TextBlock Text="{Binding Title}" Style="{StaticResource Type.Display}" />
+      <TextBlock Text="{Binding ProductNameFallback}"
+                 Style="{StaticResource Type.Caption}"
+                 Margin="0,4,0,0" />
+    </StackPanel>
+
+    <Border Grid.Row="1"
+            Style="{StaticResource Surface.Card}"
+            VerticalAlignment="Center">
+      <StackPanel>
+        <TextBlock Text="{Binding UsernameLabel}"
+                   Style="{StaticResource Type.SectionLabel}"
+                   Margin="0,0,0,6" />
+        <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                 AutomationProperties.Name="{Binding UsernameLabel}" />
+
+        <TextBlock Text="{Binding PasswordLabel}"
+                   Style="{StaticResource Type.SectionLabel}"
+                   Margin="0,16,0,6" />
+        <PasswordBox controls:PasswordBoxBehavior.Password="{Binding Password}"
+                     AutomationProperties.Name="{Binding PasswordLabel}" />
+
+        <TextBlock Text="{Binding ErrorMessage}"
+                   Foreground="{DynamicResource State.Critical}"
+                   TextWrapping="Wrap"
+                   Margin="0,12,0,0"
+                   Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}" />
+
+        <Button Content="{Binding SignInLabel}"
+                Command="{Binding SignInCommand}"
+                AutomationProperties.AutomationId="Login.SignIn"
+                Style="{StaticResource Button.Primary}"
+                Margin="0,20,0,0"
+                MinHeight="40" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>

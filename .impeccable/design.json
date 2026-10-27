@@ -1,0 +1,685 @@
+{
+    "schemaVersion":  2,
+    "generatedAt":  "2026-10-27T10:45:29Z",
+    "title":  "Design System: StoreFlow",
+    "extensions":  {
+                       "colorMeta":  {
+                                         "paper-canvas":  {
+                                                              "role":  "neutral",
+                                                              "displayName":  "Paper Canvas",
+                                                              "canonical":  "#F7F5F1",
+                                                              "tonalRamp":  [
+                                                                                "#2D2820",
+                                                                                "#564C39",
+                                                                                "#7F6E4D",
+                                                                                "#A58F64",
+                                                                                "#B8AA8E",
+                                                                                "#CEC6B6",
+                                                                                "#E1DDD5",
+                                                                                "#F4F3F0"
+                                                                            ]
+                                                          },
+                                         "paper-raised":  {
+                                                              "role":  "neutral",
+                                                              "displayName":  "Paper Raised",
+                                                              "canonical":  "#FFFFFF",
+                                                              "tonalRamp":  [
+                                                                                "#262626",
+                                                                                "#474747",
+                                                                                "#666666",
+                                                                                "#858585",
+                                                                                "#A3A3A3",
+                                                                                "#C2C2C2",
+                                                                                "#DBDBDB",
+                                                                                "#F2F2F2"
+                                                                            ]
+                                                          },
+                                         "paper-sunken":  {
+                                                              "role":  "neutral",
+                                                              "displayName":  "Paper Sunken",
+                                                              "canonical":  "#EFECE6",
+                                                              "tonalRamp":  [
+                                                                                "#2B2821",
+                                                                                "#534B3C",
+                                                                                "#7A6D52",
+                                                                                "#9F8D6A",
+                                                                                "#B4A992",
+                                                                                "#CBC5B8",
+                                                                                "#E0DDD7",
+                                                                                "#F4F3F1"
+                                                                            ]
+                                                          },
+                                         "paper-overlay":  {
+                                                               "role":  "neutral",
+                                                               "displayName":  "Paper Overlay",
+                                                               "canonical":  "#FFFFFF",
+                                                               "tonalRamp":  [
+                                                                                 "#262626",
+                                                                                 "#474747",
+                                                                                 "#666666",
+                                                                                 "#858585",
+                                                                                 "#A3A3A3",
+                                                                                 "#C2C2C2",
+                                                                                 "#DBDBDB",
+                                                                                 "#F2F2F2"
+                                                                             ]
+                                                           },
+                                         "rule-subtle":  {
+                                                             "role":  "neutral",
+                                                             "displayName":  "Rule Subtle",
+                                                             "canonical":  "#E2DED6",
+                                                             "tonalRamp":  [
+                                                                               "#2A2822",
+                                                                               "#514A3E",
+                                                                               "#766B56",
+                                                                               "#998B70",
+                                                                               "#B1A896",
+                                                                               "#C9C4BA",
+                                                                               "#DFDDD8",
+                                                                               "#F3F3F1"
+                                                                           ]
+                                                         },
+                                         "rule-strong":  {
+                                                             "role":  "neutral",
+                                                             "displayName":  "Rule Strong",
+                                                             "canonical":  "#8B8578",
+                                                             "tonalRamp":  [
+                                                                               "#282724",
+                                                                               "#4B4943",
+                                                                               "#6D695F",
+                                                                               "#8E887C",
+                                                                               "#A9A59D",
+                                                                               "#C5C3BE",
+                                                                               "#DDDCDA",
+                                                                               "#F3F2F2"
+                                                                           ]
+                                                         },
+                                         "ink-primary":  {
+                                                             "role":  "neutral",
+                                                             "displayName":  "Ink Primary",
+                                                             "canonical":  "#16181D",
+                                                             "tonalRamp":  [
+                                                                               "#232529",
+                                                                               "#40444F",
+                                                                               "#5A6172",
+                                                                               "#747E95",
+                                                                               "#999FAE",
+                                                                               "#BCBFC8",
+                                                                               "#D8DADE",
+                                                                               "#F1F2F3"
+                                                                           ]
+                                                         },
+                                         "ink-secondary":  {
+                                                               "role":  "neutral",
+                                                               "displayName":  "Ink Secondary",
+                                                               "canonical":  "#4A4E57",
+                                                               "tonalRamp":  [
+                                                                                 "#242628",
+                                                                                 "#43464C",
+                                                                                 "#5F636D",
+                                                                                 "#7B818E",
+                                                                                 "#9DA1A9",
+                                                                                 "#BEC0C5",
+                                                                                 "#DADBDD",
+                                                                                 "#F2F2F3"
+                                                                             ]
+                                                           },
+                                         "ink-muted":  {
+                                                           "role":  "neutral",
+                                                           "displayName":  "Ink Muted",
+                                                           "canonical":  "#666C73",
+                                                           "tonalRamp":  [
+                                                                             "#252628",
+                                                                             "#44474B",
+                                                                             "#61666B",
+                                                                             "#7D848C",
+                                                                             "#9FA3A8",
+                                                                             "#BFC2C4",
+                                                                             "#DADBDD",
+                                                                             "#F2F2F3"
+                                                                         ]
+                                                       },
+                                         "ink-inverse":  {
+                                                             "role":  "neutral",
+                                                             "displayName":  "Ink Inverse",
+                                                             "canonical":  "#FFFFFF",
+                                                             "tonalRamp":  [
+                                                                               "#262626",
+                                                                               "#474747",
+                                                                               "#666666",
+                                                                               "#858585",
+                                                                               "#A3A3A3",
+                                                                               "#C2C2C2",
+                                                                               "#DBDBDB",
+                                                                               "#F2F2F2"
+                                                                           ]
+                                                         },
+                                         "petrol":  {
+                                                        "role":  "primary",
+                                                        "displayName":  "Petrol",
+                                                        "canonical":  "#0F5E63",
+                                                        "tonalRamp":  [
+                                                                          "#153638",
+                                                                          "#206B6F",
+                                                                          "#23A1A9",
+                                                                          "#2CD2DD",
+                                                                          "#6AD6DC",
+                                                                          "#A2DEE2",
+                                                                          "#CBE9EB",
+                                                                          "#EEF6F7"
+                                                                      ]
+                                                    },
+                                         "petrol-deep":  {
+                                                             "role":  "primary",
+                                                             "displayName":  "Petrol Deep",
+                                                             "canonical":  "#0C4C50",
+                                                             "tonalRamp":  [
+                                                                               "#153638",
+                                                                               "#1F6B6F",
+                                                                               "#23A1A9",
+                                                                               "#2CD3DD",
+                                                                               "#6AD6DD",
+                                                                               "#A2DEE2",
+                                                                               "#CBE9EB",
+                                                                               "#EDF6F7"
+                                                                           ]
+                                                         },
+                                         "petrol-deeper":  {
+                                                               "role":  "primary",
+                                                               "displayName":  "Petrol Deeper",
+                                                               "canonical":  "#093D41",
+                                                               "tonalRamp":  [
+                                                                                 "#143638",
+                                                                                 "#1E6B70",
+                                                                                 "#21A1AB",
+                                                                                 "#2AD2DF",
+                                                                                 "#68D6DE",
+                                                                                 "#A1DEE3",
+                                                                                 "#CBE9EC",
+                                                                                 "#EDF6F7"
+                                                                             ]
+                                                           },
+                                         "petrol-wash":  {
+                                                             "role":  "primary",
+                                                             "displayName":  "Petrol Wash",
+                                                             "canonical":  "#DCEBEC",
+                                                             "tonalRamp":  [
+                                                                               "#1F2C2D",
+                                                                               "#375557",
+                                                                               "#4B7E81",
+                                                                               "#61A4A8",
+                                                                               "#8CB7BA",
+                                                                               "#B5CDCF",
+                                                                               "#D5E1E2",
+                                                                               "#F0F4F4"
+                                                                           ]
+                                                         },
+                                         "petrol-ink":  {
+                                                            "role":  "primary",
+                                                            "displayName":  "Petrol Ink",
+                                                            "canonical":  "#FFFFFF",
+                                                            "tonalRamp":  [
+                                                                              "#262626",
+                                                                              "#474747",
+                                                                              "#666666",
+                                                                              "#858585",
+                                                                              "#A3A3A3",
+                                                                              "#C2C2C2",
+                                                                              "#DBDBDB",
+                                                                              "#F2F2F2"
+                                                                          ]
+                                                        },
+                                         "seal-critical":  {
+                                                               "role":  "secondary",
+                                                               "displayName":  "Seal Critical",
+                                                               "canonical":  "#B3261E",
+                                                               "tonalRamp":  [
+                                                                                 "#371715",
+                                                                                 "#6E2521",
+                                                                                 "#A72C25",
+                                                                                 "#DA382F",
+                                                                                 "#DB726C",
+                                                                                 "#E1A6A3",
+                                                                                 "#EBCECC",
+                                                                                 "#F7EEEE"
+                                                                             ]
+                                                           },
+                                         "seal-warning":  {
+                                                              "role":  "secondary",
+                                                              "displayName":  "Seal Warning",
+                                                              "canonical":  "#8A5200",
+                                                              "tonalRamp":  [
+                                                                                "#3E2B0F",
+                                                                                "#7E5211",
+                                                                                "#C1770B",
+                                                                                "#FC9B0D",
+                                                                                "#F1B256",
+                                                                                "#EDCA96",
+                                                                                "#F1DFC6",
+                                                                                "#F9F3EC"
+                                                                            ]
+                                                          },
+                                         "seal-success":  {
+                                                              "role":  "secondary",
+                                                              "displayName":  "Seal Success",
+                                                              "canonical":  "#2E6B3E",
+                                                              "tonalRamp":  [
+                                                                                "#1D3022",
+                                                                                "#325D3D",
+                                                                                "#428A55",
+                                                                                "#55B46E",
+                                                                                "#84C294",
+                                                                                "#B0D3BA",
+                                                                                "#D3E4D7",
+                                                                                "#F0F5F1"
+                                                                            ]
+                                                          },
+                                         "seal-info":  {
+                                                           "role":  "secondary",
+                                                           "displayName":  "Seal Info",
+                                                           "canonical":  "#1F5C99",
+                                                           "tonalRamp":  [
+                                                                             "#172636",
+                                                                             "#24476B",
+                                                                             "#2A66A2",
+                                                                             "#3585D4",
+                                                                             "#70A3D7",
+                                                                             "#A5C2DF",
+                                                                             "#CDDBEA",
+                                                                             "#EEF2F7"
+                                                                         ]
+                                                       },
+                                         "seal-critical-wash":  {
+                                                                    "role":  "secondary",
+                                                                    "displayName":  "Seal Critical Wash",
+                                                                    "canonical":  "#FBE9E7",
+                                                                    "tonalRamp":  [
+                                                                                      "#371915",
+                                                                                      "#6E2821",
+                                                                                      "#A73225",
+                                                                                      "#DA402F",
+                                                                                      "#DB776C",
+                                                                                      "#E1A9A3",
+                                                                                      "#EBCFCC",
+                                                                                      "#F7EFEE"
+                                                                                  ]
+                                                                },
+                                         "seal-warning-wash":  {
+                                                                   "role":  "secondary",
+                                                                   "displayName":  "Seal Warning Wash",
+                                                                   "canonical":  "#FBF0DC",
+                                                                   "tonalRamp":  [
+                                                                                     "#392C14",
+                                                                                     "#72541C",
+                                                                                     "#AE7B1E",
+                                                                                     "#E4A025",
+                                                                                     "#E1B565",
+                                                                                     "#E5CC9F",
+                                                                                     "#ECE0CA",
+                                                                                     "#F7F4ED"
+                                                                                 ]
+                                                               },
+                                         "seal-success-wash":  {
+                                                                   "role":  "secondary",
+                                                                   "displayName":  "Seal Success Wash",
+                                                                   "canonical":  "#E4F0E6",
+                                                                   "tonalRamp":  [
+                                                                                     "#202D22",
+                                                                                     "#38573D",
+                                                                                     "#4C8055",
+                                                                                     "#62A76E",
+                                                                                     "#8DB994",
+                                                                                     "#B5CEB9",
+                                                                                     "#D5E1D7",
+                                                                                     "#F0F4F1"
+                                                                                 ]
+                                                               },
+                                         "seal-info-wash":  {
+                                                                "role":  "secondary",
+                                                                "displayName":  "Seal Info Wash",
+                                                                "canonical":  "#E3EEF8",
+                                                                "tonalRamp":  [
+                                                                                  "#182734",
+                                                                                  "#274968",
+                                                                                  "#30699C",
+                                                                                  "#3D88CC",
+                                                                                  "#75A5D2",
+                                                                                  "#A8C3DC",
+                                                                                  "#CEDCE8",
+                                                                                  "#EEF2F6"
+                                                                              ]
+                                                            },
+                                         "focus-ring":  {
+                                                            "role":  "primary",
+                                                            "displayName":  "Focus Ring",
+                                                            "canonical":  "#0F5E63",
+                                                            "tonalRamp":  [
+                                                                              "#153638",
+                                                                              "#206B6F",
+                                                                              "#23A1A9",
+                                                                              "#2CD2DD",
+                                                                              "#6AD6DC",
+                                                                              "#A2DEE2",
+                                                                              "#CBE9EB",
+                                                                              "#EEF6F7"
+                                                                          ]
+                                                        },
+                                         "selection-wash":  {
+                                                                "role":  "neutral",
+                                                                "displayName":  "Selection Wash",
+                                                                "canonical":  "#DCEBEC",
+                                                                "tonalRamp":  [
+                                                                                  "#1F2C2D",
+                                                                                  "#375557",
+                                                                                  "#4B7E81",
+                                                                                  "#61A4A8",
+                                                                                  "#8CB7BA",
+                                                                                  "#B5CDCF",
+                                                                                  "#D5E1E2",
+                                                                                  "#F0F4F4"
+                                                                              ]
+                                                            },
+                                         "selection-ink":  {
+                                                               "role":  "neutral",
+                                                               "displayName":  "Selection Ink",
+                                                               "canonical":  "#16181D",
+                                                               "tonalRamp":  [
+                                                                                 "#232529",
+                                                                                 "#40444F",
+                                                                                 "#5A6172",
+                                                                                 "#747E95",
+                                                                                 "#999FAE",
+                                                                                 "#BCBFC8",
+                                                                                 "#D8DADE",
+                                                                                 "#F1F2F3"
+                                                                             ]
+                                                           },
+                                         "series-1":  {
+                                                          "role":  "tertiary",
+                                                          "displayName":  "Series 1",
+                                                          "canonical":  "#0F5E63",
+                                                          "tonalRamp":  [
+                                                                            "#153638",
+                                                                            "#206B6F",
+                                                                            "#23A1A9",
+                                                                            "#2CD2DD",
+                                                                            "#6AD6DC",
+                                                                            "#A2DEE2",
+                                                                            "#CBE9EB",
+                                                                            "#EEF6F7"
+                                                                        ]
+                                                      },
+                                         "series-2":  {
+                                                          "role":  "tertiary",
+                                                          "displayName":  "Series 2",
+                                                          "canonical":  "#B26B00",
+                                                          "tonalRamp":  [
+                                                                            "#3E2B0F",
+                                                                            "#7E5211",
+                                                                            "#C1780B",
+                                                                            "#FC9D0D",
+                                                                            "#F1B356",
+                                                                            "#EDCB96",
+                                                                            "#F1E0C6",
+                                                                            "#F9F4EC"
+                                                                        ]
+                                                      },
+                                         "series-3":  {
+                                                          "role":  "tertiary",
+                                                          "displayName":  "Series 3",
+                                                          "canonical":  "#2E6B3E",
+                                                          "tonalRamp":  [
+                                                                            "#1D3022",
+                                                                            "#325D3D",
+                                                                            "#428A55",
+                                                                            "#55B46E",
+                                                                            "#84C294",
+                                                                            "#B0D3BA",
+                                                                            "#D3E4D7",
+                                                                            "#F0F5F1"
+                                                                        ]
+                                                      },
+                                         "series-4":  {
+                                                          "role":  "tertiary",
+                                                          "displayName":  "Series 4",
+                                                          "canonical":  "#B3261E",
+                                                          "tonalRamp":  [
+                                                                            "#371715",
+                                                                            "#6E2521",
+                                                                            "#A72C25",
+                                                                            "#DA382F",
+                                                                            "#DB726C",
+                                                                            "#E1A6A3",
+                                                                            "#EBCECC",
+                                                                            "#F7EEEE"
+                                                                        ]
+                                                      },
+                                         "series-5":  {
+                                                          "role":  "tertiary",
+                                                          "displayName":  "Series 5",
+                                                          "canonical":  "#1F5C99",
+                                                          "tonalRamp":  [
+                                                                            "#172636",
+                                                                            "#24476B",
+                                                                            "#2A66A2",
+                                                                            "#3585D4",
+                                                                            "#70A3D7",
+                                                                            "#A5C2DF",
+                                                                            "#CDDBEA",
+                                                                            "#EEF2F7"
+                                                                        ]
+                                                      },
+                                         "series-6":  {
+                                                          "role":  "tertiary",
+                                                          "displayName":  "Series 6",
+                                                          "canonical":  "#6B4E9B",
+                                                          "tonalRamp":  [
+                                                                            "#241E2E",
+                                                                            "#433659",
+                                                                            "#5F4884",
+                                                                            "#7B5DAC",
+                                                                            "#9D8ABD",
+                                                                            "#BEB3D0",
+                                                                            "#DAD4E2",
+                                                                            "#F2F0F4"
+                                                                        ]
+                                                      }
+                                     },
+                       "typographyMeta":  {
+                                              "display":  {
+                                                              "displayName":  "Display",
+                                                              "purpose":  "The grand total on the point-of-sale screen and window-level titles. Deliberately rare."
+                                                          },
+                                              "headline":  {
+                                                               "displayName":  "Headline",
+                                                               "purpose":  "Screen titles and section headings."
+                                                           },
+                                              "title":  {
+                                                            "displayName":  "Title",
+                                                            "purpose":  "Card titles and sub-section headings."
+                                                        },
+                                              "body":  {
+                                                           "displayName":  "Body",
+                                                           "purpose":  "Labels, table cells, and message text."
+                                                       },
+                                              "label":  {
+                                                            "displayName":  "Label",
+                                                            "purpose":  "Column headers, captions, and badge text."
+                                                        }
+                                          },
+                       "shadows":  [
+
+                                   ],
+                       "motion":  [
+                                      {
+                                          "name":  "state-fade",
+                                          "value":  "opacity 120ms ease-out",
+                                          "purpose":  "The only transition in the system. Hover and pressed states change opacity; nothing scales, lifts, or tweens colour."
+                                      }
+                                  ],
+                       "breakpoints":  [
+
+                                       ]
+                   },
+    "components":  [
+                       {
+                           "name":  "Primary Button",
+                           "kind":  "button",
+                           "refersTo":  "button-primary",
+                           "description":  "The one action a screen exists to perform. Petrol fill, one per screen.",
+                           "html":  "\u003cbutton class=\"ds-btn-primary\"\u003eConfirm sale\u003c/button\u003e",
+                           "css":  ".ds-btn-primary { position: relative; background: #0F5E63; color: #FFFFFF; border: 1px solid #0F5E63; border-radius: 6px; padding: 0 16px; height: 32px; min-width: 32px; font-family: \"Segoe UI\", \"Sakkal Majalla\", sans-serif; font-size: 14px; font-weight: 400; cursor: pointer; transition: opacity 0.12s ease-out; }\n.ds-btn-primary:hover { opacity: 0.9; }\n.ds-btn-primary:active { opacity: 0.75; }\n.ds-btn-primary:focus-visible { outline: 2px solid #0F5E63; outline-offset: 3px; opacity: 1; }\n.ds-btn-primary:disabled { opacity: 0.45; cursor: default; }"
+                       },
+                       {
+                           "name":  "Secondary Button",
+                           "kind":  "button",
+                           "refersTo":  "button-secondary",
+                           "description":  "The workhorse action. Raised paper with a visible rule-strong border.",
+                           "html":  "\u003cbutton class=\"ds-btn-secondary\"\u003ePrint receipt\u003c/button\u003e",
+                           "css":  ".ds-btn-secondary { background: #FFFFFF; color: #16181D; border: 1px solid #8B8578; border-radius: 6px; padding: 0 16px; height: 32px; font-family: \"Segoe UI\", \"Sakkal Majalla\", sans-serif; font-size: 14px; cursor: pointer; transition: opacity 0.12s ease-out; }\n.ds-btn-secondary:hover { opacity: 0.9; }\n.ds-btn-secondary:active { opacity: 0.75; }\n.ds-btn-secondary:focus-visible { outline: 2px solid #0F5E63; outline-offset: 3px; opacity: 1; }\n.ds-btn-secondary:disabled { opacity: 0.45; cursor: default; }"
+                       },
+                       {
+                           "name":  "Danger Button",
+                           "kind":  "button",
+                           "refersTo":  "button-danger",
+                           "description":  "Destructive confirmation only. Seal-critical fill, never a default action.",
+                           "html":  "\u003cbutton class=\"ds-btn-danger\"\u003eDelete\u003c/button\u003e",
+                           "css":  ".ds-btn-danger { background: #B3261E; color: #FFFFFF; border: 1px solid #B3261E; border-radius: 6px; padding: 0 16px; height: 32px; font-family: \"Segoe UI\", \"Sakkal Majalla\", sans-serif; font-size: 14px; cursor: pointer; transition: opacity 0.12s ease-out; }\n.ds-btn-danger:hover { opacity: 0.9; }\n.ds-btn-danger:active { opacity: 0.75; }\n.ds-btn-danger:focus-visible { outline: 2px solid #0F5E63; outline-offset: 3px; opacity: 1; }\n.ds-btn-danger:disabled { opacity: 0.45; cursor: default; }"
+                       },
+                       {
+                           "name":  "Ghost Button",
+                           "kind":  "button",
+                           "refersTo":  "button-ghost",
+                           "description":  "Tertiary and toolbar actions with no fill.",
+                           "html":  "\u003cbutton class=\"ds-btn-ghost\"\u003eCancel\u003c/button\u003e",
+                           "css":  ".ds-btn-ghost { background: transparent; color: #4A4E57; border: 1px solid transparent; border-radius: 6px; padding: 0 16px; height: 32px; font-family: \"Segoe UI\", \"Sakkal Majalla\", sans-serif; font-size: 14px; cursor: pointer; transition: opacity 0.12s ease-out; }\n.ds-btn-ghost:hover { opacity: 0.9; }\n.ds-btn-ghost:active { opacity: 0.75; }\n.ds-btn-ghost:focus-visible { outline: 2px solid #0F5E63; outline-offset: 3px; opacity: 1; }"
+                       },
+                       {
+                           "name":  "Text Field",
+                           "kind":  "input",
+                           "refersTo":  "input-field",
+                           "description":  "A single-line input with a visible rule-strong border that shifts to petrol on hover.",
+                           "html":  "\u003cinput class=\"ds-input\" type=\"text\" placeholder=\"Scan or type a barcode\" /\u003e",
+                           "css":  ".ds-input { background: #FFFFFF; color: #16181D; border: 1px solid #8B8578; border-radius: 6px; padding: 10px 6px; height: 32px; box-sizing: border-box; font-family: \"Segoe UI\", \"Sakkal Majalla\", sans-serif; font-size: 14px; }\n.ds-input:hover { border-color: #0F5E63; }\n.ds-input:focus { outline: 2px solid #0F5E63; outline-offset: 3px; border-color: #0F5E63; }\n.ds-input:disabled { opacity: 0.5; }"
+                       },
+                       {
+                           "name":  "Status Badge",
+                           "kind":  "chip",
+                           "refersTo":  "chip-badge",
+                           "description":  "A status chip. Always pairs a colour with an icon and a word, so it survives greyscale.",
+                           "html":  "\u003cspan class=\"ds-badge ds-badge-success\"\u003e\u003cspan class=\"ds-badge-icon\"\u003e\u0026#10003;\u003c/span\u003ePaid\u003c/span\u003e",
+                           "css":  ".ds-badge { display: inline-flex; align-items: center; gap: 4px; background: #EFECE6; color: #4A4E57; border: 1px solid #E2DED6; border-radius: 4px; padding: 2px 8px; font-family: \"Segoe UI\", \"Sakkal Majalla\", sans-serif; font-size: 12px; line-height: 1.4; }\n.ds-badge-icon { font-size: 11px; }\n.ds-badge-success { background: #E4F0E6; color: #2E6B3E; border-color: #E4F0E6; }\n.ds-badge-warning { background: #FBF0DC; color: #8A5200; border-color: #FBF0DC; }\n.ds-badge-critical { background: #FBE9E7; color: #B3261E; border-color: #FBE9E7; }\n.ds-badge-info { background: #E3EEF8; color: #1F5C99; border-color: #E3EEF8; }"
+                       },
+                       {
+                           "name":  "Navigation Rail Item",
+                           "kind":  "nav",
+                           "refersTo":  "nav-rail",
+                           "description":  "A destination in the leading-edge rail. Petrol when active; mirrors wholesale under RTL.",
+                           "html":  "\u003ca class=\"ds-nav-item ds-nav-item-active\" href=\"#\"\u003e\u003cspan class=\"ds-nav-icon\"\u003e\u0026#9636;\u003c/span\u003eSales\u003c/a\u003e",
+                           "css":  ".ds-nav-item { display: flex; align-items: center; gap: 8px; padding: 10px 8px; border-radius: 4px; color: #4A4E57; text-decoration: none; font-family: \"Segoe UI\", \"Sakkal Majalla\", sans-serif; font-size: 14px; transition: background-color 0.12s ease-out; }\n.ds-nav-item:hover { background: #EFECE6; }\n.ds-nav-item-active { background: #DCEBEC; color: #16181D; font-weight: 600; }\n.ds-nav-icon { font-size: 14px; }"
+                       },
+                       {
+                           "name":  "Card Surface",
+                           "kind":  "card",
+                           "refersTo":  "card-surface",
+                           "description":  "A content container: raised paper over canvas, one hairline rule, no shadow.",
+                           "html":  "\u003cdiv class=\"ds-card\"\u003e\u003ch3 class=\"ds-card-title\"\u003eToday\u003c/h3\u003e\u003cp class=\"ds-card-body\"\u003eSales so far today.\u003c/p\u003e\u003c/div\u003e",
+                           "css":  ".ds-card { background: #FFFFFF; color: #16181D; border: 1px solid #E2DED6; border-radius: 6px; padding: 16px; }\n.ds-card-title { margin: 0 0 8px; font-size: 16px; font-weight: 600; }\n.ds-card-body { margin: 0; font-size: 14px; color: #4A4E57; }"
+                       },
+                       {
+                           "name":  "Data Grid Row",
+                           "kind":  "custom",
+                           "refersTo":  "data-grid-row",
+                           "description":  "A 32 px ledger row: hairline bottom rule, alternating sunken fill, tabular figures aligned right.",
+                           "html":  "\u003ctable class=\"ds-grid\"\u003e\u003cthead\u003e\u003ctr\u003e\u003cth\u003eSKU\u003c/th\u003e\u003cth class=\"ds-grid-num\"\u003eQuantity\u003c/th\u003e\u003c/tr\u003e\u003c/thead\u003e\u003ctbody\u003e\u003ctr\u003e\u003ctd\u003eSKU-1042\u003c/td\u003e\u003ctd class=\"ds-grid-num\"\u003e12\u003c/td\u003e\u003c/tr\u003e\u003c/tbody\u003e\u003c/table\u003e",
+                           "css":  ".ds-grid { width: 100%; border-collapse: collapse; background: #FFFFFF; border: 1px solid #E2DED6; font-family: \"Segoe UI\", \"Sakkal Majalla\", sans-serif; font-size: 14px; }\n.ds-grid th { background: #EFECE6; color: #4A4E57; font-size: 12px; font-weight: 600; text-align: left; padding: 8px 10px; border-bottom: 1px solid #E2DED6; }\n.ds-grid td { padding: 0 10px; height: 32px; border-bottom: 1px solid #E2DED6; }\n.ds-grid tbody tr:nth-child(even) { background: #EFECE6; }\n.ds-grid tbody tr:hover { background: #DCEBEC; }\n.ds-grid-num { text-align: right; font-variant-numeric: tabular-nums lining-nums; }"
+                       },
+                       {
+                           "name":  "Scan Chip",
+                           "kind":  "custom",
+                           "refersTo":  "scan-chip",
+                           "description":  "The signature element: a confirmation chip that materialises in the cart quantity column after a successful scan.",
+                           "html":  "\u003cdiv class=\"ds-scan-chip\"\u003e\u003cspan class=\"ds-scan-name\"\u003eBasmati rice 1 kg\u003c/span\u003e\u003cspan class=\"ds-scan-price\"\u003e85.00\u003c/span\u003e\u003c/div\u003e",
+                           "css":  ".ds-scan-chip { display: inline-flex; align-items: baseline; gap: 8px; background: #0F5E63; color: #FFFFFF; border-radius: 4px; padding: 2px 8px; font-family: \"Segoe UI\", \"Sakkal Majalla\", sans-serif; font-size: 12px; font-weight: 600; }\n.ds-scan-price { font-variant-numeric: tabular-nums lining-nums; }"
+                       }
+                   ],
+    "narrative":  {
+                      "northStar":  "The Ledger Ink",
+                      "overview":  "StoreFlow is an operating surface, not a showcase. Its world is the shop\u0027s own paper ledger: a warm off-white ground the colour of a receipt, near-black ink for anything the owner must read precisely, and a single deep petrol accent that appears only where the interface asks for a decision. Density is the discipline here - management screens run compact (32 px rows, 8 px spacing rhythm) so a thousand SKUs are scannable; the point-of-sale screen runs generous (44 px hit targets, a 34 px grand total) so a standing cashier reads it under shop lighting without a mouse. The interface is bilingual by construction rather than by a translation pass, so right-to-left is a first-class layout mode, not a mirror applied at the end. Nothing asks the user to translate meaning: status is always carried by an icon and a word as well as a colour, and every error states the next action instead of reporting a fault.",
+                      "keyCharacteristics":  [
+                                                 "Warm paper ground, near-black ink, one deep petrol accent used sparingly.",
+                                                 "Zero literal colour in view code - every colour is a semantic role resolved at runtime.",
+                                                 "Compact management tables, generous point-of-sale targets, one density token family.",
+                                                 "Status always carries an icon and a text label; colour never carries meaning alone.",
+                                                 "Tabular figures in every money and quantity column, in both scripts.",
+                                                 "Right-to-left is a layout mode, not a cosmetic flip."
+                                             ],
+                      "rules":  [
+                                    {
+                                        "name":  "The Semantic-Only Rule",
+                                        "body":  "A view may never contain a literal colour. Every colour in the product is a semantic role that the theme file fills in.",
+                                        "section":  "colors"
+                                    },
+                                    {
+                                        "name":  "The One Accent Rule",
+                                        "body":  "Petrol covers no more than roughly a tenth of any screen. Its rarity is the point.",
+                                        "section":  "colors"
+                                    },
+                                    {
+                                        "name":  "The State Carries a Word Rule",
+                                        "body":  "No state is communicated by colour alone. Every badge pairs its colour with an icon and a text label.",
+                                        "section":  "colors"
+                                    },
+                                    {
+                                        "name":  "The Ring Is Visible Rule",
+                                        "body":  "Keyboard focus is always drawn as a 2 px petrol ring offset 3 px outside the control, never removed, never the only difference between focus and hover.",
+                                        "section":  "colors"
+                                    },
+                                    {
+                                        "name":  "The Scale Multiplies Rule",
+                                        "body":  "Typography scale is a single multiplier in the theme file applied to 12 / 14 / 16 / 20 / 28 / 34 px. No screen carries its own font size.",
+                                        "section":  "typography"
+                                    },
+                                    {
+                                        "name":  "The Arabic Leads Rule",
+                                        "body":  "Arabic sets with roughly 1.6x the Latin leading, and always with TextOptions.TextFormattingMode=Display - Ideal breaks the ligatures.",
+                                        "section":  "typography"
+                                    },
+                                    {
+                                        "name":  "The Figure Alignment Rule",
+                                        "body":  "Any column of money, quantity, or percentage uses tabular figures and right alignment.",
+                                        "section":  "typography"
+                                    },
+                                    {
+                                        "name":  "The Flat-By-Default Rule",
+                                        "body":  "Surfaces are flat at rest. Separation comes from tone and a hairline rule, never from a drop shadow.",
+                                        "section":  "elevation"
+                                    },
+                                    {
+                                        "name":  "The Border Means Pressable Rule",
+                                        "body":  "A control with a visible rule-strong border is interactive; a container with a rule-subtle border is not. The two are never mixed.",
+                                        "section":  "elevation"
+                                    }
+                                ],
+                      "dos":  [
+                                  "Do reference a semantic role for every colour, in every view.",
+                                  "Do pair every status colour with an icon and a word.",
+                                  "Do use the 8 px spacing rhythm and the density tokens rather than ad-hoc margins.",
+                                  "Do set tabular figures and right alignment on every money and quantity column.",
+                                  "Do render Arabic with TextOptions.TextFormattingMode=Display and mirror the shell through FlowDirection.",
+                                  "Do keep the primary accent to one action per screen.",
+                                  "Do draw the focus ring on every focusable control, including custom ones.",
+                                  "Do add a new semantic role to the theme schema before using a new colour anywhere."
+                              ],
+                      "donts":  [
+                                    "Don\u0027t put a literal colour in a view, a control template, or a converter.",
+                                    "Don\u0027t introduce a shadow, a gradient, a glass effect, or a glow.",
+                                    "Don\u0027t communicate state with colour alone, and don\u0027t rely on hover as the only affordance.",
+                                    "Don\u0027t mirror a logo or a non-directional icon under right-to-left.",
+                                    "Don\u0027t put a SKU, barcode, phone number, or email inside an Arabic sentence without isolating it.",
+                                    "Don\u0027t hard-code a font size in a view - change the theme scale instead.",
+                                    "Don\u0027t show a raw exception string; state the condition and the next action in the user\u0027s language.",
+                                    "Don\u0027t round money for display twice - format from minor units once."
+                                ]
+                  }
+}

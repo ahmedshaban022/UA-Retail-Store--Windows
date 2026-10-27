@@ -1,0 +1,64 @@
+## .NET / Visual Studio
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.DotSettings.user
+
+## Build output
+artifacts/
+publish/
+*.publishsettings
+*.pubxml.user
+
+## Test output
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+coverage*.json
+coverage*.xml
+coverage*.info
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!packages/build/
+
+## SQLite (never commit live shop data)
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sdbak
+
+## StoreFlow backups / exports
+*.sfb
+*.sftheme.json
+exports/
+
+## OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+## Secrets
+*.pfx
+*.p12
+*.key
+*.pem
+secrets.json
+appsettings.*.local.json
+.env
+.env.*

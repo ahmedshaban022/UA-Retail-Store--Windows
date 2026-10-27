@@ -1,0 +1,112 @@
+<Window x:Class="StoreFlow.Desktop.Views.FirstRunWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:StoreFlow.Desktop.Controls"
+        Title="{Binding Title}"
+        Width="640"
+        Height="620"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Surface.Canvas}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+  <Grid Margin="32">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <StackPanel Grid.Row="0" Margin="0,0,0,20">
+      <TextBlock Text="{Binding Title}" Style="{StaticResource Type.Display}" />
+      <TextBlock Text="{Binding StepTitle}"
+                 Style="{StaticResource Type.SectionLabel}"
+                 Margin="0,6,0,0" />
+    </StackPanel>
+
+    <Border Grid.Row="1" Style="{StaticResource Surface.Card}">
+      <Grid>
+        <!-- Step 1: store details -->
+        <StackPanel Visibility="{Binding Step, Converter={StaticResource IntEqualsVisibility}, ConverterParameter=0}">
+          <TextBlock Text="{Binding StoreNameLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,0,0,6" />
+          <TextBox Text="{Binding StoreName, UpdateSourceTrigger=PropertyChanged}" />
+
+          <TextBlock Text="{Binding StoreNameLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
+          <TextBox Text="{Binding StoreNameAr, UpdateSourceTrigger=PropertyChanged}" FlowDirection="RightToLeft" />
+
+          <TextBlock Text="{Binding AddressLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
+          <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
+
+          <TextBlock Text="{Binding PhoneLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
+          <TextBox Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
+
+        <!-- Step 2: administrator account -->
+        <StackPanel Visibility="{Binding Step, Converter={StaticResource IntEqualsVisibility}, ConverterParameter=1}">
+          <TextBlock Text="{Binding DisplayNameLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,0,0,6" />
+          <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" />
+
+          <TextBlock Text="{Binding UsernameLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
+          <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" />
+
+          <TextBlock Text="{Binding PasswordLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
+          <PasswordBox controls:PasswordBoxBehavior.Password="{Binding Password}" />
+
+          <TextBlock Text="{Binding ConfirmPasswordLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
+          <PasswordBox controls:PasswordBoxBehavior.Password="{Binding ConfirmPassword}" />
+        </StackPanel>
+
+        <!-- Step 3: language and appearance -->
+        <StackPanel Visibility="{Binding Step, Converter={StaticResource IntEqualsVisibility}, ConverterParameter=2}">
+          <TextBlock Text="{Binding LanguageLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,0,0,6" />
+          <ComboBox ItemsSource="{Binding Languages}"
+                    SelectedItem="{Binding SelectedLanguage}"
+                    DisplayMemberPath="NativeName" />
+
+          <TextBlock Text="{Binding ThemeLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
+          <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedModeOption}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="2" Margin="0,20,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+
+      <TextBlock Grid.Column="0"
+                 Text="{Binding ErrorMessage}"
+                 Foreground="{DynamicResource State.Critical}"
+                 TextWrapping="Wrap"
+                 VerticalAlignment="Center"
+                 Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}" />
+
+      <Button Grid.Column="1"
+              Content="{Binding BackLabel}"
+              Command="{Binding BackCommand}"
+              AutomationProperties.AutomationId="FirstRun.Back"
+              Margin="0,0,8,0"
+              MinHeight="36"
+              Visibility="{Binding IsFirstStep, Converter={StaticResource BooleanToVisibility}, ConverterParameter=Invert}" />
+
+      <Button Grid.Column="2"
+              Content="{Binding NextLabel}"
+              Command="{Binding NextCommand}"
+              AutomationProperties.AutomationId="FirstRun.Next"
+              Style="{StaticResource Button.Primary}"
+              MinHeight="36"
+              Visibility="{Binding IsLastStep, Converter={StaticResource BooleanToVisibility}, ConverterParameter=Invert}" />
+
+      <Button Grid.Column="2"
+              Content="{Binding FinishLabel}"
+              Command="{Binding FinishCommand}"
+              AutomationProperties.AutomationId="FirstRun.Finish"
+              Style="{StaticResource Button.Primary}"
+              MinHeight="36"
+              Visibility="{Binding IsLastStep, Converter={StaticResource BooleanToVisibility}}" />
+    </Grid>
+  </Grid>
+</Window>

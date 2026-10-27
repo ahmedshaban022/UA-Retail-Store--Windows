@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A sample of WPF's composite font format, kept as a reference for the typography decision
+  recorded in docs/decisions/ADR-0004-typography.md.
+
+  It is NOT shipped with the application. Two reasons:
+
+    1. A composite font names its faces. It maps a range of characters to the name of a family
+       that WPF then looks up. The Arabic face is embedded rather than installed, and a composite
+       cannot name an embedded face.
+
+    2. WPF only treats a folder in the application's resources as a private font collection if
+       every file in it can be read. A composite font that WPF cannot parse takes the whole
+       collection down with it, and the symptom is a face that quietly resolves to the platform
+       fallback. The folder therefore holds the two faces and nothing else.
+
+  The format itself, for reference: the elements live in the composite font namespace, the
+  attributes are unqualified or in the XAML namespace, the family names are System.String values
+  keyed by language, and the maps carry the character ranges.
+
+  See also: docs/samples/README.md
+-->
+<FontFamily
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/composite-font"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+  <FontFamily.FamilyNames>
+    <sys:String x:Key="en-us">StoreFlow UI</sys:String>
+  </FontFamily.FamilyNames>
+
+  <FontFamily.FamilyMaps>
+    <FontFamilyMap Unicode="20-7E" Target="Segoe UI" />
+    <FontFamilyMap Unicode="600-6FF" Target="Tajawal" />
+  </FontFamily.FamilyMaps>
+
+  <FontFamily.FamilyTypefaces>
+    <FamilyTypeface Style="Normal" Weight="400" Stretch="Normal" />
+    <FamilyTypeface Style="Normal" Weight="700" Stretch="Normal" />
+  </FontFamily.FamilyTypefaces>
+
+</FontFamily>
