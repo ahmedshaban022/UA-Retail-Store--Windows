@@ -39,8 +39,44 @@
     <Setter Property="Foreground" Value="{DynamicResource Text.Secondary}" />
   </Style>
 
-  <!-- The implicit style keeps bare TextBlocks on-brand without every screen restating it. -->
-  <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}" />
+  <!-- The label above a form field. It sits close to the field it belongs to. -->
+  <Style x:Key="Type.FieldLabel" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Caption}">
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.Secondary}" />
+    <Setter Property="Margin" Value="0,0,0,4" />
+  </Style>
+
+  <!-- The message under a field that could not be accepted. It carries the words, not just a colour. -->
+  <Style x:Key="Type.Error" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Caption}">
+    <Setter Property="Foreground" Value="{DynamicResource State.Critical}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Margin" Value="0,4,0,0" />
+  </Style>
+
+  <!--
+    The implicit style keeps bare TextBlocks on-brand without every screen restating it. It sets
+    the type and deliberately leaves the colour alone: a label takes the colour of the thing it
+    sits in, so the label of a button on the dark accent is light while a label on the page is ink.
+    A style that set the colour here would win over that inheritance and paint every label in the
+    application the same shade, whatever it was sitting on.
+  -->
+  <Style TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Ui}" />
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+    <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+    <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+  </Style>
+
+  <!--
+    The ink of the interface. Every window carries it, and everything inside a window inherits it
+    unless it says otherwise, which is what gives a label its colour.
+  -->
+  <Style TargetType="{x:Type Window}">
+    <Setter Property="Foreground" Value="{DynamicResource Text.Primary}" />
+    <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Ui}" />
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+    <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+  </Style>
 
   <!-- Containers -->
 
@@ -77,10 +113,38 @@
     <Setter Property="SnapsToDevicePixels" Value="True" />
   </Style>
 
-  <!-- Numeric columns use tabular figures so digits line up vertically. -->
+  <!--
+    The state badge of a catalogue record. The word carries the state; the wash only reinforces it,
+    so the badge still reads in greyscale and to a colour-blind reader.
+  -->
+  <Style x:Key="Badge.Status" TargetType="{x:Type Border}" BasedOn="{StaticResource Badge}">
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding IsActive}" Value="True">
+        <Setter Property="Background" Value="{DynamicResource Accent.Subtle}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent.Default}" />
+      </DataTrigger>
+    </Style.Triggers>
+  </Style>
+
+  <!--
+    Numeric columns use tabular figures so digits line up vertically. The column keeps the direction
+    of the page, so the amount is read first and the currency after it in Arabic, and the same way
+    round in English. Forcing a left-to-right direction here would put the currency on the wrong
+    side of the amount in the Arabic interface.
+  -->
   <Style x:Key="Type.Numeric" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}">
     <Setter Property="HorizontalAlignment" Value="Right" />
     <Setter Property="TextAlignment" Value="Right" />
+  </Style>
+
+  <!--
+    An identifier — a stock-keeping unit code, a barcode, a phone number. These are read left to
+    right even inside an Arabic line, so they are given their own direction and never reordered
+    into the surrounding sentence.
+  -->
+  <Style x:Key="Type.Identifier" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}">
+    <Setter Property="FlowDirection" Value="LeftToRight" />
+    <Setter Property="TextAlignment" Value="Left" />
   </Style>
 
 </ResourceDictionary>

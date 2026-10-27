@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using StoreFlow.Desktop.Theming;
 
@@ -26,6 +27,38 @@ internal static class TestHost
         {
             // The property was already read, so WPF has fixed the application assembly. The tests
             // that need the desktop resources address them by assembly instead.
+        }
+    }
+
+    /// <summary>Runs an action on a single-threaded-apartment thread, as WPF requires.</summary>
+    /// <param name="action">The work to carry out.</param>
+    internal static void RunOnStaThread(Action action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+
+        Exception? failure = null;
+
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                action();
+            }
+#pragma warning disable CA1031 // The exception is captured and rethrown on the calling thread.
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+#pragma warning restore CA1031
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+
+        if (failure is not null)
+        {
+            throw failure;
         }
     }
 }

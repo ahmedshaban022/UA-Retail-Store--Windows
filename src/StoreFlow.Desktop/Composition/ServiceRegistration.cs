@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using StoreFlow.Application.Abstractions;
 using StoreFlow.Application.Authorization;
+using StoreFlow.Application.Catalog;
 using StoreFlow.Application.Common;
 using StoreFlow.Application.Identity;
 using StoreFlow.Application.Reporting;
@@ -14,6 +15,7 @@ using StoreFlow.Application.Theming;
 using StoreFlow.Desktop.Localization;
 using StoreFlow.Desktop.ViewModels;
 using StoreFlow.Infrastructure;
+using StoreFlow.Infrastructure.Catalog;
 using StoreFlow.Infrastructure.Export;
 using StoreFlow.Infrastructure.Identity;
 using StoreFlow.Infrastructure.Persistence;
@@ -75,6 +77,31 @@ public static class ServiceRegistration
         services.AddSingleton<ICommandHandler<CompleteSetupCommand, Result>, CompleteSetupCommandHandler>();
         services.AddSingleton<IQueryHandler<SetupStatusQuery, Result<SetupStatus>>, SetupStatusQueryHandler>();
 
+        // The catalogue. Authorisation is enforced inside these handlers, so the interface never
+        // decides who may do what (PRD §3).
+        services.AddSingleton<IProductImageStore, ProductImageStore>();
+
+        services.AddSingleton<ICommandHandler<SaveProductCommand, Result<int>>, SaveProductCommandHandler>();
+        services.AddSingleton<ICommandHandler<SetProductActiveCommand, Result>, SetProductActiveCommandHandler>();
+        services.AddSingleton<ICommandHandler<SaveCategoryCommand, Result<int>>, SaveCategoryCommandHandler>();
+        services.AddSingleton<ICommandHandler<SetCategoryActiveCommand, Result>, SetCategoryActiveCommandHandler>();
+        services.AddSingleton<ICommandHandler<SaveUnitCommand, Result<int>>, SaveUnitCommandHandler>();
+        services.AddSingleton<ICommandHandler<SetUnitActiveCommand, Result>, SetUnitActiveCommandHandler>();
+        services.AddSingleton<ICommandHandler<SaveSupplierCommand, Result<int>>, SaveSupplierCommandHandler>();
+        services.AddSingleton<ICommandHandler<SetSupplierActiveCommand, Result>, SetSupplierActiveCommandHandler>();
+        services.AddSingleton<ICommandHandler<ImportProductsCommand, Result<ImportSummary>>, ImportProductsCommandHandler>();
+        services.AddSingleton<ICommandHandler<ExportProductsCommand, Result<int>>, ExportProductsCommandHandler>();
+
+        services.AddSingleton<IQueryHandler<SearchProductsQuery, Result<ProductPage>>, SearchProductsQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetProductQuery, Result<ProductDetails>>, GetProductQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListCategoriesQuery, Result<IReadOnlyList<CategorySummary>>>, ListCategoriesQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListUnitsQuery, Result<IReadOnlyList<UnitSummary>>>, ListUnitsQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListSuppliersQuery, Result<IReadOnlyList<SupplierSummary>>>, ListSuppliersQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetCatalogReferenceDataQuery, Result<CatalogReferenceData>>, GetCatalogReferenceDataQueryHandler>();
+        services.AddSingleton<IQueryHandler<PreviewProductImportQuery, Result<ProductImportPreview>>, PreviewProductImportQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListAuditEntriesQuery, Result<IReadOnlyList<AuditEntryView>>>, ListAuditEntriesQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetProductAuditQuery, Result<IReadOnlyList<AuditEntryView>>>, GetProductAuditQueryHandler>();
+
         services.AddLogging(logging =>
         {
             logging.ClearProviders();
@@ -101,6 +128,17 @@ public static class ServiceRegistration
         services.AddTransient<SettingsViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<FirstRunViewModel>();
+
+        // The catalogue's screens. Each one is built fresh when the owner opens it, so it always
+        // shows what the database holds at that moment.
+        services.AddSingleton<ICatalogDialogs, CatalogDialogs>();
+        services.AddTransient<ProductsViewModel>();
+        services.AddTransient<CategoriesViewModel>();
+        services.AddTransient<UnitsViewModel>();
+        services.AddTransient<SuppliersViewModel>();
+        services.AddTransient<AuditViewModel>();
+        services.AddTransient<ProductEditorViewModel>();
+        services.AddTransient<CsvImportViewModel>();
 
         return services;
     }

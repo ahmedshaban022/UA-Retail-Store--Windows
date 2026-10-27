@@ -22,7 +22,8 @@
       <TextBlock Text="{Binding Title}" Style="{StaticResource Type.Display}" />
       <TextBlock Text="{Binding StepTitle}"
                  Style="{StaticResource Type.SectionLabel}"
-                 Margin="0,6,0,0" />
+                 Margin="0,6,0,0"
+                 AutomationProperties.AutomationId="FirstRun.StepTitle" />
     </StackPanel>
 
     <Border Grid.Row="1" Style="{StaticResource Surface.Card}">
@@ -82,6 +83,7 @@
                  Foreground="{DynamicResource State.Critical}"
                  TextWrapping="Wrap"
                  VerticalAlignment="Center"
+                 AutomationProperties.AutomationId="FirstRun.Error"
                  Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}" />
 
       <Button Grid.Column="1"

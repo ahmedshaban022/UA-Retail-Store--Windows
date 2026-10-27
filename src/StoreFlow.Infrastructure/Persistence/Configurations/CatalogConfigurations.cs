@@ -14,6 +14,10 @@ internal sealed class CatalogConfigurations : IEntityTypeConfiguration<Category>
 
         builder.Property(category => category.Name).HasMaxLength(120).IsRequired();
         builder.Property(category => category.NameAr).HasMaxLength(120);
+
+        // The catalogue's identifiers are matched without regard to case, so "Beverages" and
+        // "beverages" are the same category and the database refuses the second one.
+        builder.Property(category => category.Name).UseCollation("NOCASE");
         builder.HasIndex(category => category.Name).IsUnique();
 
         builder.Property(category => category.CreatedUtc).HasColumnType("TEXT");
@@ -31,6 +35,7 @@ internal sealed class UnitConfiguration : IEntityTypeConfiguration<Unit>
 
         builder.Property(unit => unit.Name).HasMaxLength(60).IsRequired();
         builder.Property(unit => unit.NameAr).HasMaxLength(60);
+        builder.Property(unit => unit.Name).UseCollation("NOCASE");
         builder.HasIndex(unit => unit.Name).IsUnique();
     }
 }
@@ -65,6 +70,11 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(product => product.Description).HasMaxLength(1000);
         builder.Property(product => product.Barcode).HasMaxLength(64);
         builder.Property(product => product.ImagePath).HasMaxLength(400);
+
+        // A stock-keeping unit code and a barcode are identifiers, and an identifier that differs
+        // only in case is the same identifier to the person typing it.
+        builder.Property(product => product.Sku).UseCollation("NOCASE");
+        builder.Property(product => product.Barcode).UseCollation("NOCASE");
 
         builder.Property(product => product.SalePrice).HasConversion(Converters.MoneyToMinorUnits);
         builder.Property(product => product.CostPrice).HasConversion(Converters.MoneyToMinorUnits);
@@ -105,6 +115,7 @@ internal sealed class ProductBarcodeConfiguration : IEntityTypeConfiguration<Pro
         builder.HasKey(barcode => barcode.Id);
 
         builder.Property(barcode => barcode.Barcode).HasMaxLength(64).IsRequired();
+        builder.Property(barcode => barcode.Barcode).UseCollation("NOCASE");
         builder.HasIndex(barcode => barcode.Barcode).IsUnique();
         builder.HasIndex(barcode => barcode.ProductId);
 
@@ -127,6 +138,7 @@ internal sealed class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
         builder.Property(supplier => supplier.NameAr).HasMaxLength(160);
         builder.Property(supplier => supplier.Phone).HasMaxLength(40);
         builder.Property(supplier => supplier.Notes).HasMaxLength(1000);
+        builder.Property(supplier => supplier.Name).UseCollation("NOCASE");
 
         builder.HasIndex(supplier => supplier.Name).IsUnique();
 

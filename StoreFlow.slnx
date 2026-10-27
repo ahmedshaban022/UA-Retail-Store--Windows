@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/StoreFlow.Application/StoreFlow.Application.csproj" />
+    <Project Path="src/StoreFlow.Desktop/StoreFlow.Desktop.csproj" />
+    <Project Path="src/StoreFlow.Domain/StoreFlow.Domain.csproj" />
+    <Project Path="src/StoreFlow.Infrastructure/StoreFlow.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/StoreFlow.Application.Tests/StoreFlow.Application.Tests.csproj" />
+    <Project Path="tests/StoreFlow.Desktop.Tests/StoreFlow.Desktop.Tests.csproj" />
+    <Project Path="tests/StoreFlow.Domain.Tests/StoreFlow.Domain.Tests.csproj" />
+    <Project Path="tests/StoreFlow.Infrastructure.Tests/StoreFlow.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

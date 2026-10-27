@@ -127,6 +127,7 @@ public sealed class DatabaseInitializer(
                 Permission.StockAdjust, Permission.StockApprove, Permission.SalesPost, Permission.SalesReturn,
                 Permission.SalesDiscountOverLimit, Permission.SalesPriceOverride, Permission.SalesView,
                 Permission.ReportView, Permission.ReportExport, Permission.SettingsManage, Permission.BackupCreate,
+                Permission.AuditView,
             ],
             [CashierRoleCode] =
             [

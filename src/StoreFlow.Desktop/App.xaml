@@ -19,6 +19,11 @@
       <controls:StringToVisibilityConverter x:Key="StringToVisibility" />
       <controls:BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
       <controls:IntEqualsVisibilityConverter x:Key="IntEqualsVisibility" />
+      <controls:InverseBooleanConverter x:Key="InverseBoolean" />
+      <controls:MoneyValueConverter x:Key="Money" />
+      <controls:CatalogStatusConverter x:Key="CatalogStatus" />
+      <controls:ProductImageConverter x:Key="ProductImage" />
+      <controls:TimestampValueConverter x:Key="Timestamp" />
 
       <!-- The shell shows a page by handing it a view model. Without these templates the content
            control would render the view model's type name instead of the screen. -->
@@ -28,6 +33,26 @@
 
       <DataTemplate DataType="{x:Type viewModels:SettingsViewModel}">
         <views:SettingsView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:ProductsViewModel}">
+        <views:ProductsView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:CategoriesViewModel}">
+        <views:CategoriesView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:UnitsViewModel}">
+        <views:UnitsView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:SuppliersViewModel}">
+        <views:SuppliersView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:AuditViewModel}">
+        <views:AuditView />
       </DataTemplate>
     </ResourceDictionary>
   </Application.Resources>

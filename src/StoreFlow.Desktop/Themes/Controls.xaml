@@ -18,6 +18,9 @@
     <Setter Property="Padding" Value="16,0" />
     <Setter Property="MinHeight" Value="{DynamicResource Size.ControlHeight}" />
     <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Ui}" />
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+    <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
     <Setter Property="SnapsToDevicePixels" Value="True" />
     <Setter Property="Template">
       <Setter.Value>
@@ -35,9 +38,12 @@
                     BorderThickness="{TemplateBinding BorderThickness}"
                     CornerRadius="{DynamicResource Size.CornerRadius}"
                     SnapsToDevicePixels="True">
+              <!-- The label takes its colour from the button, explicitly. Left to inheritance the
+                   label kept the page's ink, which put dark text on the dark accent. -->
               <ContentPresenter Margin="{TemplateBinding Padding}"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
+                                TextElement.Foreground="{TemplateBinding Foreground}"
                                 RecognizesAccessKey="True" />
             </Border>
           </Grid>
@@ -67,6 +73,7 @@
     <Setter Property="Background" Value="{DynamicResource Accent.Default}" />
     <Setter Property="Foreground" Value="{DynamicResource Accent.On}" />
     <Setter Property="BorderBrush" Value="{DynamicResource Accent.Default}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
   <Style x:Key="Button.Danger" TargetType="{x:Type Button}" BasedOn="{StaticResource Button.Base}">
@@ -497,6 +504,10 @@
     <Setter Property="SelectionUnit" Value="FullRow" />
     <Setter Property="EnableRowVirtualization" Value="True" />
     <Setter Property="EnableColumnVirtualization" Value="True" />
+    <!-- Below the width its columns need, the grid scrolls sideways rather than crushing a column
+         until it cannot be read. -->
+    <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+    <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
     <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
     <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
     <Setter Property="RowHeight" Value="{DynamicResource Size.RowHeight}" />
@@ -512,7 +523,6 @@
     <Setter Property="BorderBrush" Value="{DynamicResource Border.Subtle}" />
     <Setter Property="BorderThickness" Value="0,0,0,1" />
     <Setter Property="Padding" Value="10,8" />
-    <Setter Property="HorizontalContentAlignment" Value="Left" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Template">
       <Setter.Value>
@@ -523,8 +533,11 @@
                   BorderThickness="{TemplateBinding BorderThickness}"
                   Padding="{TemplateBinding Padding}"
                   SnapsToDevicePixels="True">
-            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                              VerticalAlignment="Center" />
+            <!-- The header fills the column and the label inside it decides where the words sit, so
+                 the heading follows the reading direction of the page rather than sitting on one
+                 side of the column in both languages. -->
+            <ContentPresenter VerticalAlignment="Center"
+                              HorizontalAlignment="Stretch" />
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True">

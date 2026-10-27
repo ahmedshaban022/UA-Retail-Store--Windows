@@ -69,5 +69,46 @@ public static class SchemaTriggers
         BEGIN
             SELECT RAISE(ABORT, 'Posted purchase lines are immutable');
         END;
+
+        -- A barcode belongs to at most one product (PRD PRD-03, PRD-08). The unique index on each
+        -- barcode column stops a duplicate inside one table; these triggers stop a barcode being the
+        -- primary code of one product and an extra code of another, which no single index can catch.
+        CREATE TRIGGER IF NOT EXISTS trg_Products_BarcodeNotTaken
+        BEFORE INSERT ON Products
+        WHEN NEW.Barcode IS NOT NULL AND NEW.Barcode <> ''
+             AND EXISTS (
+                 SELECT 1 FROM ProductBarcodes
+                 WHERE Barcode = NEW.Barcode COLLATE NOCASE AND ProductId <> NEW.Id)
+        BEGIN
+            SELECT RAISE(ABORT, 'Barcode already belongs to a product');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_Products_BarcodeNotTakenOnUpdate
+        BEFORE UPDATE OF Barcode ON Products
+        WHEN NEW.Barcode IS NOT NULL AND NEW.Barcode <> ''
+             AND EXISTS (
+                 SELECT 1 FROM ProductBarcodes
+                 WHERE Barcode = NEW.Barcode COLLATE NOCASE AND ProductId <> NEW.Id)
+        BEGIN
+            SELECT RAISE(ABORT, 'Barcode already belongs to a product');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_ProductBarcodes_NotTaken
+        BEFORE INSERT ON ProductBarcodes
+        WHEN EXISTS (
+            SELECT 1 FROM Products
+            WHERE Barcode = NEW.Barcode COLLATE NOCASE AND Id <> NEW.ProductId)
+        BEGIN
+            SELECT RAISE(ABORT, 'Barcode already belongs to a product');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_ProductBarcodes_NotTakenOnUpdate
+        BEFORE UPDATE OF Barcode, ProductId ON ProductBarcodes
+        WHEN EXISTS (
+            SELECT 1 FROM Products
+            WHERE Barcode = NEW.Barcode COLLATE NOCASE AND Id <> NEW.ProductId)
+        BEGIN
+            SELECT RAISE(ABORT, 'Barcode already belongs to a product');
+        END;
         """;
 }

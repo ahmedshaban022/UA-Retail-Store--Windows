@@ -192,4 +192,364 @@
   <data name="Settings.Theme" xml:space="preserve">
     <value>المظهر</value>
   </data>
+  <data name="Audit.Action" xml:space="preserve">
+    <value>الإجراء</value>
+  </data>
+  <data name="Audit.Empty" xml:space="preserve">
+    <value>لم يتم تسجيل أي شيء بعد.</value>
+  </data>
+  <data name="Audit.EntityType" xml:space="preserve">
+    <value>النوع</value>
+  </data>
+  <data name="Audit.Search" xml:space="preserve">
+    <value>ابحث في السجل</value>
+  </data>
+  <data name="Audit.Summary" xml:space="preserve">
+    <value>ملخص</value>
+  </data>
+  <data name="Audit.Title" xml:space="preserve">
+    <value>سجل التدقيق</value>
+  </data>
+  <data name="Audit.When" xml:space="preserve">
+    <value>الوقت</value>
+  </data>
+  <data name="Audit.Who" xml:space="preserve">
+    <value>من</value>
+  </data>
+  <data name="Categories.Empty" xml:space="preserve">
+    <value>لا توجد فئات بعد. أضف فئة واحدة لتجمع منتجاتك.</value>
+  </data>
+  <data name="Categories.Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Categories.NameAr" xml:space="preserve">
+    <value>الاسم بالعربية</value>
+  </data>
+  <data name="Categories.New" xml:space="preserve">
+    <value>فئة جديدة</value>
+  </data>
+  <data name="Categories.Products" xml:space="preserve">
+    <value>المنتجات</value>
+  </data>
+  <data name="Categories.Title" xml:space="preserve">
+    <value>الفئات</value>
+  </data>
+  <data name="Common.Activate" xml:space="preserve">
+    <value>تفعيل</value>
+  </data>
+  <data name="Common.Add" xml:space="preserve">
+    <value>إضافة</value>
+  </data>
+  <data name="Common.All" xml:space="preserve">
+    <value>الكل</value>
+  </data>
+  <data name="Common.Browse" xml:space="preserve">
+    <value>استعراض</value>
+  </data>
+  <data name="Common.Deactivate" xml:space="preserve">
+    <value>إيقاف</value>
+  </data>
+  <data name="Common.Edit" xml:space="preserve">
+    <value>تعديل</value>
+  </data>
+  <data name="Common.Export" xml:space="preserve">
+    <value>تصدير</value>
+  </data>
+  <data name="Common.Import" xml:space="preserve">
+    <value>استيراد</value>
+  </data>
+  <data name="Common.Line" xml:space="preserve">
+    <value>سطر</value>
+  </data>
+  <data name="Common.Problems" xml:space="preserve">
+    <value>المشاكل</value>
+  </data>
+  <data name="Common.Remove" xml:space="preserve">
+    <value>إزالة</value>
+  </data>
+  <data name="Common.ShowInactive" xml:space="preserve">
+    <value>إظهار غير النشط</value>
+  </data>
+  <data name="Common.Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Csv.Action" xml:space="preserve">
+    <value>الإجراء</value>
+  </data>
+  <data name="Csv.ActionCreate" xml:space="preserve">
+    <value>جديد</value>
+  </data>
+  <data name="Csv.ActionInvalid" xml:space="preserve">
+    <value>مشكلة</value>
+  </data>
+  <data name="Csv.ActionUpdate" xml:space="preserve">
+    <value>تحديث</value>
+  </data>
+  <data name="Csv.Category" xml:space="preserve">
+    <value>الفئة</value>
+  </data>
+  <data name="Csv.ChooseFile" xml:space="preserve">
+    <value>اختر ملفًا</value>
+  </data>
+  <data name="Csv.Empty" xml:space="preserve">
+    <value>الملف فارغ.</value>
+  </data>
+  <data name="Csv.File" xml:space="preserve">
+    <value>الملف</value>
+  </data>
+  <data name="Csv.Mode" xml:space="preserve">
+    <value>عند وجود الكود مسبقًا</value>
+  </data>
+  <data name="Csv.ModeCreateOnly" xml:space="preserve">
+    <value>تجاهل هذا السطر</value>
+  </data>
+  <data name="Csv.ModeUpsert" xml:space="preserve">
+    <value>تحديث ذلك المنتج</value>
+  </data>
+  <data name="Csv.Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Csv.Ready" xml:space="preserve">
+    <value>{0} سطر جاهز، و{1} سطر به مشاكل.</value>
+  </data>
+  <data name="Csv.SalePrice" xml:space="preserve">
+    <value>سعر البيع</value>
+  </data>
+  <data name="Csv.Sku" xml:space="preserve">
+    <value>الكود</value>
+  </data>
+  <data name="Csv.Title" xml:space="preserve">
+    <value>استيراد المنتجات من ملف</value>
+  </data>
+  <data name="Csv.Unit" xml:space="preserve">
+    <value>الوحدة</value>
+  </data>
+  <data name="Error.BarcodeInUse" xml:space="preserve">
+    <value>الباركود {0} مسجل بالفعل لمنتج آخر.</value>
+  </data>
+  <data name="Error.DuplicateBarcode" xml:space="preserve">
+    <value>الباركود {0} مستخدم بالفعل لمنتج آخر.</value>
+  </data>
+  <data name="Error.DuplicateName" xml:space="preserve">
+    <value>توجد بالفعل {0} باسم {1}.</value>
+  </data>
+  <data name="Error.DuplicateSku" xml:space="preserve">
+    <value>الكود {0} مستخدم بالفعل لمنتج آخر.</value>
+  </data>
+  <data name="Error.ImageNotFound" xml:space="preserve">
+    <value>لم تعد هذه الصورة موجودة. اخترها مرة أخرى.</value>
+  </data>
+  <data name="Error.ImageTooLarge" xml:space="preserve">
+    <value>لا يمكن أن تكون الصورة أكبر من {0} ميجابايت.</value>
+  </data>
+  <data name="Error.ImageUnsupported" xml:space="preserve">
+    <value>هذا الملف ليس صورة يمكن للمتجر استخدامها. اختر ملف PNG أو JPEG أو GIF أو BMP أو WEBP.</value>
+  </data>
+  <data name="Error.ImageWriteFailed" xml:space="preserve">
+    <value>لم يتم حفظ الصورة. جرّب ملفًا آخر.</value>
+  </data>
+  <data name="Error.ImportFileNotReadable" xml:space="preserve">
+    <value>تعذر فتح الملف. أغلقه في Excel وحاول مرة أخرى.</value>
+  </data>
+  <data name="Error.InvalidBarcode" xml:space="preserve">
+    <value>لا يمكن أن يحتوي الباركود على مسافات أو رموز تحكم.</value>
+  </data>
+  <data name="Error.InvalidPrecision" xml:space="preserve">
+    <value>يجب أن تكون دقة الوحدة بين 0 و{0} خانة عشرية.</value>
+  </data>
+  <data name="Error.InvalidReference" xml:space="preserve">
+    <value>أحد الاختيارات لم يعد متاحًا. اختره مرة أخرى.</value>
+  </data>
+  <data name="Error.NegativePrice" xml:space="preserve">
+    <value>لا يمكن أن يكون السعر سالبًا.</value>
+  </data>
+  <data name="Error.NegativeQuantity" xml:space="preserve">
+    <value>لا يمكن أن تكون الكمية سالبة.</value>
+  </data>
+  <data name="Error.NotAuthorized" xml:space="preserve">
+    <value>دورك لا يسمح بهذا الإجراء.</value>
+  </data>
+  <data name="Error.NotFound" xml:space="preserve">
+    <value>لم يعد هذا السجل موجودًا.</value>
+  </data>
+  <data name="Error.PrecisionInUse" xml:space="preserve">
+    <value>هذه الوحدة مستخدمة في منتجات، لذلك لا يمكن تغيير دقتها. أنشئ وحدة جديدة بدلًا من ذلك.</value>
+  </data>
+  <data name="Error.Required" xml:space="preserve">
+    <value>{0} مطلوب.</value>
+  </data>
+  <data name="Error.TooLong" xml:space="preserve">
+    <value>لا يمكن أن يكون طول هذه القيمة أكثر من {0} حرفًا.</value>
+  </data>
+  <data name="Nav.Categories" xml:space="preserve">
+    <value>الفئات</value>
+  </data>
+  <data name="Nav.Suppliers" xml:space="preserve">
+    <value>الموردون</value>
+  </data>
+  <data name="Nav.Units" xml:space="preserve">
+    <value>الوحدات</value>
+  </data>
+  <data name="ProductEditor.Active" xml:space="preserve">
+    <value>متاح للبيع</value>
+  </data>
+  <data name="ProductEditor.AddBarcode" xml:space="preserve">
+    <value>إضافة باركود</value>
+  </data>
+  <data name="ProductEditor.AdditionalBarcodes" xml:space="preserve">
+    <value>باركودات أخرى</value>
+  </data>
+  <data name="ProductEditor.Barcode" xml:space="preserve">
+    <value>الباركود</value>
+  </data>
+  <data name="ProductEditor.Category" xml:space="preserve">
+    <value>الفئة</value>
+  </data>
+  <data name="ProductEditor.ChooseImage" xml:space="preserve">
+    <value>اختر صورة</value>
+  </data>
+  <data name="ProductEditor.CostPrice" xml:space="preserve">
+    <value>سعر التكلفة</value>
+  </data>
+  <data name="ProductEditor.Description" xml:space="preserve">
+    <value>الوصف</value>
+  </data>
+  <data name="ProductEditor.History" xml:space="preserve">
+    <value>السجل</value>
+  </data>
+  <data name="ProductEditor.HistoryEmpty" xml:space="preserve">
+    <value>لم يتم تسجيل أي تغييرات لهذا المنتج بعد.</value>
+  </data>
+  <data name="ProductEditor.Image" xml:space="preserve">
+    <value>الصورة</value>
+  </data>
+  <data name="ProductEditor.Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="ProductEditor.NameAr" xml:space="preserve">
+    <value>الاسم بالعربية</value>
+  </data>
+  <data name="ProductEditor.ReorderLevel" xml:space="preserve">
+    <value>حد إعادة الطلب</value>
+  </data>
+  <data name="ProductEditor.RemoveImage" xml:space="preserve">
+    <value>إزالة الصورة</value>
+  </data>
+  <data name="ProductEditor.SalePrice" xml:space="preserve">
+    <value>سعر البيع</value>
+  </data>
+  <data name="ProductEditor.Sku" xml:space="preserve">
+    <value>كود الصنف</value>
+  </data>
+  <data name="ProductEditor.TaxCategory" xml:space="preserve">
+    <value>فئة الضريبة</value>
+  </data>
+  <data name="ProductEditor.TitleEdit" xml:space="preserve">
+    <value>تعديل المنتج</value>
+  </data>
+  <data name="ProductEditor.TitleNew" xml:space="preserve">
+    <value>منتج جديد</value>
+  </data>
+  <data name="ProductEditor.Unit" xml:space="preserve">
+    <value>وحدة البيع</value>
+  </data>
+  <data name="Products.Activated" xml:space="preserve">
+    <value>{0} أصبح نشطًا مرة أخرى.</value>
+  </data>
+  <data name="Products.Active" xml:space="preserve">
+    <value>نشط</value>
+  </data>
+  <data name="Products.Barcode" xml:space="preserve">
+    <value>الباركود</value>
+  </data>
+  <data name="Products.Category" xml:space="preserve">
+    <value>الفئة</value>
+  </data>
+  <data name="Products.CostPrice" xml:space="preserve">
+    <value>التكلفة</value>
+  </data>
+  <data name="Products.Deactivated" xml:space="preserve">
+    <value>تم إيقاف {0}. تم الاحتفاظ بسجله.</value>
+  </data>
+  <data name="Products.Empty" xml:space="preserve">
+    <value>لا توجد منتجات بعد. أضف أول منتج لتبدأ البيع.</value>
+  </data>
+  <data name="Products.Exported" xml:space="preserve">
+    <value>تم كتابة {0} منتج في الملف.</value>
+  </data>
+  <data name="Products.Inactive" xml:space="preserve">
+    <value>غير نشط</value>
+  </data>
+  <data name="Products.Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Products.NameAr" xml:space="preserve">
+    <value>الاسم بالعربية</value>
+  </data>
+  <data name="Products.New" xml:space="preserve">
+    <value>منتج جديد</value>
+  </data>
+  <data name="Products.NoMatches" xml:space="preserve">
+    <value>لا يوجد منتج يطابق هذا البحث.</value>
+  </data>
+  <data name="Products.SalePrice" xml:space="preserve">
+    <value>سعر البيع</value>
+  </data>
+  <data name="Products.Search" xml:space="preserve">
+    <value>ابحث بالاسم أو الكود أو الباركود</value>
+  </data>
+  <data name="Products.Sku" xml:space="preserve">
+    <value>الكود</value>
+  </data>
+  <data name="Products.Title" xml:space="preserve">
+    <value>المنتجات</value>
+  </data>
+  <data name="Products.Uncategorized" xml:space="preserve">
+    <value>بدون تصنيف</value>
+  </data>
+  <data name="Products.Unit" xml:space="preserve">
+    <value>الوحدة</value>
+  </data>
+  <data name="Suppliers.Empty" xml:space="preserve">
+    <value>لا يوجد موردون بعد. أضف موردًا لتسجل ما تشتريه.</value>
+  </data>
+  <data name="Suppliers.Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Suppliers.NameAr" xml:space="preserve">
+    <value>الاسم بالعربية</value>
+  </data>
+  <data name="Suppliers.New" xml:space="preserve">
+    <value>مورد جديد</value>
+  </data>
+  <data name="Suppliers.Notes" xml:space="preserve">
+    <value>ملاحظات</value>
+  </data>
+  <data name="Suppliers.Phone" xml:space="preserve">
+    <value>الهاتف</value>
+  </data>
+  <data name="Suppliers.Title" xml:space="preserve">
+    <value>الموردون</value>
+  </data>
+  <data name="Units.Empty" xml:space="preserve">
+    <value>لا توجد وحدات بعد. أضف وحدة للبيع بالوزن أو بالحجم.</value>
+  </data>
+  <data name="Units.Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Units.NameAr" xml:space="preserve">
+    <value>الاسم بالعربية</value>
+  </data>
+  <data name="Units.New" xml:space="preserve">
+    <value>وحدة جديدة</value>
+  </data>
+  <data name="Units.Precision" xml:space="preserve">
+    <value>الخانات العشرية</value>
+  </data>
+  <data name="Units.Products" xml:space="preserve">
+    <value>المنتجات</value>
+  </data>
+  <data name="Units.Title" xml:space="preserve">
+    <value>الوحدات</value>
+  </data>
 </root>

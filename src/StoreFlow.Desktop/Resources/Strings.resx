@@ -192,4 +192,364 @@
   <data name="Settings.Theme" xml:space="preserve">
     <value>Appearance</value>
   </data>
+  <data name="Audit.Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Audit.Empty" xml:space="preserve">
+    <value>Nothing has been recorded yet.</value>
+  </data>
+  <data name="Audit.EntityType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Audit.Search" xml:space="preserve">
+    <value>Search the trail</value>
+  </data>
+  <data name="Audit.Summary" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="Audit.Title" xml:space="preserve">
+    <value>Audit trail</value>
+  </data>
+  <data name="Audit.When" xml:space="preserve">
+    <value>When</value>
+  </data>
+  <data name="Audit.Who" xml:space="preserve">
+    <value>Who</value>
+  </data>
+  <data name="Categories.Empty" xml:space="preserve">
+    <value>No categories yet. Add one to group your products.</value>
+  </data>
+  <data name="Categories.Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Categories.NameAr" xml:space="preserve">
+    <value>Arabic name</value>
+  </data>
+  <data name="Categories.New" xml:space="preserve">
+    <value>New category</value>
+  </data>
+  <data name="Categories.Products" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Categories.Title" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="Common.Activate" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="Common.Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Common.All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Common.Browse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="Common.Deactivate" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="Common.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Common.Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Common.Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Common.Line" xml:space="preserve">
+    <value>Line</value>
+  </data>
+  <data name="Common.Problems" xml:space="preserve">
+    <value>Problems</value>
+  </data>
+  <data name="Common.Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Common.ShowInactive" xml:space="preserve">
+    <value>Show inactive</value>
+  </data>
+  <data name="Common.Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Csv.Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Csv.ActionCreate" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="Csv.ActionInvalid" xml:space="preserve">
+    <value>Problem</value>
+  </data>
+  <data name="Csv.ActionUpdate" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Csv.Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Csv.ChooseFile" xml:space="preserve">
+    <value>Choose file</value>
+  </data>
+  <data name="Csv.Empty" xml:space="preserve">
+    <value>The file is empty.</value>
+  </data>
+  <data name="Csv.File" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="Csv.Mode" xml:space="preserve">
+    <value>When the code already exists</value>
+  </data>
+  <data name="Csv.ModeCreateOnly" xml:space="preserve">
+    <value>Leave that row out</value>
+  </data>
+  <data name="Csv.ModeUpsert" xml:space="preserve">
+    <value>Update that product</value>
+  </data>
+  <data name="Csv.Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Csv.Ready" xml:space="preserve">
+    <value>{0} rows ready, {1} rows have problems.</value>
+  </data>
+  <data name="Csv.SalePrice" xml:space="preserve">
+    <value>Selling price</value>
+  </data>
+  <data name="Csv.Sku" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Csv.Title" xml:space="preserve">
+    <value>Import products from a file</value>
+  </data>
+  <data name="Csv.Unit" xml:space="preserve">
+    <value>Unit</value>
+  </data>
+  <data name="Error.BarcodeInUse" xml:space="preserve">
+    <value>The barcode {0} already belongs to another product.</value>
+  </data>
+  <data name="Error.DuplicateBarcode" xml:space="preserve">
+    <value>The barcode {0} is already used by another product.</value>
+  </data>
+  <data name="Error.DuplicateName" xml:space="preserve">
+    <value>There is already a {0} called {1}.</value>
+  </data>
+  <data name="Error.DuplicateSku" xml:space="preserve">
+    <value>The code {0} is already used by another product.</value>
+  </data>
+  <data name="Error.ImageNotFound" xml:space="preserve">
+    <value>This picture is no longer there. Choose it again.</value>
+  </data>
+  <data name="Error.ImageTooLarge" xml:space="preserve">
+    <value>A picture cannot be larger than {0} megabytes.</value>
+  </data>
+  <data name="Error.ImageUnsupported" xml:space="preserve">
+    <value>This file is not a picture the store can use. Choose a PNG, JPEG, GIF, BMP or WEBP file.</value>
+  </data>
+  <data name="Error.ImageWriteFailed" xml:space="preserve">
+    <value>The picture could not be saved. Try a different file.</value>
+  </data>
+  <data name="Error.ImportFileNotReadable" xml:space="preserve">
+    <value>The file could not be opened. Close it in Excel and try again.</value>
+  </data>
+  <data name="Error.InvalidBarcode" xml:space="preserve">
+    <value>A barcode cannot contain spaces or control characters.</value>
+  </data>
+  <data name="Error.InvalidPrecision" xml:space="preserve">
+    <value>The unit precision must be between 0 and {0} decimal places.</value>
+  </data>
+  <data name="Error.InvalidReference" xml:space="preserve">
+    <value>One of the choices is no longer available. Choose it again.</value>
+  </data>
+  <data name="Error.NegativePrice" xml:space="preserve">
+    <value>A price cannot be negative.</value>
+  </data>
+  <data name="Error.NegativeQuantity" xml:space="preserve">
+    <value>A quantity cannot be negative.</value>
+  </data>
+  <data name="Error.NotAuthorized" xml:space="preserve">
+    <value>Your role does not allow this action.</value>
+  </data>
+  <data name="Error.NotFound" xml:space="preserve">
+    <value>This record no longer exists.</value>
+  </data>
+  <data name="Error.PrecisionInUse" xml:space="preserve">
+    <value>This unit is used by products, so its precision cannot be changed. Create a new unit instead.</value>
+  </data>
+  <data name="Error.Required" xml:space="preserve">
+    <value>{0} is required.</value>
+  </data>
+  <data name="Error.TooLong" xml:space="preserve">
+    <value>This value cannot be longer than {0} characters.</value>
+  </data>
+  <data name="Nav.Categories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="Nav.Suppliers" xml:space="preserve">
+    <value>Suppliers</value>
+  </data>
+  <data name="Nav.Units" xml:space="preserve">
+    <value>Units</value>
+  </data>
+  <data name="ProductEditor.Active" xml:space="preserve">
+    <value>Available for sale</value>
+  </data>
+  <data name="ProductEditor.AddBarcode" xml:space="preserve">
+    <value>Add barcode</value>
+  </data>
+  <data name="ProductEditor.AdditionalBarcodes" xml:space="preserve">
+    <value>Other barcodes</value>
+  </data>
+  <data name="ProductEditor.Barcode" xml:space="preserve">
+    <value>Barcode</value>
+  </data>
+  <data name="ProductEditor.Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="ProductEditor.ChooseImage" xml:space="preserve">
+    <value>Choose picture</value>
+  </data>
+  <data name="ProductEditor.CostPrice" xml:space="preserve">
+    <value>Cost price</value>
+  </data>
+  <data name="ProductEditor.Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="ProductEditor.History" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="ProductEditor.HistoryEmpty" xml:space="preserve">
+    <value>No changes have been recorded for this product yet.</value>
+  </data>
+  <data name="ProductEditor.Image" xml:space="preserve">
+    <value>Picture</value>
+  </data>
+  <data name="ProductEditor.Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ProductEditor.NameAr" xml:space="preserve">
+    <value>Arabic name</value>
+  </data>
+  <data name="ProductEditor.ReorderLevel" xml:space="preserve">
+    <value>Reorder level</value>
+  </data>
+  <data name="ProductEditor.RemoveImage" xml:space="preserve">
+    <value>Remove picture</value>
+  </data>
+  <data name="ProductEditor.SalePrice" xml:space="preserve">
+    <value>Selling price</value>
+  </data>
+  <data name="ProductEditor.Sku" xml:space="preserve">
+    <value>Stock-keeping unit code</value>
+  </data>
+  <data name="ProductEditor.TaxCategory" xml:space="preserve">
+    <value>Tax category</value>
+  </data>
+  <data name="ProductEditor.TitleEdit" xml:space="preserve">
+    <value>Edit product</value>
+  </data>
+  <data name="ProductEditor.TitleNew" xml:space="preserve">
+    <value>New product</value>
+  </data>
+  <data name="ProductEditor.Unit" xml:space="preserve">
+    <value>Selling unit</value>
+  </data>
+  <data name="Products.Activated" xml:space="preserve">
+    <value>{0} is active again.</value>
+  </data>
+  <data name="Products.Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Products.Barcode" xml:space="preserve">
+    <value>Barcode</value>
+  </data>
+  <data name="Products.Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Products.CostPrice" xml:space="preserve">
+    <value>Cost</value>
+  </data>
+  <data name="Products.Deactivated" xml:space="preserve">
+    <value>{0} was deactivated. Its history is kept.</value>
+  </data>
+  <data name="Products.Empty" xml:space="preserve">
+    <value>No products yet. Add the first one to start selling.</value>
+  </data>
+  <data name="Products.Exported" xml:space="preserve">
+    <value>{0} products were written to the file.</value>
+  </data>
+  <data name="Products.Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="Products.Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Products.NameAr" xml:space="preserve">
+    <value>Arabic name</value>
+  </data>
+  <data name="Products.New" xml:space="preserve">
+    <value>New product</value>
+  </data>
+  <data name="Products.NoMatches" xml:space="preserve">
+    <value>No product matches this search.</value>
+  </data>
+  <data name="Products.SalePrice" xml:space="preserve">
+    <value>Selling price</value>
+  </data>
+  <data name="Products.Search" xml:space="preserve">
+    <value>Search by name, code or barcode</value>
+  </data>
+  <data name="Products.Sku" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Products.Title" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Products.Uncategorized" xml:space="preserve">
+    <value>Uncategorized</value>
+  </data>
+  <data name="Products.Unit" xml:space="preserve">
+    <value>Unit</value>
+  </data>
+  <data name="Suppliers.Empty" xml:space="preserve">
+    <value>No suppliers yet. Add one to record what you buy.</value>
+  </data>
+  <data name="Suppliers.Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Suppliers.NameAr" xml:space="preserve">
+    <value>Arabic name</value>
+  </data>
+  <data name="Suppliers.New" xml:space="preserve">
+    <value>New supplier</value>
+  </data>
+  <data name="Suppliers.Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Suppliers.Phone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Suppliers.Title" xml:space="preserve">
+    <value>Suppliers</value>
+  </data>
+  <data name="Units.Empty" xml:space="preserve">
+    <value>No units yet. Add one to sell by weight or volume.</value>
+  </data>
+  <data name="Units.Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Units.NameAr" xml:space="preserve">
+    <value>Arabic name</value>
+  </data>
+  <data name="Units.New" xml:space="preserve">
+    <value>New unit</value>
+  </data>
+  <data name="Units.Precision" xml:space="preserve">
+    <value>Decimal places</value>
+  </data>
+  <data name="Units.Products" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Units.Title" xml:space="preserve">
+    <value>Units</value>
+  </data>
 </root>

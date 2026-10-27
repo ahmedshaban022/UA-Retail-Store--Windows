@@ -9,10 +9,18 @@ public sealed class AppPaths
     /// <summary>The folder name used under the application-data root.</summary>
     public const string ApplicationFolderName = "StoreFlow";
 
+    /// <summary>
+    /// The environment variable that points the application at a different data root. It exists so
+    /// a portable installation, and a test run, can keep their data somewhere of their own choosing.
+    /// </summary>
+    public const string RootOverrideVariable = "STOREFLOW_HOME";
+
     /// <summary>Creates the paths rooted at the user's application-data folder.</summary>
+    /// <param name="rootOverride">The data root to use, or null to use the default.</param>
     public AppPaths(string? rootOverride = null)
     {
         RootDirectory = rootOverride
+                        ?? Environment.GetEnvironmentVariable(RootOverrideVariable)
                         ?? Path.Combine(
                             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                             ApplicationFolderName);

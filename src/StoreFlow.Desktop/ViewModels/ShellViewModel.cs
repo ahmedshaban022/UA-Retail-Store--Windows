@@ -24,6 +24,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private readonly IUserSession _session;
     private readonly IThemeService _themeService;
 
+    private string _currentKey = "Dashboard";
+
     [ObservableProperty]
     private object? _currentContent;
 
@@ -62,20 +64,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
         _languageService.LanguageChanged += OnLanguageChanged;
 
-        NavigationItems =
-        [
-            new("Dashboard", "▤", strings[StringKeys.NavDashboard]),
-            new("Products", "▦", strings[StringKeys.NavProducts], IsAvailable: false),
-            new("Purchases", "▤", strings[StringKeys.NavPurchases], IsAvailable: false),
-            new("Inventory", "▣", strings[StringKeys.NavInventory], IsAvailable: false),
-            new("Pos", "▶", strings[StringKeys.NavPos], IsAvailable: false),
-            new("Sales", "≡", strings[StringKeys.NavSales], IsAvailable: false),
-            new("Reports", "◫", strings[StringKeys.NavReports], IsAvailable: false),
-            new("Users", "◉", strings[StringKeys.NavUsers], IsAvailable: false),
-            new("Settings", "⚙", strings[StringKeys.NavSettings]),
-            new("Backup", "⛁", strings[StringKeys.NavBackup], IsAvailable: false),
-            new("Audit", "✎", strings[StringKeys.NavAudit], IsAvailable: false),
-        ];
+        BuildNavigationItems();
 
         SelectedLanguage = LanguageService.Available
             .FirstOrDefault(option => option.Code == _languageService.CurrentLanguage)
@@ -84,8 +73,46 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         ApplySession();
     }
 
+    /// <summary>
+    /// Builds the navigation rail. The catalogue's screens are placed together, because they are
+    /// used together; the screens that arrive with later phases stay in the rail, greyed out, so the
+    /// shape of the application is visible from the start.
+    /// </summary>
+    private void BuildNavigationItems()
+    {
+        ShellNavItem[] items =
+        [
+            new("Dashboard", "▤", _strings[StringKeys.NavDashboard]),
+            new("Products", "▦", _strings[StringKeys.NavProducts]),
+            new("Categories", "▧", _strings[StringKeys.NavCategories]),
+            new("Units", "◔", _strings[StringKeys.NavUnits]),
+            new("Suppliers", "⇄", _strings[StringKeys.NavSuppliers]),
+            new("Purchases", "▥", _strings[StringKeys.NavPurchases], IsAvailable: false),
+            new("Inventory", "▣", _strings[StringKeys.NavInventory], IsAvailable: false),
+            new("Pos", "▶", _strings[StringKeys.NavPos], IsAvailable: false),
+            new("Sales", "≡", _strings[StringKeys.NavSales], IsAvailable: false),
+            new("Reports", "◫", _strings[StringKeys.NavReports], IsAvailable: false),
+            new("Users", "◉", _strings[StringKeys.NavUsers], IsAvailable: false),
+            new("Settings", "⚙", _strings[StringKeys.NavSettings]),
+            new("Backup", "⛁", _strings[StringKeys.NavBackup], IsAvailable: false),
+            new("Audit", "✎", _strings[StringKeys.NavAudit]),
+        ];
+
+        for (int index = 0; index < items.Length; index++)
+        {
+            if (index < NavigationItems.Count)
+            {
+                NavigationItems[index] = items[index];
+            }
+            else
+            {
+                NavigationItems.Add(items[index]);
+            }
+        }
+    }
+
     /// <summary>The entries in the navigation rail.</summary>
-    public ObservableCollection<ShellNavItem> NavigationItems { get; }
+    public ObservableCollection<ShellNavItem> NavigationItems { get; } = [];
 
     /// <summary>The title of the current page.</summary>
     public string CurrentTitle { get => PageTitle; private set => PageTitle = value; }
@@ -110,6 +137,11 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         object? content = key switch
         {
             "Dashboard" => _services.GetService(typeof(DashboardViewModel)),
+            "Products" => _services.GetService(typeof(ProductsViewModel)),
+            "Categories" => _services.GetService(typeof(CategoriesViewModel)),
+            "Units" => _services.GetService(typeof(UnitsViewModel)),
+            "Suppliers" => _services.GetService(typeof(SuppliersViewModel)),
+            "Audit" => _services.GetService(typeof(AuditViewModel)),
             "Settings" => _services.GetService(typeof(SettingsViewModel)),
             _ => null,
         };
@@ -120,15 +152,43 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         }
 
         CurrentContent = content;
-        CurrentTitle = key == "Dashboard"
-            ? _strings[StringKeys.DashboardTitle]
-            : _strings[StringKeys.NavSettings];
+        _currentKey = key;
+        CurrentTitle = TitleFor(key);
 
-        if (content is DashboardViewModel dashboard)
+        switch (content)
         {
-            dashboard.RefreshCommand.Execute(null);
+            case DashboardViewModel dashboard:
+                dashboard.RefreshCommand.Execute(null);
+                break;
+            case ProductsViewModel products:
+                products.RefreshCommand.Execute(null);
+                break;
+            case CategoriesViewModel categories:
+                categories.RefreshCommand.Execute(null);
+                break;
+            case UnitsViewModel units:
+                units.RefreshCommand.Execute(null);
+                break;
+            case SuppliersViewModel suppliers:
+                suppliers.RefreshCommand.Execute(null);
+                break;
+            case AuditViewModel audit:
+                audit.RefreshCommand.Execute(null);
+                break;
         }
     }
+
+    /// <summary>The title of a page, in the language the application is running in.</summary>
+    private string TitleFor(string key) => key switch
+    {
+        "Dashboard" => _strings[StringKeys.DashboardTitle],
+        "Products" => _strings[StringKeys.ProductsTitle],
+        "Categories" => _strings[StringKeys.CategoriesTitle],
+        "Units" => _strings[StringKeys.UnitsTitle],
+        "Suppliers" => _strings[StringKeys.SuppliersTitle],
+        "Audit" => _strings[StringKeys.AuditTitle],
+        _ => _strings[StringKeys.NavSettings],
+    };
 
     /// <summary>Applies the language chosen in the command bar.</summary>
     partial void OnSelectedLanguageChanged(LanguageOption? value)
@@ -173,29 +233,9 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
-        ShellNavItem[] updated =
-        [
-            new("Dashboard", "▤", _strings[StringKeys.NavDashboard]),
-            new("Products", "▦", _strings[StringKeys.NavProducts], IsAvailable: false),
-            new("Purchases", "▤", _strings[StringKeys.NavPurchases], IsAvailable: false),
-            new("Inventory", "▣", _strings[StringKeys.NavInventory], IsAvailable: false),
-            new("Pos", "▶", _strings[StringKeys.NavPos], IsAvailable: false),
-            new("Sales", "≡", _strings[StringKeys.NavSales], IsAvailable: false),
-            new("Reports", "◫", _strings[StringKeys.NavReports], IsAvailable: false),
-            new("Users", "◉", _strings[StringKeys.NavUsers], IsAvailable: false),
-            new("Settings", "⚙", _strings[StringKeys.NavSettings]),
-            new("Backup", "⛁", _strings[StringKeys.NavBackup], IsAvailable: false),
-            new("Audit", "✎", _strings[StringKeys.NavAudit], IsAvailable: false),
-        ];
+        BuildNavigationItems();
 
-        for (int index = 0; index < NavigationItems.Count && index < updated.Length; index++)
-        {
-            NavigationItems[index] = updated[index];
-        }
-
-        CurrentTitle = CurrentContent is DashboardViewModel
-            ? _strings[StringKeys.DashboardTitle]
-            : _strings[StringKeys.NavSettings];
+        CurrentTitle = TitleFor(_currentKey);
 
         OnPropertyChanged(nameof(SignOutText));
         OnPropertyChanged(nameof(LockText));

@@ -1,0 +1,124 @@
+<UserControl x:Class="StoreFlow.Desktop.Views.AuditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             TextOptions.TextFormattingMode="Display">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,0,0,1"
+            Padding="0,10,0,10">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Width="280" VerticalAlignment="Center">
+          <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="Audit.Search"
+                   VerticalAlignment="Center" />
+          <TextBlock Text="{Binding SearchPlaceholder}"
+                     IsHitTestVisible="False"
+                     Margin="11,8"
+                     Foreground="{DynamicResource Text.Muted}"
+                     Visibility="{Binding HasNoSearchText, Converter={StaticResource BooleanToVisibility}, ConverterParameter=Invert}" />
+        </Grid>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+          <TextBlock Text="{Binding EntityTypeLabel}"
+                     Style="{StaticResource Type.Caption}"
+                     VerticalAlignment="Center"
+                     Margin="0,0,8,0" />
+          <ComboBox Width="180"
+                    ItemsSource="{Binding EntityTypes}"
+                    SelectedItem="{Binding SelectedEntityType}"
+                    DisplayMemberPath="DisplayName"
+                    AutomationProperties.AutomationId="Audit.EntityType" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1">
+      <DataGrid AutomationProperties.AutomationId="Audit.Grid" EnableColumnVirtualization="False"
+                ItemsSource="{Binding Entries}"
+                Margin="0,12,0,0">
+        <DataGrid.Columns>
+          <DataGridTextColumn
+                              Binding="{Binding TimestampUtc, Converter={StaticResource Timestamp}}"
+                              Width="180">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding DataContext.WhenHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Identifier}" />
+            </DataGridTextColumn.ElementStyle>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn
+                              Binding="{Binding Actor}"
+                              Width="160" >
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding DataContext.WhoHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn
+                              Binding="{Binding Action}"
+                              Width="200">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding DataContext.ActionHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Identifier}" />
+            </DataGridTextColumn.ElementStyle>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn
+                              Binding="{Binding EntityType}"
+                              Width="140" >
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding DataContext.EntityHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn
+                              Binding="{Binding Summary}"
+                              Width="2*" MinWidth="200" >
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding DataContext.SummaryHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <Border Style="{StaticResource Surface.Panel}"
+              VerticalAlignment="Center"
+              HorizontalAlignment="Center"
+              Padding="32,24"
+              Visibility="{Binding IsEmpty, Converter={StaticResource BooleanToVisibility}}">
+        <TextBlock Text="{Binding EmptyText}"
+                   Style="{StaticResource Type.Body}"
+                   Foreground="{DynamicResource Text.Muted}"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   MaxWidth="420" />
+      </Border>
+    </Grid>
+
+    <TextBlock Grid.Row="2"
+               Text="{Binding StatusMessage}"
+               Style="{StaticResource Type.Caption}"
+               AutomationProperties.AutomationId="Audit.Status"
+               Margin="0,10,0,0"
+               Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
+  </Grid>
+</UserControl>

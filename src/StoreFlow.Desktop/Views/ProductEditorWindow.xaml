@@ -1,0 +1,295 @@
+<Window x:Class="StoreFlow.Desktop.Views.ProductEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}"
+        Width="780"
+        Height="720"
+        MinWidth="680"
+        MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        AutomationProperties.AutomationId="ProductEditorWindow"
+        Background="{DynamicResource Surface.Canvas}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- Heading -->
+    <Border Grid.Row="0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,0,0,1"
+            Padding="24,16">
+      <TextBlock Text="{Binding Title}" Style="{StaticResource Type.Title}" />
+    </Border>
+
+    <!-- The form -->
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,16,24,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="24" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left column: what the product is -->
+        <StackPanel Grid.Column="0">
+          <TextBlock Text="{Binding SkuLabel}" Style="{StaticResource Type.FieldLabel}" />
+          <TextBox Text="{Binding Sku, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="ProductEditor.Sku" />
+          <TextBlock Text="{Binding SkuError}"
+                     Style="{StaticResource Type.Error}"
+                     AutomationProperties.AutomationId="ProductEditor.SkuError" />
+
+          <TextBlock Text="{Binding NameLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
+          <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="ProductEditor.Name" />
+          <TextBlock Text="{Binding NameError}"
+                     Style="{StaticResource Type.Error}"
+                     AutomationProperties.AutomationId="ProductEditor.NameError" />
+
+          <TextBlock Text="{Binding NameArLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
+          <TextBox Text="{Binding NameAr, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="ProductEditor.NameAr"
+                   FlowDirection="RightToLeft"
+                   TextAlignment="Right" />
+          <TextBlock Text="{Binding NameArError}"
+                     Style="{StaticResource Type.Error}"
+                     AutomationProperties.AutomationId="ProductEditor.NameArError" />
+
+          <TextBlock Text="{Binding DescriptionLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
+          <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="ProductEditor.Description"
+                   AcceptsReturn="True"
+                   TextWrapping="Wrap"
+                   Height="72"
+                   VerticalScrollBarVisibility="Auto" />
+          <TextBlock Text="{Binding DescriptionError}"
+                     Style="{StaticResource Type.Error}"
+                     AutomationProperties.AutomationId="ProductEditor.DescriptionError" />
+
+          <TextBlock Text="{Binding CategoryLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
+          <ComboBox ItemsSource="{Binding Categories}"
+                    SelectedValue="{Binding CategoryId, Mode=TwoWay}"
+                    DisplayMemberPath="DisplayName"
+                    SelectedValuePath="Id"
+                    AutomationProperties.AutomationId="ProductEditor.Category" />
+
+          <TextBlock Text="{Binding UnitLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
+          <ComboBox ItemsSource="{Binding Units}"
+                    SelectedValue="{Binding UnitId, Mode=TwoWay}"
+                    DisplayMemberPath="DisplayName"
+                    SelectedValuePath="Id"
+                    AutomationProperties.AutomationId="ProductEditor.Unit" />
+
+          <TextBlock Text="{Binding TaxCategoryLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
+          <ComboBox ItemsSource="{Binding TaxCategories}"
+                    SelectedValue="{Binding TaxCategoryId, Mode=TwoWay}"
+                    DisplayMemberPath="DisplayName"
+                    SelectedValuePath="Id"
+                    AutomationProperties.AutomationId="ProductEditor.TaxCategory" />
+        </StackPanel>
+
+        <!-- Right column: what it costs and how it is found -->
+        <StackPanel Grid.Column="2">
+          <TextBlock Text="{Binding SalePriceLabel}" Style="{StaticResource Type.FieldLabel}" />
+          <TextBox Text="{Binding SalePrice, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="ProductEditor.SalePrice"
+                   FlowDirection="LeftToRight"
+                   TextAlignment="Left" />
+          <TextBlock Text="{Binding SalePriceError}"
+                     Style="{StaticResource Type.Error}"
+                     AutomationProperties.AutomationId="ProductEditor.SalePriceError" />
+
+          <TextBlock Text="{Binding CostPriceLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
+          <TextBox Text="{Binding CostPrice, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="ProductEditor.CostPrice"
+                   FlowDirection="LeftToRight"
+                   TextAlignment="Left" />
+          <TextBlock Text="{Binding CostPriceError}"
+                     Style="{StaticResource Type.Error}"
+                     AutomationProperties.AutomationId="ProductEditor.CostPriceError" />
+
+          <TextBlock Text="{Binding ReorderLevelLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
+          <TextBox Text="{Binding ReorderLevel, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="ProductEditor.ReorderLevel"
+                   FlowDirection="LeftToRight"
+                   TextAlignment="Left" />
+          <TextBlock Text="{Binding ReorderLevelError}"
+                     Style="{StaticResource Type.Error}"
+                     AutomationProperties.AutomationId="ProductEditor.ReorderLevelError" />
+
+          <TextBlock Text="{Binding BarcodeLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
+          <TextBox Text="{Binding Barcode, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="ProductEditor.Barcode"
+                   FlowDirection="LeftToRight"
+                   TextAlignment="Left" />
+          <TextBlock Text="{Binding BarcodeError}"
+                     Style="{StaticResource Type.Error}"
+                     AutomationProperties.AutomationId="ProductEditor.BarcodeError" />
+
+          <TextBlock Text="{Binding AdditionalBarcodesLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0"
+                     Text="{Binding NewBarcode, UpdateSourceTrigger=PropertyChanged}"
+                     AutomationProperties.AutomationId="ProductEditor.NewBarcode"
+                     FlowDirection="LeftToRight"
+                     TextAlignment="Left" />
+            <Button Grid.Column="1"
+                    Content="{Binding AddBarcodeText}"
+                    Command="{Binding AddBarcodeCommand}"
+                    Style="{StaticResource Button.Ghost}"
+                    Margin="8,0,0,0"
+                    AutomationProperties.AutomationId="ProductEditor.AddBarcode" />
+          </Grid>
+
+          <ItemsControl ItemsSource="{Binding AdditionalBarcodes}" Margin="0,8,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,2">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0"
+                             Text="{Binding}"
+                             Style="{StaticResource Type.Identifier}"
+                             VerticalAlignment="Center" />
+                  <Button Grid.Column="1"
+                          Content="{Binding DataContext.RemoveText, RelativeSource={RelativeSource AncestorType=Window}}"
+                          Command="{Binding DataContext.RemoveBarcodeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                          CommandParameter="{Binding}"
+                          Style="{StaticResource Button.Ghost}"
+                          Padding="8,0"
+                          MinWidth="0" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="{Binding ImageLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,18,0,0" />
+          <StackPanel Orientation="Horizontal">
+            <Border Width="96"
+                    Height="96"
+                    CornerRadius="4"
+                    Background="{DynamicResource Surface.Sunken}"
+                    BorderBrush="{DynamicResource Border.Subtle}"
+                    BorderThickness="1">
+              <Image Source="{Binding ImagePreview}" Stretch="UniformToFill" />
+            </Border>
+            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+              <Button Content="{Binding ChooseImageText}"
+                      Command="{Binding ChooseImageCommand}"
+                      Style="{StaticResource Button.Ghost}"
+                      HorizontalAlignment="Left"
+                      AutomationProperties.AutomationId="ProductEditor.ChooseImage" />
+              <Button Content="{Binding RemoveImageText}"
+                      Command="{Binding RemoveImageCommand}"
+                      Style="{StaticResource Button.Ghost}"
+                      HorizontalAlignment="Left"
+                      Margin="0,8,0,0"
+                      AutomationProperties.AutomationId="ProductEditor.RemoveImage" />
+            </StackPanel>
+          </StackPanel>
+
+          <CheckBox Content="{Binding ActiveLabel}"
+                    IsChecked="{Binding IsActive}"
+                    Margin="0,18,0,0"
+                    AutomationProperties.AutomationId="ProductEditor.IsActive" />
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+
+    <!-- What has happened to this product -->
+    <Border Grid.Row="2"
+            Margin="24,16,24,0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="1"
+            Padding="12,10">
+      <StackPanel>
+        <TextBlock Text="{Binding HistoryLabel}" Style="{StaticResource Type.SectionLabel}" />
+
+        <TextBlock Text="{Binding HistoryEmptyText}"
+                   Style="{StaticResource Type.Caption}"
+                   Foreground="{DynamicResource Text.Muted}"
+                   Margin="0,6,0,0"
+                   Visibility="{Binding HasNoHistory, Converter={StaticResource BooleanToVisibility}, ConverterParameter=Invert}" />
+
+        <ItemsControl ItemsSource="{Binding History}" Margin="0,6,0,0">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Grid Margin="0,2">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="150" />
+                  <ColumnDefinition Width="160" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="{Binding TimestampUtc, Converter={StaticResource Timestamp}}"
+                           Style="{StaticResource Type.Identifier}"
+                           FontSize="{DynamicResource Font.Size.Small}" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Action}"
+                           Style="{StaticResource Type.Identifier}"
+                           FontSize="{DynamicResource Font.Size.Small}" />
+                <TextBlock Grid.Column="2"
+                           Text="{Binding Summary}"
+                           Style="{StaticResource Type.Caption}"
+                           FontSize="{DynamicResource Font.Size.Small}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <!-- Footer -->
+    <Border Grid.Row="3"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,1,0,0"
+            Padding="24,12"
+            Margin="0,16,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0"
+                   Text="{Binding StatusMessage}"
+                   Style="{StaticResource Type.Error}"
+                   AutomationProperties.AutomationId="ProductEditor.Status"
+                   VerticalAlignment="Center"
+                   Margin="0,0,12,0"
+                   Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
+
+        <Button Grid.Column="1"
+                Content="{Binding CancelText}"
+                Command="{Binding CancelCommand}"
+                Style="{StaticResource Button.Ghost}"
+                Margin="0,0,8,0"
+                AutomationProperties.AutomationId="ProductEditor.Cancel" />
+
+        <Button Grid.Column="2"
+                Content="{Binding SaveText}"
+                Command="{Binding SaveCommand}"
+                Style="{StaticResource Button.Primary}"
+                AutomationProperties.AutomationId="ProductEditor.Save" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

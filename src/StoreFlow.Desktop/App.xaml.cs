@@ -36,6 +36,15 @@ public partial class App : System.Windows.Application
 
             ThemeEngine.Apply(_host.Resources, _host.Theme);
 
+            // The live theme dictionary is what every colour in the interface is read from, so what
+            // it actually holds is worth writing down: a missing role shows up as a control that
+            // quietly falls back to another colour, and that is otherwise very hard to explain.
+            StartupDiagnostics.Write("Theme resources: " + DescribeThemeResources(_host.Resources));
+            StartupDiagnostics.Write(
+                "Theme colours: accent.default=" + _host.Theme.Colors.AccentDefault +
+                " accent.on=" + _host.Theme.Colors.AccentOn +
+                " text.primary=" + _host.Theme.Colors.TextPrimary);
+
             // Which face the interface ends up using is worth writing down: a shop PC has no
             // debugger, and "the Arabic looks wrong" is otherwise unanswerable.
             StartupDiagnostics.Write(
@@ -74,6 +83,28 @@ public partial class App : System.Windows.Application
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         StartupDiagnostics.Write("Unhandled dispatcher exception.", e.Exception);
+    }
+
+    /// <summary>Lists what each of the application's resource dictionaries holds.</summary>
+    /// <param name="resources">The application's resource dictionary.</param>
+    /// <returns>A readable summary of the dictionaries and the roles they carry.</returns>
+    private static string DescribeThemeResources(ResourceDictionary resources)
+    {
+        var builder = new System.Text.StringBuilder();
+
+        foreach (ResourceDictionary merged in resources.MergedDictionaries)
+        {
+            builder.Append(merged.GetType().Name).Append(" [");
+
+            string[] keys = merged.Keys.Cast<object>()
+                .Select(key => key.ToString() ?? string.Empty)
+                .OrderBy(key => key, StringComparer.Ordinal)
+                .ToArray();
+
+            builder.Append(string.Join(", ", keys)).Append("] ");
+        }
+
+        return builder.ToString();
     }
 
     /// <summary>

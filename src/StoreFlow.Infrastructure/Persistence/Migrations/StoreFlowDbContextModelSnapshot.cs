@@ -161,7 +161,8 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<string>("NameAr")
                         .HasMaxLength(120)
@@ -218,7 +219,8 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Barcode")
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<int?>("CategoryId")
                         .HasColumnType("INTEGER");
@@ -258,7 +260,8 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                     b.Property<string>("Sku")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<int>("TaxCategoryId")
                         .HasColumnType("INTEGER");
@@ -298,7 +301,8 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                     b.Property<string>("Barcode")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("INTEGER");
@@ -950,7 +954,8 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(160)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<string>("NameAr")
                         .HasMaxLength(160)
@@ -1023,7 +1028,8 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<string>("NameAr")
                         .HasMaxLength(60)

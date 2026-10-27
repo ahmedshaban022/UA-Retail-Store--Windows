@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Windows;
+using StoreFlow.Desktop.Composition;
 
 namespace StoreFlow.Desktop.Views;
 
@@ -19,6 +20,11 @@ public partial class LoginWindow : Window
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         WindowDirection.Watch(this);
+
+        StartupDiagnostics.Write(
+            "sign-in button: foreground=" + SignInButton.Foreground +
+            " background=" + SignInButton.Background +
+            " style=" + (SignInButton.Style?.ToString() ?? "(none)"));
 
         if (DataContext is ViewModels.LoginViewModel viewModel)
         {

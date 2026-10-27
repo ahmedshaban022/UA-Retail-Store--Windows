@@ -49,6 +49,7 @@
         <Button Content="{Binding SignInLabel}"
                 Command="{Binding SignInCommand}"
                 AutomationProperties.AutomationId="Login.SignIn"
+                x:Name="SignInButton"
                 Style="{StaticResource Button.Primary}"
                 Margin="0,20,0,0"
                 MinHeight="40" />
