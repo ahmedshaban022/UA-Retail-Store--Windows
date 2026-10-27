@@ -293,8 +293,7 @@ boundary** for an explicit go-ahead.
 
 | Phase | Scope | Exit gate |
 |---|---|---|
-| **0 — Foundation** ✅ | SDK, solution, analyzers, domain, EF Core + first migration, SQLite pragmas and triggers, theme engine and presets, localisation shell, app shell, first-run wizard, login, roles, logging | App launches, DB migrates, theme switches live, AR/EN switch works, login enforced, all tests green |
-| 1 — Catalog | Products, categories, units, suppliers, barcode uniqueness, product editor, search, CSV import/export, product images, audit trail | UAT-01/02/18 |
+| **0 — Foundation** ✅ | SDK, solution, analyzers, domain, EF Core + first migration, SQLite pragmas and triggers, theme engine and presets, localisation shell, app shell, first-run wizard, login, roles, logging | App launches, DB migrates, theme switches live, AR/EN switch works, login enforced, all tests green || 1 — Catalog | Products, categories, units, suppliers, barcode uniqueness, product editor, search, CSV import/export, product images, audit trail | UAT-01/02/18 |
 | 2 — Inventory | Purchase draft → post → receive, opening stock, stock ledger and balances, low-stock, stock count with approval, adjustments, valuation report | UAT-03/14/19; ledger reconciles to zero |
 | 3 — POS | Scan buffer, cart, discounts, tax, payments, idempotent checkout, receipts and preview, hold cart, shortcuts | UAT-04/05/06/07/08; scan < 50 ms measured |
 | 4 — Sales & Returns | Invoice history and detail, partial and full returns, resellable vs damaged, refund recording, reversal policy | UAT-10/11/12/20 |
@@ -317,6 +316,7 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [`docs/decisions/ADR-0003-valuation.md`](docs/decisions/ADR-0003-valuation.md) | Moving weighted average, posting order, returns, damaged stock |
 | [`docs/decisions/ADR-0004-typography.md`](docs/decisions/ADR-0004-typography.md) | One face per locale, the embedded Arabic face, and why a composite family is not possible on WPF |
 | [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN.md) | The manual acceptance script, one row per PRD case, with sign-off columns |
+| [`docs/phases/PHASE-0-FOUNDATION.md`](docs/phases/PHASE-0-FOUNDATION.md) | The Phase 0 report: what was built, how it was verified, and what was found by running it |
 
 ---
 
