@@ -53,6 +53,7 @@ internal sealed class SalesInvoiceLineConfiguration : IEntityTypeConfiguration<S
 
         builder.Property(line => line.UnitPrice).HasConversion(Converters.MoneyToMinorUnits);
         builder.Property(line => line.Discount).HasConversion(Converters.MoneyToMinorUnits);
+        builder.Property(line => line.InvoiceDiscountShare).HasConversion(Converters.MoneyToMinorUnits);
         builder.Property(line => line.Tax).HasConversion(Converters.MoneyToMinorUnits);
         builder.Property(line => line.Total).HasConversion(Converters.MoneyToMinorUnits);
         builder.Property(line => line.UnitCostSnapshot).HasConversion(Converters.MoneyToMinorUnits);

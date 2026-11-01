@@ -1038,4 +1038,184 @@
   <data name="Error.ImportUnknownField" xml:space="preserve">
     <value>The heading {0} is not one this import understands.</value>
   </data>
+  <data name="Pos.Title" xml:space="preserve">
+    <value>Point of sale</value>
+  </data>
+  <data name="Pos.Scan" xml:space="preserve">
+    <value>Scan or search</value>
+  </data>
+  <data name="Pos.ScanPlaceholder" xml:space="preserve">
+    <value>Scan a barcode, or type a name</value>
+  </data>
+  <data name="Pos.SearchResults" xml:space="preserve">
+    <value>Search results</value>
+  </data>
+  <data name="Pos.NoResults" xml:space="preserve">
+    <value>Nothing matches that.</value>
+  </data>
+  <data name="Pos.Cart" xml:space="preserve">
+    <value>Cart</value>
+  </data>
+  <data name="Pos.CartEmpty" xml:space="preserve">
+    <value>The cart is empty. Scan something to begin.</value>
+  </data>
+  <data name="Pos.ColumnProduct" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Pos.ColumnQuantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Pos.ColumnPrice" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="Pos.ColumnDiscount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Pos.ColumnTotal" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Pos.Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Pos.Discount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Pos.Tax" xml:space="preserve">
+    <value>Tax</value>
+  </data>
+  <data name="Pos.GrandTotal" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Pos.Paid" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+  <data name="Pos.Change" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="Pos.Cash" xml:space="preserve">
+    <value>Cash</value>
+  </data>
+  <data name="Pos.Card" xml:space="preserve">
+    <value>Card</value>
+  </data>
+  <data name="Pos.Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Pos.CashReceived" xml:space="preserve">
+    <value>Cash received</value>
+  </data>
+  <data name="Pos.ConfirmSale" xml:space="preserve">
+    <value>Confirm sale</value>
+  </data>
+  <data name="Pos.Hold" xml:space="preserve">
+    <value>Put aside</value>
+  </data>
+  <data name="Pos.Resume" xml:space="preserve">
+    <value>Take back</value>
+  </data>
+  <data name="Pos.ClearCart" xml:space="preserve">
+    <value>Empty the cart</value>
+  </data>
+  <data name="Pos.HoldLabel" xml:space="preserve">
+    <value>Name for this cart</value>
+  </data>
+  <data name="Pos.HeldCarts" xml:space="preserve">
+    <value>Carts waiting</value>
+  </data>
+  <data name="Pos.HeldCartsEmpty" xml:space="preserve">
+    <value>No cart is waiting.</value>
+  </data>
+  <data name="Pos.InvoiceDiscount" xml:space="preserve">
+    <value>Discount on the whole sale</value>
+  </data>
+  <data name="Pos.NewSale" xml:space="preserve">
+    <value>New sale</value>
+  </data>
+  <data name="Pos.SalePosted" xml:space="preserve">
+    <value>Sale {0} posted.</value>
+  </data>
+  <data name="Pos.Receipt" xml:space="preserve">
+    <value>Receipt</value>
+  </data>
+  <data name="Pos.ReceiptNumber" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="Pos.ReceiptDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Pos.ReceiptCashier" xml:space="preserve">
+    <value>Cashier</value>
+  </data>
+  <data name="Pos.ReceiptItems" xml:space="preserve">
+    <value>Items</value>
+  </data>
+  <data name="Pos.Print" xml:space="preserve">
+    <value>Print</value>
+  </data>
+  <data name="Pos.PrintThermal" xml:space="preserve">
+    <value>80 mm receipt</value>
+  </data>
+  <data name="Pos.PrintA4" xml:space="preserve">
+    <value>A4 invoice</value>
+  </data>
+  <data name="Pos.Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Pos.RemoveLine" xml:space="preserve">
+    <value>Remove this line</value>
+  </data>
+  <data name="Pos.IncreaseQuantity" xml:space="preserve">
+    <value>One more</value>
+  </data>
+  <data name="Pos.DecreaseQuantity" xml:space="preserve">
+    <value>One less</value>
+  </data>
+  <data name="Error.Pos.EmptyCart" xml:space="preserve">
+    <value>The cart is empty.</value>
+  </data>
+  <data name="Error.Pos.ProductNotFound" xml:space="preserve">
+    <value>That barcode is not in the catalogue.</value>
+  </data>
+  <data name="Error.Pos.ProductInactive" xml:space="preserve">
+    <value>That product has been deactivated and cannot be sold.</value>
+  </data>
+  <data name="Error.Pos.DuplicateProduct" xml:space="preserve">
+    <value>The same product is on the cart twice.</value>
+  </data>
+  <data name="Error.Pos.InvalidQuantity" xml:space="preserve">
+    <value>The quantity must be more than zero.</value>
+  </data>
+  <data name="Error.Pos.InvalidUnitPrice" xml:space="preserve">
+    <value>The price cannot be negative.</value>
+  </data>
+  <data name="Error.Pos.InsufficientStock" xml:space="preserve">
+    <value>There is not enough stock on the shelf for that quantity.</value>
+  </data>
+  <data name="Error.Pos.NegativeTotal" xml:space="preserve">
+    <value>The discounts would take the sale below zero.</value>
+  </data>
+  <data name="Error.Pos.DiscountOverLimit" xml:space="preserve">
+    <value>The discount is over the limit and needs somebody who can approve it.</value>
+  </data>
+  <data name="Error.Pos.PriceOverride" xml:space="preserve">
+    <value>The price is not the catalogue price and you may not change it.</value>
+  </data>
+  <data name="Error.Pos.InsufficientPayment" xml:space="preserve">
+    <value>The customer has not paid enough.</value>
+  </data>
+  <data name="Error.Pos.InsufficientCash" xml:space="preserve">
+    <value>The cash handed over is less than the amount it is paying.</value>
+  </data>
+  <data name="Error.Pos.IdempotencyConflict" xml:space="preserve">
+    <value>This checkout was already used with a different cart.</value>
+  </data>
+  <data name="Error.Pos.HeldCartNotFound" xml:space="preserve">
+    <value>That cart is not waiting any more.</value>
+  </data>
+  <data name="Error.Pos.HeldCartLabelRequired" xml:space="preserve">
+    <value>Give the cart a name before you put it aside.</value>
+  </data>
+  <data name="Pos.Taxable" xml:space="preserve">
+    <value>Taxable amount</value>
+  </data>
 </root>

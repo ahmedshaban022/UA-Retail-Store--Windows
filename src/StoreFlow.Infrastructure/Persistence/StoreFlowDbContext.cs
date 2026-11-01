@@ -39,6 +39,8 @@ public sealed class StoreFlowDbContext(DbContextOptions<StoreFlowDbContext> opti
 
     public DbSet<SalesReturnLine> SalesReturnLines => Set<SalesReturnLine>();
 
+    public DbSet<HeldCart> HeldCarts => Set<HeldCart>();
+
     public DbSet<PurchaseDocument> PurchaseDocuments => Set<PurchaseDocument>();
 
     public DbSet<PurchaseLine> PurchaseLines => Set<PurchaseLine>();

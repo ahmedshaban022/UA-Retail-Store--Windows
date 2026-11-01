@@ -1,0 +1,88 @@
+<Window x:Class="StoreFlow.Desktop.Views.ReceiptWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}"
+        Width="560"
+        Height="760"
+        MinWidth="480"
+        MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        AutomationProperties.AutomationId="Pos.ReceiptWindow"
+        Background="{DynamicResource Surface.Canvas}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,0,0,1"
+            Padding="20,14">
+      <TextBlock Text="{Binding Title}" Style="{StaticResource Type.Title}" />
+    </Border>
+
+    <!-- The receipt, drawn exactly as the printer draws it -->
+    <ScrollViewer Grid.Row="1" Padding="20" VerticalScrollBarVisibility="Auto">
+      <Border Background="White"
+              BorderBrush="{DynamicResource Border.Subtle}"
+              BorderThickness="1"
+              Padding="24"
+              HorizontalAlignment="Center">
+        <Canvas x:Name="ReceiptCanvas"
+                Background="White"
+                AutomationProperties.AutomationId="Pos.ReceiptPreview" />
+      </Border>
+    </ScrollViewer>
+
+    <Border Grid.Row="2"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,1,0,0"
+            Padding="20,12"
+            Margin="0,16,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0"
+                   Text="{Binding StatusMessage}"
+                   Style="{StaticResource Type.Error}"
+                   VerticalAlignment="Center" />
+
+        <Button Grid.Column="1"
+                Content="{Binding PrintThermalLabel}"
+                Command="{Binding PrintThermalCommand}"
+                Style="{StaticResource Button.Ghost}"
+                MinHeight="{DynamicResource Size.PosHitTarget}"
+                Margin="0,0,8,0"
+                AutomationProperties.AutomationId="Pos.PrintThermal" />
+
+        <Button Grid.Column="2"
+                Content="{Binding PrintA4Label}"
+                Command="{Binding PrintA4Command}"
+                Style="{StaticResource Button.Ghost}"
+                MinHeight="{DynamicResource Size.PosHitTarget}"
+                Margin="0,0,8,0"
+                AutomationProperties.AutomationId="Pos.PrintA4" />
+
+        <Button Grid.Column="3"
+                Content="{Binding CloseLabel}"
+                Command="{Binding CloseCommand}"
+                Style="{StaticResource Button.Primary}"
+                MinHeight="{DynamicResource Size.PosHitTarget}"
+                AutomationProperties.AutomationId="Pos.ReceiptClose" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

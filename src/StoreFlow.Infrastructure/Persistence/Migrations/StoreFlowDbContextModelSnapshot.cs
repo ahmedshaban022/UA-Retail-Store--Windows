@@ -179,6 +179,47 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                     b.ToTable("Categories", (string)null);
                 });
 
+            modelBuilder.Entity("StoreFlow.Domain.Entities.HeldCart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ContentJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("HeldUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HeldUtc");
+
+                    b.HasIndex("Number")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("HeldCarts", (string)null);
+                });
+
             modelBuilder.Entity("StoreFlow.Domain.Entities.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -584,6 +625,9 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("DiscountPercentScaled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("InvoiceDiscountShare")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("NameSnapshot")
@@ -1118,6 +1162,16 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ActorUser");
+                });
+
+            modelBuilder.Entity("StoreFlow.Domain.Entities.HeldCart", b =>
+                {
+                    b.HasOne("StoreFlow.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("StoreFlow.Domain.Entities.Payment", b =>

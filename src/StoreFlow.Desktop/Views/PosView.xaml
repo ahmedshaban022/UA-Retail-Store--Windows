@@ -1,0 +1,423 @@
+<UserControl x:Class="StoreFlow.Desktop.Views.PosView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="820"
+             d:DesignWidth="1280">
+
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- The scanner -->
+    <Grid Grid.Row="0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="320" />
+      </Grid.ColumnDefinitions>
+
+      <StackPanel Grid.Column="0" Margin="0,0,16,0">
+        <TextBlock Text="{Binding ScanLabel}" Style="{StaticResource Type.FieldLabel}" />
+        <Grid>
+          <TextBox x:Name="ScanBox"
+                   Text="{Binding ScanText, UpdateSourceTrigger=PropertyChanged}"
+                   Height="{DynamicResource Size.PosHitTarget}"
+                   FontSize="16"
+                   AutomationProperties.AutomationId="Pos.Scan"
+                   KeyDown="OnScanKeyDown" />
+          <TextBlock Text="{Binding ScanPlaceholder}"
+                     IsHitTestVisible="False"
+                     Margin="11,10"
+                     Foreground="{DynamicResource Text.Muted}"
+                     Visibility="{Binding HasScanText, Converter={StaticResource BooleanToVisibility}}" />
+        </Grid>
+      </StackPanel>
+
+      <!-- The carts that are waiting -->
+      <Border Grid.Column="1"
+              Background="{DynamicResource Surface.Raised}"
+              BorderBrush="{DynamicResource Border.Subtle}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="12">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+
+          <TextBlock Grid.Row="0"
+                     Text="{Binding HeldCartsLabel}"
+                     Style="{StaticResource Type.SectionLabel}"
+                     Margin="0,0,0,8" />
+
+          <TextBlock Grid.Row="1"
+                     Text="{Binding HeldCartsEmptyLabel}"
+                     Style="{StaticResource Type.Cell}"
+                     Foreground="{DynamicResource Text.Muted}"
+                     VerticalAlignment="Center"
+                     HorizontalAlignment="Center"
+                     Visibility="{Binding HasNoHeldCarts, Converter={StaticResource BooleanToVisibility}}" />
+
+          <ListBox Grid.Row="1"
+                   ItemsSource="{Binding HeldCarts}"
+                   AutomationProperties.AutomationId="Pos.HeldCarts"
+                   Background="Transparent"
+                   BorderThickness="0"
+                   Visibility="{Binding HasHeldCarts, Converter={StaticResource BooleanToVisibility}}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,2">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+
+                  <StackPanel Grid.Column="0">
+                    <TextBlock Text="{Binding Label}" Style="{StaticResource Type.Cell}" />
+                    <TextBlock Text="{Binding LineCount}" Style="{StaticResource Type.Cell}"
+                               Foreground="{DynamicResource Text.Muted}" FontSize="11" />
+                  </StackPanel>
+
+                  <Button Grid.Column="1"
+                          Content="{Binding DataContext.ResumeLabel, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          Command="{Binding DataContext.ResumeCartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}"
+                          Style="{StaticResource Button.Ghost}"
+                          MinHeight="{DynamicResource Size.PosHitTarget}"
+                          Margin="4,0"
+                          AutomationProperties.AutomationId="Pos.ResumeOne" />
+
+                  <Button Grid.Column="2"
+                          Content="X"
+                          Command="{Binding DataContext.DiscardCartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}"
+                          Style="{StaticResource Button.Ghost}"
+                          MinHeight="{DynamicResource Size.PosHitTarget}"
+                          AutomationProperties.AutomationId="Pos.DiscardOne" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <!-- The cart and the money -->
+    <Grid Grid.Row="1" Margin="0,16,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="320" />
+      </Grid.ColumnDefinitions>
+
+      <Grid Grid.Column="0" Margin="0,0,16,0">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Background="{DynamicResource Surface.Raised}"
+                BorderBrush="{DynamicResource Border.Subtle}"
+                BorderThickness="1"
+                CornerRadius="8">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Text="{Binding CartLabel}"
+                       Style="{StaticResource Type.SectionLabel}"
+                       Margin="14,12" />
+
+            <DataGrid x:Name="CartGrid"
+                      Grid.Row="1"
+                      AutomationProperties.AutomationId="Pos.Cart"
+                      ItemsSource="{Binding Lines}"
+                      SelectedItem="{Binding SelectedLine, Mode=TwoWay}"
+                      EnableColumnVirtualization="False"
+                      IsReadOnly="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      Visibility="{Binding HasLines, Converter={StaticResource BooleanToVisibility}}">
+
+              <DataGrid.Columns>
+                <DataGridTextColumn Width="2*" MinWidth="140">
+                  <DataGridTextColumn.Header>
+                    <TextBlock Text="{Binding ProductColumnLabel}" Style="{StaticResource Type.ColumnValue}" />
+                  </DataGridTextColumn.Header>
+                  <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Cell}">
+                      <Setter Property="ToolTip" Value="{Binding Sku}" />
+                    </Style>
+                  </DataGridTextColumn.ElementStyle>
+                  <DataGridTextColumn.Binding>
+                    <Binding Path="Name" />
+                  </DataGridTextColumn.Binding>
+                </DataGridTextColumn>
+
+                <DataGridTemplateColumn Width="130">
+                  <DataGridTemplateColumn.Header>
+                    <TextBlock Text="{Binding QuantityColumnLabel}" Style="{StaticResource Type.ColumnValue}" />
+                  </DataGridTemplateColumn.Header>
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <TextBox Text="{Binding QuantityText, UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.AutomationId="Pos.Quantity"
+                                 Margin="0,2" />
+                        <Border Background="{DynamicResource Accent.Default}"
+                                CornerRadius="4"
+                                Padding="6,2"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                IsHitTestVisible="False"
+                                Visibility="{Binding IsScanChipVisible, Converter={StaticResource BooleanToVisibility}}">
+                          <TextBlock Text="{Binding ScanChipText}"
+                                     Foreground="{DynamicResource Text.Inverse}"
+                                     FontSize="11"
+                                     FontWeight="SemiBold" />
+                        </Border>
+                      </Grid>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Width="110">
+                  <DataGridTextColumn.Header>
+                    <TextBlock Text="{Binding PriceColumnLabel}" Style="{StaticResource Type.ColumnValue}" />
+                  </DataGridTextColumn.Header>
+                  <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+                  </DataGridTextColumn.ElementStyle>
+                  <DataGridTextColumn.Binding>
+                    <Binding Path="UnitPriceText" UpdateSourceTrigger="PropertyChanged" />
+                  </DataGridTextColumn.Binding>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Width="100">
+                  <DataGridTextColumn.Header>
+                    <TextBlock Text="{Binding DiscountColumnLabel}" Style="{StaticResource Type.ColumnValue}" />
+                  </DataGridTextColumn.Header>
+                  <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+                  </DataGridTextColumn.ElementStyle>
+                  <DataGridTextColumn.Binding>
+                    <Binding Path="DiscountText" UpdateSourceTrigger="PropertyChanged" />
+                  </DataGridTextColumn.Binding>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Width="120" IsReadOnly="True">
+                  <DataGridTextColumn.Header>
+                    <TextBlock Text="{Binding TotalColumnLabel}" Style="{StaticResource Type.ColumnValue}" />
+                  </DataGridTextColumn.Header>
+                  <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+                  </DataGridTextColumn.ElementStyle>
+                  <DataGridTextColumn.Binding>
+                    <Binding Path="TotalText" />
+                  </DataGridTextColumn.Binding>
+                </DataGridTextColumn>
+
+                <DataGridTemplateColumn Width="44" IsReadOnly="True">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <Button Content="X"
+                              Command="{Binding DataContext.RemoveLineCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              CommandParameter="{Binding}"
+                              Style="{StaticResource Button.Ghost}"
+                              AutomationProperties.AutomationId="Pos.RemoveLine" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+
+            <TextBlock Grid.Row="1"
+                       Text="{Binding EmptyCartLabel}"
+                       Style="{StaticResource Type.Cell}"
+                       Foreground="{DynamicResource Text.Muted}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Visibility="{Binding HasNoLines, Converter={StaticResource BooleanToVisibility}}" />
+          </Grid>
+        </Border>
+
+        <!-- What the search found -->
+        <Border Grid.Row="1"
+                Visibility="{Binding HasSearchResults, Converter={StaticResource BooleanToVisibility}}"
+                Background="{DynamicResource Surface.Raised}"
+                BorderBrush="{DynamicResource Border.Subtle}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Margin="0,12,0,0">
+          <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding SearchResults}"
+                          AutomationProperties.AutomationId="Pos.SearchResults">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Command="{Binding DataContext.AddFromSearchCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}"
+                          Style="{StaticResource Button.Ghost}"
+                          HorizontalContentAlignment="Stretch"
+                          MinHeight="{DynamicResource Size.PosHitTarget}"
+                          AutomationProperties.AutomationId="Pos.AddSearchResult">
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock Text="{Binding Name}" Style="{StaticResource Type.Cell}" />
+                      <TextBlock Text="{Binding Sku}" Style="{StaticResource Type.LeftToRight}"
+                                 Foreground="{DynamicResource Text.Muted}" Margin="8,0" />
+                      <TextBlock Text="{Binding SalePrice}" Style="{StaticResource Type.LeftToRight}"
+                                 Foreground="{DynamicResource Text.Muted}" />
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Border>
+
+        <TextBlock Grid.Row="1"
+                   Text="{Binding StatusMessage}"
+                   Style="{StaticResource Type.Error}"
+                   AutomationProperties.AutomationId="Pos.Message"
+                   Visibility="{Binding HasStatusMessage, Converter={StaticResource BooleanToVisibility}}" />
+      </Grid>
+
+      <!-- The money -->
+      <Border Grid.Column="1"
+              Background="{DynamicResource Surface.Raised}"
+              BorderBrush="{DynamicResource Border.Subtle}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="16">
+        <StackPanel>
+          <Grid Margin="0,0,0,4">
+            <TextBlock Text="{Binding SubtotalLabel}" Style="{StaticResource Type.Cell}" />
+            <TextBlock Text="{Binding SubtotalText}" Style="{StaticResource Type.LeftToRight}"
+                       HorizontalAlignment="Right" />
+          </Grid>
+
+          <Grid Margin="0,0,0,4">
+            <TextBlock Text="{Binding DiscountLabel}" Style="{StaticResource Type.Cell}" />
+            <TextBlock Text="{Binding DiscountText}" Style="{StaticResource Type.LeftToRight}"
+                       HorizontalAlignment="Right" />
+          </Grid>
+
+          <Grid Margin="0,0,0,4">
+            <TextBlock Text="{Binding TaxableLabel}" Style="{StaticResource Type.Cell}" />
+            <TextBlock Text="{Binding TaxableText}" Style="{StaticResource Type.LeftToRight}"
+                       HorizontalAlignment="Right"
+                       AutomationProperties.AutomationId="Pos.Taxable" />
+          </Grid>
+
+          <Grid Margin="0,0,0,10">
+            <TextBlock Text="{Binding TaxLabel}" Style="{StaticResource Type.Cell}" />
+            <TextBlock Text="{Binding TaxText}" Style="{StaticResource Type.LeftToRight}"
+                       HorizontalAlignment="Right"
+                       AutomationProperties.AutomationId="Pos.Tax" />
+          </Grid>
+
+          <Border BorderBrush="{DynamicResource Border.Subtle}"
+                  BorderThickness="0,1,0,0"
+                  Padding="0,10,0,10"
+                  Margin="0,0,0,10">
+            <Grid>
+              <TextBlock Text="{Binding GrandTotalLabel}"
+                         FontSize="{DynamicResource Font.Size.PosTotal}"
+                         FontWeight="Bold" />
+              <TextBlock Text="{Binding TotalText}"
+                         FontSize="{DynamicResource Font.Size.PosTotal}"
+                         FontWeight="Bold"
+                         Style="{StaticResource Type.LeftToRight}"
+                         HorizontalAlignment="Right"
+                         AutomationProperties.AutomationId="Pos.Total" />
+            </Grid>
+          </Border>
+
+          <Grid Margin="0,0,0,4">
+            <TextBlock Text="{Binding PaidLabel}" Style="{StaticResource Type.Cell}" />
+            <TextBlock Text="{Binding PaidText}" Style="{StaticResource Type.LeftToRight}"
+                       HorizontalAlignment="Right" />
+          </Grid>
+
+          <Grid Margin="0,0,0,12">
+            <TextBlock Text="{Binding ChangeLabel}" Style="{StaticResource Type.Cell}" />
+            <TextBlock Text="{Binding ChangeText}" Style="{StaticResource Type.LeftToRight}"
+                       HorizontalAlignment="Right"
+                       AutomationProperties.AutomationId="Pos.Change" />
+          </Grid>
+
+          <!-- How the customer is paying -->
+          <UniformGrid Columns="3" Margin="0,0,0,10">
+            <Button Content="{Binding CashLabel}"
+                    Command="{Binding ChooseCashCommand}"
+                    Style="{StaticResource Button.Ghost}"
+                    MinHeight="{DynamicResource Size.PosHitTarget}"
+                    Margin="0,0,4,0"
+                    AutomationProperties.AutomationId="Pos.Cash" />
+            <Button Content="{Binding CardLabel}"
+                    Command="{Binding ChooseCardCommand}"
+                    Style="{StaticResource Button.Ghost}"
+                    MinHeight="{DynamicResource Size.PosHitTarget}"
+                    Margin="2,0"
+                    AutomationProperties.AutomationId="Pos.Card" />
+            <Button Content="{Binding OtherLabel}"
+                    Command="{Binding ChooseOtherCommand}"
+                    Style="{StaticResource Button.Ghost}"
+                    MinHeight="{DynamicResource Size.PosHitTarget}"
+                    Margin="4,0,0,0"
+                    AutomationProperties.AutomationId="Pos.Other" />
+          </UniformGrid>
+
+          <TextBlock Text="{Binding CashReceivedLabel}" Style="{StaticResource Type.FieldLabel}" />
+          <TextBox Text="{Binding CashReceivedText, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="Pos.CashReceived"
+                   Margin="0,2,0,10" />
+
+          <TextBlock Text="{Binding InvoiceDiscountLabel}" Style="{StaticResource Type.FieldLabel}" />
+          <TextBox Text="{Binding InvoiceDiscountText, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="Pos.InvoiceDiscount"
+                   Margin="0,2,0,12" />
+
+          <Button Content="{Binding ConfirmSaleLabel}"
+                  Command="{Binding ConfirmSaleCommand}"
+                  Style="{StaticResource Button.Primary}"
+                  MinHeight="{DynamicResource Size.PosHitTarget}"
+                  FontSize="15"
+                  AutomationProperties.AutomationId="Pos.Confirm" />
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- The actions that are not the sale -->
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,14,0,0">
+      <Button Content="{Binding HoldLabel}"
+              Command="{Binding HoldCartCommand}"
+              Style="{StaticResource Button.Ghost}"
+              MinHeight="{DynamicResource Size.PosHitTarget}"
+              Margin="0,0,8,0"
+              AutomationProperties.AutomationId="Pos.Hold" />
+
+      <Button Content="{Binding ClearCartLabel}"
+              Command="{Binding ClearCartCommand}"
+              Style="{StaticResource Button.Ghost}"
+              MinHeight="{DynamicResource Size.PosHitTarget}"
+              Margin="0,0,8,0"
+              AutomationProperties.AutomationId="Pos.Clear" />
+
+      <Button Content="{Binding ResumeLabel}"
+              Command="{Binding RefreshHeldCartsCommand}"
+              Style="{StaticResource Button.Ghost}"
+              MinHeight="{DynamicResource Size.PosHitTarget}"
+              AutomationProperties.AutomationId="Pos.RefreshHeld" />
+    </StackPanel>
+  </Grid>
+</UserControl>

@@ -63,6 +63,10 @@
       <DataTemplate DataType="{x:Type viewModels:InventoryViewModel}">
         <views:InventoryView />
       </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:PosViewModel}">
+        <views:PosView />
+      </DataTemplate>
     </ResourceDictionary>
   </Application.Resources>
 </Application>

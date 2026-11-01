@@ -11,15 +11,58 @@ public static class InventoryInput
     /// <summary>
     /// Reads a decimal quantity or amount.
     /// </summary>
+    /// <remarks>
+    /// The number is read the same way in every language, so "12.5" means the same on an Arabic
+    /// screen and on an English one. Two marks are understood as well: the decimal comma, which is
+    /// what a keyboard set to a comma locale writes, and the Arabic separators, which are the same
+    /// marks written differently. A comma with three digits behind it is still a thousands
+    /// separator, so "1,200" is twelve hundred and not one and a bit.
+    /// </remarks>
     /// <param name="text">The text the owner typed.</param>
     /// <param name="value">The number that was read.</param>
     /// <returns>True when the text is a number.</returns>
-    public static bool TryReadDecimal(string? text, out decimal value) =>
-        decimal.TryParse(
-            (text ?? string.Empty).Trim(),
-            NumberStyles.Number,
-            CultureInfo.InvariantCulture,
-            out value);
+    public static bool TryReadDecimal(string? text, out decimal value)
+    {
+        string trimmed = (text ?? string.Empty).Trim();
+
+        // The Arabic keyboard writes its own decimal and thousands marks.
+        trimmed = trimmed.Replace('٫', '.').Replace('٬', ',');
+
+        if (HasDecimalComma(trimmed))
+        {
+            return decimal.TryParse(
+                trimmed.Replace(",", "."),
+                NumberStyles.Number,
+                CultureInfo.InvariantCulture,
+                out value);
+        }
+
+        return decimal.TryParse(trimmed, NumberStyles.Number, CultureInfo.InvariantCulture, out value);
+    }
+
+    /// <summary>
+    /// True when the comma in the text is a decimal comma rather than a thousands separator.
+    /// </summary>
+    /// <param name="text">The text the owner typed.</param>
+    /// <returns>True when the comma stands for a decimal point.</returns>
+    private static bool HasDecimalComma(string text)
+    {
+        if (text.Contains('.', StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        int comma = text.IndexOf(',', StringComparison.Ordinal);
+
+        if (comma < 0 || text.IndexOf(',', comma + 1) >= 0)
+        {
+            return false;
+        }
+
+        string behind = text[(comma + 1)..];
+
+        return behind.Length is 1 or 2 && behind.All(char.IsAsciiDigit);
+    }
 
     /// <summary>
     /// Reads an amount that may not be negative.

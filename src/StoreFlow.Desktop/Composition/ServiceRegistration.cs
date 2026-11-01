@@ -13,7 +13,11 @@ using StoreFlow.Application.Scanning;
 using StoreFlow.Application.Security;
 using StoreFlow.Application.Setup;
 using StoreFlow.Application.Theming;
+using StoreFlow.Application.Settings;
+using StoreFlow.Application.Pos;
 using StoreFlow.Desktop.Localization;
+using StoreFlow.Desktop.Printing;
+using StoreFlow.Desktop.Services;
 using StoreFlow.Desktop.ViewModels;
 using StoreFlow.Infrastructure;
 using StoreFlow.Infrastructure.Catalog;
@@ -21,9 +25,11 @@ using StoreFlow.Infrastructure.Export;
 using StoreFlow.Infrastructure.Identity;
 using StoreFlow.Infrastructure.Inventory;
 using StoreFlow.Infrastructure.Persistence;
+using StoreFlow.Infrastructure.Pos;
 using StoreFlow.Infrastructure.Reporting;
 using StoreFlow.Infrastructure.Security;
 using StoreFlow.Infrastructure.Services;
+using StoreFlow.Infrastructure.Settings;
 using StoreFlow.Infrastructure.Setup;
 using StoreFlow.Infrastructure.Theming;
 
@@ -129,6 +135,20 @@ public static class ServiceRegistration
         services.AddSingleton<IQueryHandler<GetStockCountQuery, Result<StockCountDetails>>, GetStockCountQueryHandler>();
         services.AddSingleton<IQueryHandler<GetInventoryReferenceDataQuery, Result<InventoryReferenceData>>, GetInventoryReferenceDataQueryHandler>();
 
+        // The point of sale. The till posts one sale at a time, and the sale is idempotent: the
+        // same checkout key can never make two invoices (PRD POS-07).
+        services.AddSingleton<IStoreSettingsReader, StoreSettingsReader>();
+
+        services.AddSingleton<ICommandHandler<PostSaleCommand, Result<SaleReceipt>>, PostSaleCommandHandler>();
+        services.AddSingleton<ICommandHandler<HoldCartCommand, Result<HeldCartSummary>>, HoldCartCommandHandler>();
+        services.AddSingleton<ICommandHandler<ResumeHeldCartCommand, Result<HeldCartDetails>>, ResumeHeldCartCommandHandler>();
+        services.AddSingleton<ICommandHandler<ClearHeldCartCommand, Result>, ClearHeldCartCommandHandler>();
+
+        services.AddSingleton<IQueryHandler<LookupProductByBarcodeQuery, Result<PosProductFacts>>, LookupProductByBarcodeQueryHandler>();
+        services.AddSingleton<IQueryHandler<SearchSellableProductsQuery, Result<IReadOnlyList<PosProductFacts>>>, SearchSellableProductsQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListHeldCartsQuery, Result<IReadOnlyList<HeldCartSummary>>>, ListHeldCartsQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetHeldCartQuery, Result<HeldCartDetails>>, GetHeldCartQueryHandler>();
+
         services.AddLogging(logging =>
         {
             logging.ClearProviders();
@@ -175,6 +195,13 @@ public static class ServiceRegistration
         services.AddTransient<StockAdjustmentViewModel>();
         services.AddTransient<OpeningStockViewModel>();
         services.AddTransient<StockCountViewModel>();
+
+        // The till, its dialogs and the printer behind them. The receipt is drawn from the same
+        // layout the printer uses, so the preview is the paper and not a picture of it.
+        services.AddSingleton<IPosDialogs, PosDialogs>();
+        services.AddSingleton<IPrintService, WindowsPrintService>();
+        services.AddSingleton<ReceiptBuilder>();
+        services.AddTransient<PosViewModel>();
 
         return services;
     }

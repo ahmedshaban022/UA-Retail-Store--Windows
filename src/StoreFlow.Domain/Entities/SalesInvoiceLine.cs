@@ -40,6 +40,13 @@ public sealed class SalesInvoiceLine
     /// <summary>The discount amount applied to this line.</summary>
     public Money Discount { get; set; }
 
+    /// <summary>
+    /// The part of the whole-sale discount that was spread onto this line. It is kept beside the
+    /// line's own discount so that the invoice foots: the sum of the line discounts and the sum of
+    /// the invoice-discount shares add up to the discount on the invoice header.
+    /// </summary>
+    public Money InvoiceDiscountShare { get; set; }
+
     /// <summary>The discount percentage that produced <see cref="Discount"/>, scaled by 10 000.</summary>
     public long DiscountPercentScaled { get; set; }
 

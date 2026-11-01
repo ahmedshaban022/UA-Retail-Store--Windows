@@ -1038,4 +1038,184 @@
   <data name="Error.ImportUnknownField" xml:space="preserve">
     <value>العنوان {0} ليس عنوانًا يفهمه هذا الاستيراد.</value>
   </data>
+  <data name="Pos.Title" xml:space="preserve">
+    <value>نقطة البيع</value>
+  </data>
+  <data name="Pos.Scan" xml:space="preserve">
+    <value>امسح أو ابحث</value>
+  </data>
+  <data name="Pos.ScanPlaceholder" xml:space="preserve">
+    <value>امسح الباركود أو اكتب الاسم</value>
+  </data>
+  <data name="Pos.SearchResults" xml:space="preserve">
+    <value>نتائج البحث</value>
+  </data>
+  <data name="Pos.NoResults" xml:space="preserve">
+    <value>لا يوجد ما يطابق ذلك.</value>
+  </data>
+  <data name="Pos.Cart" xml:space="preserve">
+    <value>السلة</value>
+  </data>
+  <data name="Pos.CartEmpty" xml:space="preserve">
+    <value>السلة فارغة. امسح منتجًا للبدء.</value>
+  </data>
+  <data name="Pos.ColumnProduct" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="Pos.ColumnQuantity" xml:space="preserve">
+    <value>الكمية</value>
+  </data>
+  <data name="Pos.ColumnPrice" xml:space="preserve">
+    <value>السعر</value>
+  </data>
+  <data name="Pos.ColumnDiscount" xml:space="preserve">
+    <value>الخصم</value>
+  </data>
+  <data name="Pos.ColumnTotal" xml:space="preserve">
+    <value>الإجمالي</value>
+  </data>
+  <data name="Pos.Subtotal" xml:space="preserve">
+    <value>المجموع الفرعي</value>
+  </data>
+  <data name="Pos.Discount" xml:space="preserve">
+    <value>الخصم</value>
+  </data>
+  <data name="Pos.Tax" xml:space="preserve">
+    <value>الضريبة</value>
+  </data>
+  <data name="Pos.GrandTotal" xml:space="preserve">
+    <value>الإجمالي</value>
+  </data>
+  <data name="Pos.Paid" xml:space="preserve">
+    <value>المدفوع</value>
+  </data>
+  <data name="Pos.Change" xml:space="preserve">
+    <value>الباقي</value>
+  </data>
+  <data name="Pos.Cash" xml:space="preserve">
+    <value>نقدًا</value>
+  </data>
+  <data name="Pos.Card" xml:space="preserve">
+    <value>بطاقة</value>
+  </data>
+  <data name="Pos.Other" xml:space="preserve">
+    <value>أخرى</value>
+  </data>
+  <data name="Pos.CashReceived" xml:space="preserve">
+    <value>النقدية المستلمة</value>
+  </data>
+  <data name="Pos.ConfirmSale" xml:space="preserve">
+    <value>تأكيد البيع</value>
+  </data>
+  <data name="Pos.Hold" xml:space="preserve">
+    <value>تعليق</value>
+  </data>
+  <data name="Pos.Resume" xml:space="preserve">
+    <value>استرجاع</value>
+  </data>
+  <data name="Pos.ClearCart" xml:space="preserve">
+    <value>إفراغ السلة</value>
+  </data>
+  <data name="Pos.HoldLabel" xml:space="preserve">
+    <value>اسم هذه السلة</value>
+  </data>
+  <data name="Pos.HeldCarts" xml:space="preserve">
+    <value>سلال معلّقة</value>
+  </data>
+  <data name="Pos.HeldCartsEmpty" xml:space="preserve">
+    <value>لا توجد سلة معلّقة.</value>
+  </data>
+  <data name="Pos.InvoiceDiscount" xml:space="preserve">
+    <value>خصم على البيع كاملًا</value>
+  </data>
+  <data name="Pos.NewSale" xml:space="preserve">
+    <value>بيع جديد</value>
+  </data>
+  <data name="Pos.SalePosted" xml:space="preserve">
+    <value>تم تسجيل البيع {0}.</value>
+  </data>
+  <data name="Pos.Receipt" xml:space="preserve">
+    <value>الإيصال</value>
+  </data>
+  <data name="Pos.ReceiptNumber" xml:space="preserve">
+    <value>رقم</value>
+  </data>
+  <data name="Pos.ReceiptDate" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="Pos.ReceiptCashier" xml:space="preserve">
+    <value>الكاشير</value>
+  </data>
+  <data name="Pos.ReceiptItems" xml:space="preserve">
+    <value>الأصناف</value>
+  </data>
+  <data name="Pos.Print" xml:space="preserve">
+    <value>طباعة</value>
+  </data>
+  <data name="Pos.PrintThermal" xml:space="preserve">
+    <value>إيصال ٨٠ مم</value>
+  </data>
+  <data name="Pos.PrintA4" xml:space="preserve">
+    <value>فاتورة A4</value>
+  </data>
+  <data name="Pos.Close" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="Pos.RemoveLine" xml:space="preserve">
+    <value>حذف السطر</value>
+  </data>
+  <data name="Pos.IncreaseQuantity" xml:space="preserve">
+    <value>زيادة واحدة</value>
+  </data>
+  <data name="Pos.DecreaseQuantity" xml:space="preserve">
+    <value>إنقاص واحد</value>
+  </data>
+  <data name="Error.Pos.EmptyCart" xml:space="preserve">
+    <value>السلة فارغة.</value>
+  </data>
+  <data name="Error.Pos.ProductNotFound" xml:space="preserve">
+    <value>هذا الباركود غير موجود في الكتالوج.</value>
+  </data>
+  <data name="Error.Pos.ProductInactive" xml:space="preserve">
+    <value>هذا المنتج معطّل ولا يمكن بيعه.</value>
+  </data>
+  <data name="Error.Pos.DuplicateProduct" xml:space="preserve">
+    <value>المنتج نفسه موجود مرتين في السلة.</value>
+  </data>
+  <data name="Error.Pos.InvalidQuantity" xml:space="preserve">
+    <value>الكمية يجب أن تكون أكبر من صفر.</value>
+  </data>
+  <data name="Error.Pos.InvalidUnitPrice" xml:space="preserve">
+    <value>السعر لا يمكن أن يكون سالبًا.</value>
+  </data>
+  <data name="Error.Pos.InsufficientStock" xml:space="preserve">
+    <value>لا يوجد مخزون كافٍ على الرف لتلك الكمية.</value>
+  </data>
+  <data name="Error.Pos.NegativeTotal" xml:space="preserve">
+    <value>الخصومات ستجعل إجمالي البيع أقل من صفر.</value>
+  </data>
+  <data name="Error.Pos.DiscountOverLimit" xml:space="preserve">
+    <value>الخصم يتجاوز الحد ويحتاج من يستطيع الموافقة عليه.</value>
+  </data>
+  <data name="Error.Pos.PriceOverride" xml:space="preserve">
+    <value>السعر ليس سعر الكتالوج ولا يمكنك تغييره.</value>
+  </data>
+  <data name="Error.Pos.InsufficientPayment" xml:space="preserve">
+    <value>المبلغ المدفوع غير كافٍ.</value>
+  </data>
+  <data name="Error.Pos.InsufficientCash" xml:space="preserve">
+    <value>النقدية المستلمة أقل من المبلغ المدفوع.</value>
+  </data>
+  <data name="Error.Pos.IdempotencyConflict" xml:space="preserve">
+    <value>هذه العملية استُخدمت من قبل بسلة مختلفة.</value>
+  </data>
+  <data name="Error.Pos.HeldCartNotFound" xml:space="preserve">
+    <value>هذه السلة لم تعد معلّقة.</value>
+  </data>
+  <data name="Error.Pos.HeldCartLabelRequired" xml:space="preserve">
+    <value>اكتب اسمًا للسلة قبل تعليقها.</value>
+  </data>
+  <data name="Pos.Taxable" xml:space="preserve">
+    <value>المبلغ الخاضع للضريبة</value>
+  </data>
 </root>
