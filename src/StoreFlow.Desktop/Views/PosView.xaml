@@ -298,102 +298,120 @@
               BorderThickness="1"
               CornerRadius="8"
               Padding="16">
-        <StackPanel>
-          <Grid Margin="0,0,0,4">
-            <TextBlock Text="{Binding SubtotalLabel}" Style="{StaticResource Type.Cell}" />
-            <TextBlock Text="{Binding SubtotalText}" Style="{StaticResource Type.LeftToRight}"
-                       HorizontalAlignment="Right" />
-          </Grid>
+        <!--
+          The panel has to survive a short window. The money scrolls when the window is not tall
+          enough for it, and the button that confirms the sale stays at the bottom of the panel,
+          where the cashier's hand expects it and where it can never be cut off.
+        -->
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
 
-          <Grid Margin="0,0,0,4">
-            <TextBlock Text="{Binding DiscountLabel}" Style="{StaticResource Type.Cell}" />
-            <TextBlock Text="{Binding DiscountText}" Style="{StaticResource Type.LeftToRight}"
-                       HorizontalAlignment="Right" />
-          </Grid>
+          <ScrollViewer Grid.Row="0"
+                        VerticalScrollBarVisibility="Auto"
+                        HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+              <Grid Margin="0,0,0,4">
+                <TextBlock Text="{Binding SubtotalLabel}" Style="{StaticResource Type.Cell}" />
+                <TextBlock Text="{Binding SubtotalText}" Style="{StaticResource Type.LeftToRight}"
+                           HorizontalAlignment="Right" />
+              </Grid>
 
-          <Grid Margin="0,0,0,4">
-            <TextBlock Text="{Binding TaxableLabel}" Style="{StaticResource Type.Cell}" />
-            <TextBlock Text="{Binding TaxableText}" Style="{StaticResource Type.LeftToRight}"
-                       HorizontalAlignment="Right"
-                       AutomationProperties.AutomationId="Pos.Taxable" />
-          </Grid>
+              <Grid Margin="0,0,0,4">
+                <TextBlock Text="{Binding DiscountLabel}" Style="{StaticResource Type.Cell}" />
+                <TextBlock Text="{Binding DiscountText}" Style="{StaticResource Type.LeftToRight}"
+                           HorizontalAlignment="Right" />
+              </Grid>
 
-          <Grid Margin="0,0,0,10">
-            <TextBlock Text="{Binding TaxLabel}" Style="{StaticResource Type.Cell}" />
-            <TextBlock Text="{Binding TaxText}" Style="{StaticResource Type.LeftToRight}"
-                       HorizontalAlignment="Right"
-                       AutomationProperties.AutomationId="Pos.Tax" />
-          </Grid>
+              <Grid Margin="0,0,0,4">
+                <TextBlock Text="{Binding TaxableLabel}" Style="{StaticResource Type.Cell}" />
+                <TextBlock Text="{Binding TaxableText}" Style="{StaticResource Type.LeftToRight}"
+                           HorizontalAlignment="Right"
+                           AutomationProperties.AutomationId="Pos.Taxable" />
+              </Grid>
 
-          <Border BorderBrush="{DynamicResource Border.Subtle}"
-                  BorderThickness="0,1,0,0"
-                  Padding="0,10,0,10"
-                  Margin="0,0,0,10">
-            <Grid>
-              <TextBlock Text="{Binding GrandTotalLabel}"
-                         FontSize="{DynamicResource Font.Size.PosTotal}"
-                         FontWeight="Bold" />
-              <TextBlock Text="{Binding TotalText}"
-                         FontSize="{DynamicResource Font.Size.PosTotal}"
-                         FontWeight="Bold"
-                         Style="{StaticResource Type.LeftToRight}"
-                         HorizontalAlignment="Right"
-                         AutomationProperties.AutomationId="Pos.Total" />
-            </Grid>
-          </Border>
+              <Grid Margin="0,0,0,10">
+                <TextBlock Text="{Binding TaxLabel}" Style="{StaticResource Type.Cell}" />
+                <TextBlock Text="{Binding TaxText}" Style="{StaticResource Type.LeftToRight}"
+                           HorizontalAlignment="Right"
+                           AutomationProperties.AutomationId="Pos.Tax" />
+              </Grid>
 
-          <Grid Margin="0,0,0,4">
-            <TextBlock Text="{Binding PaidLabel}" Style="{StaticResource Type.Cell}" />
-            <TextBlock Text="{Binding PaidText}" Style="{StaticResource Type.LeftToRight}"
-                       HorizontalAlignment="Right" />
-          </Grid>
+              <Border BorderBrush="{DynamicResource Border.Subtle}"
+                      BorderThickness="0,1,0,0"
+                      Padding="0,10,0,10"
+                      Margin="0,0,0,10">
+                <Grid>
+                  <TextBlock Text="{Binding GrandTotalLabel}"
+                             FontSize="{DynamicResource Font.Size.PosTotal}"
+                             FontWeight="Bold" />
+                  <TextBlock Text="{Binding TotalText}"
+                             FontSize="{DynamicResource Font.Size.PosTotal}"
+                             FontWeight="Bold"
+                             Style="{StaticResource Type.LeftToRight}"
+                             HorizontalAlignment="Right"
+                             AutomationProperties.AutomationId="Pos.Total" />
+                </Grid>
+              </Border>
 
-          <Grid Margin="0,0,0,12">
-            <TextBlock Text="{Binding ChangeLabel}" Style="{StaticResource Type.Cell}" />
-            <TextBlock Text="{Binding ChangeText}" Style="{StaticResource Type.LeftToRight}"
-                       HorizontalAlignment="Right"
-                       AutomationProperties.AutomationId="Pos.Change" />
-          </Grid>
+              <Grid Margin="0,0,0,4">
+                <TextBlock Text="{Binding PaidLabel}" Style="{StaticResource Type.Cell}" />
+                <TextBlock Text="{Binding PaidText}" Style="{StaticResource Type.LeftToRight}"
+                           HorizontalAlignment="Right" />
+              </Grid>
 
-          <!-- How the customer is paying -->
-          <UniformGrid Columns="3" Margin="0,0,0,10">
-            <Button Content="{Binding CashLabel}"
-                    Command="{Binding ChooseCashCommand}"
-                    Style="{StaticResource Button.Ghost}"
-                    MinHeight="{DynamicResource Size.PosHitTarget}"
-                    Margin="0,0,4,0"
-                    AutomationProperties.AutomationId="Pos.Cash" />
-            <Button Content="{Binding CardLabel}"
-                    Command="{Binding ChooseCardCommand}"
-                    Style="{StaticResource Button.Ghost}"
-                    MinHeight="{DynamicResource Size.PosHitTarget}"
-                    Margin="2,0"
-                    AutomationProperties.AutomationId="Pos.Card" />
-            <Button Content="{Binding OtherLabel}"
-                    Command="{Binding ChooseOtherCommand}"
-                    Style="{StaticResource Button.Ghost}"
-                    MinHeight="{DynamicResource Size.PosHitTarget}"
-                    Margin="4,0,0,0"
-                    AutomationProperties.AutomationId="Pos.Other" />
-          </UniformGrid>
+              <Grid Margin="0,0,0,12">
+                <TextBlock Text="{Binding ChangeLabel}" Style="{StaticResource Type.Cell}" />
+                <TextBlock Text="{Binding ChangeText}" Style="{StaticResource Type.LeftToRight}"
+                           HorizontalAlignment="Right"
+                           AutomationProperties.AutomationId="Pos.Change" />
+              </Grid>
 
-          <TextBlock Text="{Binding CashReceivedLabel}" Style="{StaticResource Type.FieldLabel}" />
-          <TextBox Text="{Binding CashReceivedText, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="Pos.CashReceived"
-                   Margin="0,2,0,10" />
+              <!-- How the customer is paying -->
+              <UniformGrid Columns="3" Margin="0,0,0,10">
+                <Button Content="{Binding CashLabel}"
+                        Command="{Binding ChooseCashCommand}"
+                        Style="{StaticResource Button.Ghost}"
+                        MinHeight="{DynamicResource Size.PosHitTarget}"
+                        Margin="0,0,4,0"
+                        AutomationProperties.AutomationId="Pos.Cash" />
+                <Button Content="{Binding CardLabel}"
+                        Command="{Binding ChooseCardCommand}"
+                        Style="{StaticResource Button.Ghost}"
+                        MinHeight="{DynamicResource Size.PosHitTarget}"
+                        Margin="2,0"
+                        AutomationProperties.AutomationId="Pos.Card" />
+                <Button Content="{Binding OtherLabel}"
+                        Command="{Binding ChooseOtherCommand}"
+                        Style="{StaticResource Button.Ghost}"
+                        MinHeight="{DynamicResource Size.PosHitTarget}"
+                        Margin="4,0,0,0"
+                        AutomationProperties.AutomationId="Pos.Other" />
+              </UniformGrid>
 
-          <TextBlock Text="{Binding InvoiceDiscountLabel}" Style="{StaticResource Type.FieldLabel}" />
-          <TextBox Text="{Binding InvoiceDiscountText, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="Pos.InvoiceDiscount"
-                   Margin="0,2,0,12" />
+              <TextBlock Text="{Binding CashReceivedLabel}" Style="{StaticResource Type.FieldLabel}" />
+              <TextBox Text="{Binding CashReceivedText, UpdateSourceTrigger=PropertyChanged}"
+                       AutomationProperties.AutomationId="Pos.CashReceived"
+                       Margin="0,2,0,10" />
 
-          <Button Content="{Binding ConfirmSaleLabel}"
+              <TextBlock Text="{Binding InvoiceDiscountLabel}" Style="{StaticResource Type.FieldLabel}" />
+              <TextBox Text="{Binding InvoiceDiscountText, UpdateSourceTrigger=PropertyChanged}"
+                       AutomationProperties.AutomationId="Pos.InvoiceDiscount"
+                       Margin="0,2,0,12" />
+            </StackPanel>
+          </ScrollViewer>
+
+          <Button Grid.Row="1"
+                  Content="{Binding ConfirmSaleLabel}"
                   Command="{Binding ConfirmSaleCommand}"
                   Style="{StaticResource Button.Primary}"
                   MinHeight="{DynamicResource Size.PosHitTarget}"
                   FontSize="15"
+                  Margin="0,12,0,0"
                   AutomationProperties.AutomationId="Pos.Confirm" />
-        </StackPanel>
+        </Grid>
       </Border>
     </Grid>
 

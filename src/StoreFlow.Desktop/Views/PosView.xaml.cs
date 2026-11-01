@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using StoreFlow.Desktop.ViewModels;
 
 namespace StoreFlow.Desktop.Views;
@@ -17,6 +18,7 @@ public partial class PosView : UserControl
         InitializeComponent();
 
         Loaded += OnLoaded;
+        IsVisibleChanged += OnIsVisibleChanged;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -27,6 +29,21 @@ public partial class PosView : UserControl
         }
 
         FocusScanner();
+    }
+
+    /// <summary>
+    /// Handles the page being shown. The cashier who comes back to the till expects to scan
+    /// straight away, so the caret goes back into the scan field every time the page is shown and
+    /// not only the first time it is loaded.
+    /// </summary>
+    /// <param name="sender">The page.</param>
+    /// <param name="e">The change that was made.</param>
+    private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (IsVisible)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(FocusScanner));
+        }
     }
 
     /// <summary>
