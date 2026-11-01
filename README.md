@@ -98,9 +98,9 @@ Current state of the suite — **299 tests, all passing**:
 
 ### Driving the real application
 
-Four scripts drive the running desktop application through UI Automation and photograph it. They
-are the evidence behind the phase reports, and they are run against a throwaway data folder, so the
-shop's own data is never touched.
+Five harnesses drive the running desktop application through UI Automation. Four of them photograph
+it; they are the evidence behind the phase reports, and they are run against a throwaway data
+folder, so the shop's own data is never touched.
 
 ```powershell
 # The catalogue screens

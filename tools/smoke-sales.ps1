@@ -58,6 +58,12 @@ public static class StoreFlowSalesSmoke
 
     [DllImport("user32.dll")]
     public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetCursorPos(int x, int y);
+
+    [DllImport("user32.dll")]
+    public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
 }
 '@
 
@@ -429,6 +435,40 @@ function Select-GridRow($grid, [string]$needle) {
     return $false
 }
 
+# Picks the row of a table whose own number is the given one. A row can carry a number in another
+# column as well: a return carries the number of the invoice it undoes. A search that looks for
+# the number anywhere in the row picks the wrong row, so the first cell is the one that decides.
+function Select-GridRowByNumber($grid, [string]$number) {
+    if (-not $grid) { return $false }
+
+    $rowCond = New-Object System.Windows.Automation.PropertyCondition(
+        $AE::ControlTypeProperty, [System.Windows.Automation.ControlType]::DataItem)
+
+    foreach ($row in $grid.FindAll($TS::Subtree, $rowCond)) {
+        $own = $null
+
+        foreach ($cell in $row.FindAll($TS::Descendants, [System.Windows.Automation.Condition]::TrueCondition)) {
+            try {
+                if ($cell.Current.ControlType -eq [System.Windows.Automation.ControlType]::Text) {
+                    $own = $cell.Current.Name
+                    break
+                }
+            } catch { }
+        }
+
+        if ($own -and $own.Trim() -eq $number.Trim()) {
+            try {
+                $row.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+                Start-Sleep -Milliseconds 700
+                return $true
+            } catch { }
+        }
+    }
+
+    Write-Host ('    no row of the table is numbered "' + $number + '"')
+    return $false
+}
+
 # Reads the number out of a piece of text, so the check does not depend on how the money is written.
 function Get-Number([string]$text) {
     if (-not $text) { return $null }
@@ -460,6 +500,30 @@ function Get-CartRowCount($shell) {
     return $grid.FindAll($TS::Descendants, $rowCond).Count
 }
 
+# Puts the caret in a field the way a person does: with a click of the mouse. A field that only
+# the automation can address does not always take the keys a scanner sends.
+function Click-Element($element) {
+    if (-not $element) { return $false }
+
+    try {
+        $rect = $element.Current.BoundingRectangle
+        $x = [int]($rect.Left + ($rect.Width / 2))
+        $y = [int]($rect.Top + ($rect.Height / 2))
+
+        [void][StoreFlowSalesSmoke]::SetCursorPos($x, $y)
+        Start-Sleep -Milliseconds 150
+
+        [StoreFlowSalesSmoke]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero)
+        Start-Sleep -Milliseconds 60
+        [StoreFlowSalesSmoke]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
+        Start-Sleep -Milliseconds 250
+
+        return $true
+    } catch {
+        return $false
+    }
+}
+
 # Scans a barcode the way a scanner does: the code goes into the field, Enter finishes it.
 function Send-Scan($shell, [string]$barcode, [int]$waitRows = 1) {
     $scan = Find-ById $shell 'Pos.Scan'
@@ -473,8 +537,19 @@ function Send-Scan($shell, [string]$barcode, [int]$waitRows = 1) {
 
     Focus-App $shell | Out-Null
 
+    # The field is clicked as well as addressed, because the keys a scanner sends only reach it
+    # when the caret is really in it.
+    Click-Element $scan | Out-Null
+
     try { $scan.SetFocus() } catch { }
-    Start-Sleep -Milliseconds 120
+    Start-Sleep -Milliseconds 150
+
+    $focused = $false
+    try { $focused = $scan.Current.HasKeyboardFocus } catch { }
+
+    if (-not $focused) {
+        Write-Host ('    the scan field did not take the keyboard focus')
+    }
 
     [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
 
@@ -537,6 +612,46 @@ function Save-Shot([string]$windowId, [string]$fileName) {
 
     Write-Output ('  no screenshot for ' + $fileName + ': ' + $reply)
     Fail ('the picture of ' + $fileName + ' could not be taken: ' + $reply)
+}
+
+# Cuts a part out of a picture the application drew. The picture is the application's own drawing,
+# so a cut out of it is still what the owner sees; it is only closer.
+function Crop-Shot([string]$fileName, [int]$x, [int]$y, [int]$width, [int]$height) {
+    $path = Join-Path $outDir $fileName
+
+    if (-not (Test-Path $path)) {
+        Write-Output ('  no picture to cut: ' + $fileName)
+        Fail ('the picture of ' + $fileName + ' was not there to cut')
+        return
+    }
+
+    try {
+        Add-Type -AssemblyName System.Drawing
+
+        $picture = [System.Drawing.Image]::FromFile($path)
+        $cut = New-Object System.Drawing.Bitmap($width, $height)
+        $brush = [System.Drawing.Graphics]::FromImage($cut)
+        $brush.DrawImage(
+            $picture,
+            (New-Object System.Drawing.Rectangle(0, 0, $width, $height)),
+            (New-Object System.Drawing.Rectangle($x, $y, $width, $height)),
+            [System.Drawing.GraphicsUnit]::Pixel)
+        $brush.Dispose()
+
+        # The cut is written beside the picture and then takes its place, because the picture is
+        # still open while it is being cut.
+        $staging = $path + '.cut.png'
+        $cut.Save($staging, [System.Drawing.Imaging.ImageFormat]::Png)
+        $cut.Dispose()
+        $picture.Dispose()
+
+        Move-Item -Force $staging $path
+
+        Write-Output ('  cut to the detail panel -> ' + $fileName)
+    } catch {
+        Write-Output ('  the picture of ' + $fileName + ' could not be cut: ' + $_.Exception.Message)
+        Fail ('the picture of ' + $fileName + ' could not be cut')
+    }
 }
 
 # Puts the application in front, so that the keys the script sends reach the field and not the
@@ -740,6 +855,10 @@ if (-not $register) {
     Start-Sleep -Seconds 2
     Save-Shot 'MainWindow' 'phase4-02-sales-detail-arabic.png'
 
+    # The register picks the newest document by itself, so the whole window would be the same
+    # picture twice over. This one is the detail panel on its own.
+    Crop-Shot 'phase4-02-sales-detail-arabic.png' 20 178 340 580
+
     $detail = Get-TextsContaining $shell '135'
     Check ($detail.Count -gt 0) 'the detail shows the total of three units'
 
@@ -753,7 +872,6 @@ if (-not $register) {
         Dump-Windows $p.Id $shell
     } else {
         Write-Output '  the return dialog is up'
-        Save-Shot 'ReturnDialog' 'phase4-03-return-dialog-arabic.png'
 
         $returnGrid = Find-ById $returnDialog 'ReturnDialogLines'
         Check ($returnGrid -ne $null) 'the return dialog is holding the lines of the invoice'
@@ -767,6 +885,9 @@ if (-not $register) {
         $refund = Get-Number (Get-TextById $returnDialog 'ReturnDialogTotal')
         Write-Output ('  the dialog says the refund is ' + $refund)
         Check ($refund -ne $null -and [math]::Abs($refund - 45.0) -lt 0.001) 'the refund is the price of the one unit'
+
+        # The picture is taken with the return filled in, so it shows the money that goes back.
+        Save-Shot 'ReturnDialog' 'phase4-03-return-dialog-arabic.png'
 
         Invoke-ById $returnDialog 'ReturnDialogPost' | Out-Null
         Start-Sleep -Seconds 4
@@ -851,8 +972,14 @@ if ($register) {
         $number = ($secondInvoice -split '\|' | Where-Object { $_.Trim() -like 'INV-*' } | Select-Object -First 1)
         Write-Output ('  reversing ' + $number)
 
-        Check (Select-GridRow $register $number.Trim()) 'the second invoice was picked'
+        Check (Select-GridRowByNumber $register $number.Trim()) 'the second invoice was picked'
         Start-Sleep -Seconds 2
+
+        # The panel beside the register has to show the invoice itself. The return carries the same
+        # number in its last column, so the number the panel shows is what proves which document
+        # was picked.
+        $shown = Get-TextById $shell 'SalesDetailInvoiceNumber'
+        Check ($shown -and $shown.Trim() -eq $number.Trim()) 'the invoice is the document that is picked'
 
         Write-Output ('  open the reversal: ' + (Invoke-ById $shell 'SalesReverse'))
         Start-Sleep -Seconds 3
@@ -862,9 +989,13 @@ if ($register) {
             Fail 'the reversal dialog never appeared'
             Dump-Windows $p.Id $shell
         } else {
-            Save-Shot 'ReverseDialog' 'phase4-06-reversal-dialog-arabic.png'
-
             Check (Set-ById $reverseDialog 'ReverseDialogReason' 'Keyed by mistake') 'the reason was written in'
+
+            Start-Sleep -Milliseconds 700
+
+            # The picture is taken with the reason written in, so it shows the document as it is
+            # posted.
+            Save-Shot 'ReverseDialog' 'phase4-06-reversal-dialog-arabic.png'
 
             Invoke-ById $reverseDialog 'ReverseDialogPost' | Out-Null
             Start-Sleep -Seconds 4

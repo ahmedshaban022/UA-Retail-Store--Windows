@@ -64,6 +64,14 @@ that points back at the invoice through `SalesInvoice.ReversesDocumentId`.
 - A posted invoice can be reversed **once**. The unique index on `ReversesDocumentId` is the
   database's half of that rule.
 
+When part of the invoice has already come back as a return, the reversal takes back **only what is
+left**. The unit the return already put on the shelf is not put back a second time, and the money
+the return already refunded is not refunded a second time, so the two corrections together undo the
+sale exactly once. The reversal's own money is the same pro-rata of the invoice's figures the return
+uses, so the two documents add up to the invoice exactly. An invoice whose every unit has already
+come back has nothing left to reverse, and the reversal is refused rather than taking anything back
+twice.
+
 ### The refund is money, and it is written down like money
 
 Every refund is a payment row of its own, marked `IsRefund`, pointing either at the return or at
@@ -110,6 +118,8 @@ page, so in Arabic the amount comes before the currency in the money columns.
 | The cumulative quantity returned may never exceed the quantity sold | the single comparison inside `PostReturnCommandHandler` |
 | Resellable and damaged are different buckets, and only the resellable one reaches the shelf | `StockMovementType.ReturnRestock`, `StockMovementType.ReturnDamaged` (ADR-0003) |
 | A posted invoice may be reversed only once | the unique index on `SalesInvoice.ReversesDocumentId` |
+| A reversal takes back only what a return has not already taken back | the returned quantity read in `ReverseInvoiceCommandHandler`, and the pro-rata of `SalesRules.RefundForQuantity` |
+| An invoice that has been returned in full cannot be reversed | `SalesErrorCodes.NothingToReverse` |
 | A refund is money and is written down like money | `Payment.IsRefund`, `Payment.SalesReturnId`, `CK_Payments_SingleOwner` |
 | The register's money column nets | `SalesRules.SignedAmount` |
 | A return without a reason is not posted | `SalesErrorCodes.ReasonRequired` |
@@ -121,14 +131,14 @@ page, so in Arabic the amount comes before the currency in the money columns.
 
 ### The automated suite
 
-**322 tests, all passing** (`dotnet test StoreFlow.sln`):
+**333 tests, all passing** (`dotnet test StoreFlow.sln`):
 
 | Project | Tests | Before | What the new ones cover |
 |---|---|---|---|
 | `StoreFlow.Domain.Tests` | 25 | 25 | — |
 | `StoreFlow.Application.Tests` | 110 | 102 | The sales rules on their own: the number of a document, the refund of a whole line and of a part of one, the rounding of that refund, the remainder of a line, the sign the register shows, and the quantity a unit cannot express |
-| `StoreFlow.Infrastructure.Tests` | 86 | 71 | The returns and the reversals against a real SQLite file: the return document and its link, the refund row, the stock that comes back, the damaged bucket, the average that is restored, the cumulative rule, the refused returns, the reversal and its stock, the double reversal that is refused, the register that signs its column, and the immutability trigger that still refuses an edited price |
-| `StoreFlow.Desktop.Tests` | 101 | 101 | The sales screen: every error code becoming a message of its own, the refund the dialog offers being the refund the ledger will post, and the identifiers the smoke script drives the screen by |
+| `StoreFlow.Infrastructure.Tests` | 88 | 71 | The returns and the reversals against a real SQLite file: the return document and its link, the refund row, the stock that comes back, the damaged bucket, the average that is restored, the cumulative rule, the refused returns, the reversal and its stock, the reversal that takes back only what a return has not already taken back, the invoice that has been returned in full and cannot be reversed, the double reversal that is refused, the register that signs its column, and the immutability trigger that still refuses an edited price |
+| `StoreFlow.Desktop.Tests` | 110 | 101 | The sales screen: every error code becoming a message of its own, the refund the dialog offers being the refund the ledger will post, the identifiers the smoke script drives the screen by, and the margin a table with eight columns keeps |
 
 The infrastructure tests are the ones that matter. They run against a real database file with the
 real migrations, so the unique indexes, the check constraints and the triggers are in play.
@@ -158,6 +168,34 @@ English, against a throwaway data folder. It tells one story:
 Every control is found by its automation identifier, so the script does not depend on the wording
 of the interface in either language.
 
+### What the runs found
+
+The smoke script is worth the time it takes because it drives the real application, and it found
+five things the tests could not:
+
+1. **The register came up empty.** The page was built before the documents were asked for, and the
+   view model was never refreshed. The shell now refreshes a page's view model when it shows it.
+2. **The return and the reversal dialogs did not close.** A window has to close itself when its
+   view model asks it to; the view model cannot. Both windows now watch the request and close.
+3. **The dialog's refund stayed at zero.** The refund is the sum of the lines, and nothing told the
+   dialog that a line had changed. Each line now raises a change, and the dialog re-reads the sum.
+4. **The till lost the caret when the page was shown again.** The scan field took the focus the
+   first time the till was opened and never took it back, so a scanner that fired while the cashier
+   was on another page did nothing. The till now takes the caret every time it is shown.
+5. **The cashier filter and the refund method showed the record's generated text**
+   (`SalesCashierOption { Id = 1, DisplayName = Owner }`) instead of the name. The select shows the
+   text of the record, so both records now write their display name, the way every other option
+   record in the application does.
+
+The till's money panel was also cut off at the bottom of a short window, so the button that confirms
+the sale could not be reached. The money scrolls now and the button stays at the bottom of the panel,
+where the cashier's hand expects it.
+
+And the register's eight columns were squeezed into half the screen, so a document number was cut
+through — the one value in the register that has to be read back exactly. The register takes the
+larger share of the screen now, and its cells carry a narrower margin, so the number, the date and
+the amounts stand whole in both languages.
+
 ---
 
 ## What is not in this phase
@@ -182,8 +220,8 @@ of the interface in either language.
   a document — but it means a reader sees two rows for one sale, and has to read the "Against"
   column to see that they belong together.
 - **A return cannot be undone.** A return that was posted by mistake is corrected by a second
-  return of the same goods, which is clumsy but honest: the first return stays on the record. The
-  reversal covers the whole invoice only.
+  return of the same goods, which is clumsy but honest: the first return stays on the record. A
+  reversal undoes the invoice, but only the part of it that no return has already settled.
 - **The cashier filter lists only the people who have posted a sale.** A cashier who has not sold
   anything yet is not in the list, so a shop with several cashiers cannot filter by an empty one.
 - **The register has no column for the cost of goods sold.** The invoice carries the cost

@@ -26,8 +26,8 @@ What these pictures were taken to prove, and where to look for it:
   with a **negative** amount, because the money went back to the customer.
 - **The goods went back on the shelf** — `phase4-05` shows the stock after the return: twenty
   bought, three sold, one back.
-- **A reversal is a document of its own** — `phase4-07` shows `REV-2026-0001` under the invoice it
-  undoes, also with a negative amount.
+- **A reversal is a document of its own** — `phase4-07` shows `REV-2026-0001` against the second sale
+  `INV-2026-0002` that it undoes, also with a negative amount.
 
 | Picture | What it shows |
 |---|---|
@@ -37,5 +37,5 @@ What these pictures were taken to prove, and where to look for it:
 | `phase4-04-sales-after-the-return-arabic.png` | The register after the return: the sale and the return, the return with a negative amount and the invoice it belongs to |
 | `phase4-05-stock-after-the-return-arabic.png` | The stock on hand after the return, with the unit that came back on the shelf |
 | `phase4-06-reversal-dialog-arabic.png` | The reversal dialog: the reason, the way the money goes back, and what becomes of the goods |
-| `phase4-07-sales-after-the-reversal-arabic.png` | The register after the reversal: the sale, the reversal and the return, all three on one screen |
+| `phase4-07-sales-after-the-reversal-arabic.png` | The register after the reversal: the two sales, the return and the reversal, all four on one screen |
 | `phase4-08-sales-register-english.png` | The same register in English, with the rail on the **left** and the money as `EGP` |
