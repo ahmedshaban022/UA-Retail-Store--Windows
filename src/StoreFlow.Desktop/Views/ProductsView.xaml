@@ -115,10 +115,10 @@
 
           <DataGridTextColumn Width="100">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.SkuHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding DataContext.SkuHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
             <DataGridTextColumn.ElementStyle>
-              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Identifier}" />
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
             </DataGridTextColumn.ElementStyle>
             <DataGridTextColumn.Binding>
               <Binding Path="Sku" />
@@ -163,7 +163,7 @@
 
           <DataGridTextColumn Width="115">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.SalePriceHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding DataContext.SalePriceHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
@@ -175,7 +175,7 @@
 
           <DataGridTextColumn Width="115">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.CostPriceHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding DataContext.CostPriceHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
@@ -187,10 +187,10 @@
 
           <DataGridTextColumn Width="130">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.BarcodeHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding DataContext.BarcodeHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
             <DataGridTextColumn.ElementStyle>
-              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Identifier}" />
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
             </DataGridTextColumn.ElementStyle>
             <DataGridTextColumn.Binding>
               <Binding Path="Barcode" />

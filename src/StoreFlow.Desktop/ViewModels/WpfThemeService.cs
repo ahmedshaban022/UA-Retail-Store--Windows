@@ -90,7 +90,10 @@ public sealed class WpfThemeService : IThemeService
             number = ToEasternArabicNumerals(number);
         }
 
-        bool arabic = Current.Locale.Default.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+        // The symbol follows the language the interface is in, not the language the theme was
+        // written in. A shopkeeper who reads the interface in English must read the money in
+        // English too, or the amounts belong to a different shop.
+        bool arabic = _language.CurrentLanguage.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
         string symbol = arabic ? currency.SymbolAr : currency.SymbolEn;
 
         return string.Equals(currency.Position, "before", StringComparison.OrdinalIgnoreCase)

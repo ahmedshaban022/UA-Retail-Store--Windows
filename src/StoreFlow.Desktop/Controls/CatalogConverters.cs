@@ -73,12 +73,14 @@ public sealed class TimestampValueConverter : IValueConverter
     /// <inheritdoc />
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        return value switch
+        string written = value switch
         {
             DateTimeOffset moment => moment.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
             DateTime moment => moment.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
             _ => string.Empty,
         };
+
+        return written;
     }
 
     /// <inheritdoc />

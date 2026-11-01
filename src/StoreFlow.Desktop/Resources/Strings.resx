@@ -552,4 +552,34 @@
   <data name="Units.Title" xml:space="preserve">
     <value>Units</value>
   </data>
+  <data name="Error.ImportMissingValue" xml:space="preserve">
+    <value>{0} is missing from this row.</value>
+  </data>
+  <data name="Error.ImportNotANumber" xml:space="preserve">
+    <value>{0} in this row is not a number.</value>
+  </data>
+  <data name="Error.ImportNotABoolean" xml:space="preserve">
+    <value>{0} in this row must read yes or no.</value>
+  </data>
+  <data name="Error.ImportUnknownCategory" xml:space="preserve">
+    <value>There is no category called {0}.</value>
+  </data>
+  <data name="Error.ImportUnknownUnit" xml:space="preserve">
+    <value>There is no unit called {0}.</value>
+  </data>
+  <data name="Error.ImportUnknownTaxCategory" xml:space="preserve">
+    <value>There is no tax category called {0}.</value>
+  </data>
+  <data name="Error.ImportSkuExists" xml:space="preserve">
+    <value>A product with the code {0} already exists.</value>
+  </data>
+  <data name="Error.ImportDuplicateSku" xml:space="preserve">
+    <value>The code {0} already appears on line {1}.</value>
+  </data>
+  <data name="Error.ImportDuplicateBarcode" xml:space="preserve">
+    <value>The barcode {0} already appears on line {1}.</value>
+  </data>
+  <data name="Error.ImportUnknownField" xml:space="preserve">
+    <value>The heading {0} is not one this import understands.</value>
+  </data>
 </root>

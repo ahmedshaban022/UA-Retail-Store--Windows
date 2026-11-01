@@ -2,8 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="{Binding Title}"
-        Width="900"
-        Height="640"
+        Width="1180"
+        Height="680"
         MinWidth="720"
         MinHeight="480"
         WindowStartupLocation="CenterOwner"
@@ -81,7 +81,7 @@
                               Binding="{Binding Line}"
                               Width="60">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.LineHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding DataContext.LineHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
@@ -100,10 +100,11 @@
                               Binding="{Binding Sku}"
                               Width="140">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.SkuHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding DataContext.SkuHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
+          
             <DataGridTextColumn.ElementStyle>
-              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Identifier}" />
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
 
@@ -135,16 +136,16 @@
                               Binding="{Binding SalePrice}"
                               Width="110">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.SalePriceHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding DataContext.SalePriceHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
             <DataGridTextColumn.ElementStyle>
-              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Identifier}" />
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
 
           <DataGridTextColumn
                               Binding="{Binding Problems}"
-                              Width="2*" MinWidth="120" >
+                              Width="2*" MinWidth="240" >
             <DataGridTextColumn.Header>
               <TextBlock Text="{Binding DataContext.ProblemsHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTextColumn.Header>

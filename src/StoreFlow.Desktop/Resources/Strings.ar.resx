@@ -552,4 +552,34 @@
   <data name="Units.Title" xml:space="preserve">
     <value>الوحدات</value>
   </data>
+  <data name="Error.ImportMissingValue" xml:space="preserve">
+    <value>{0} مفقود في هذا السطر.</value>
+  </data>
+  <data name="Error.ImportNotANumber" xml:space="preserve">
+    <value>{0} في هذا السطر ليس رقمًا.</value>
+  </data>
+  <data name="Error.ImportNotABoolean" xml:space="preserve">
+    <value>{0} في هذا السطر يجب أن تكون نعم أو لا.</value>
+  </data>
+  <data name="Error.ImportUnknownCategory" xml:space="preserve">
+    <value>لا توجد فئة بهذا الاسم: {0}.</value>
+  </data>
+  <data name="Error.ImportUnknownUnit" xml:space="preserve">
+    <value>لا توجد وحدة بهذا الاسم: {0}.</value>
+  </data>
+  <data name="Error.ImportUnknownTaxCategory" xml:space="preserve">
+    <value>لا توجد فئة ضريبة بهذا الاسم: {0}.</value>
+  </data>
+  <data name="Error.ImportSkuExists" xml:space="preserve">
+    <value>يوجد منتج بالكود {0} بالفعل.</value>
+  </data>
+  <data name="Error.ImportDuplicateSku" xml:space="preserve">
+    <value>الكود {0} مكرر في السطر {1}.</value>
+  </data>
+  <data name="Error.ImportDuplicateBarcode" xml:space="preserve">
+    <value>الباركود {0} مكرر في السطر {1}.</value>
+  </data>
+  <data name="Error.ImportUnknownField" xml:space="preserve">
+    <value>العنوان {0} ليس عنوانًا يفهمه هذا الاستيراد.</value>
+  </data>
 </root>

@@ -271,7 +271,7 @@ public sealed partial class CsvImportViewModel : ObservableObject
 
             string problems = string.Join(
                 " ",
-                row.Issues.Select(issue => CatalogErrorMessages.Resolve(_strings, issue.Code, issue.Field)));
+                row.Issues.Select(Describe));
 
             Rows.Add(new ImportRowItem(
                 row.LineNumber,
@@ -286,6 +286,65 @@ public sealed partial class CsvImportViewModel : ObservableObject
 
         RaiseSummaryChanged();
     }
+
+    /// <summary>
+    /// Builds the message for one problem in the row, in the language the interface is in.
+    /// </summary>
+    /// <param name="issue">The problem the mapper found.</param>
+    /// <returns>The message the owner reads.</returns>
+    /// <remarks>
+    /// The mapper answers with a code and the value that caused the problem. The interface builds
+    /// its own sentence from the code, so an Arabic owner reads an Arabic sentence and sees the
+    /// offending value rather than a description of it.
+    /// </remarks>
+    private string Describe(ImportIssue issue) => issue.Code switch
+    {
+        ProductCsvMapper.UnknownCategoryCode
+            or ProductCsvMapper.UnknownUnitCode
+            or ProductCsvMapper.UnknownTaxCategoryCode
+            => CatalogErrorMessages.Resolve(_strings, issue.Code, issue.Value ?? string.Empty),
+
+        ProductCsvMapper.SkuExistsCode
+            or ProductCsvMapper.BarcodeInUseCode
+            => CatalogErrorMessages.Resolve(_strings, issue.Code, Identifier(issue.Value)),
+
+        ProductCsvMapper.DuplicateSkuInFileCode
+            or ProductCsvMapper.DuplicateBarcodeInFileCode
+            => CatalogErrorMessages.Resolve(_strings, issue.Code, Identifier(issue.Value), issue.Line),
+
+        _ => CatalogErrorMessages.Resolve(_strings, issue.Code, FieldName(issue.Field)),
+    };
+
+    /// <summary>
+    /// The name of the field the problem is in, in the language the interface is in.
+    /// </summary>
+    /// <param name="field">The field's technical name.</param>
+    /// <returns>The name the owner reads.</returns>
+    private string FieldName(string field) => field switch
+    {
+        ProductCsvMapper.FieldSku => _strings[StringKeys.CsvSku],
+        ProductCsvMapper.FieldName => _strings[StringKeys.CsvName],
+        ProductCsvMapper.FieldCategory => _strings[StringKeys.CsvCategory],
+        ProductCsvMapper.FieldUnit => _strings[StringKeys.CsvUnit],
+        ProductCsvMapper.FieldTaxCategory => _strings[StringKeys.ProductEditorTaxCategory],
+        ProductCsvMapper.FieldSalePrice => _strings[StringKeys.CsvSalePrice],
+        ProductCsvMapper.FieldCostPrice => _strings[StringKeys.ProductEditorCostPrice],
+        ProductCsvMapper.FieldReorderLevel => _strings[StringKeys.ProductEditorReorderLevel],
+        ProductCsvMapper.FieldBarcode => _strings[StringKeys.ProductEditorBarcode],
+        ProductCsvMapper.FieldAdditionalBarcodes => _strings[StringKeys.ProductEditorAdditionalBarcodes],
+        ProductCsvMapper.FieldIsActive => _strings[StringKeys.CommonStatus],
+        _ => field,
+    };
+
+    /// <summary>
+    /// An identifier, kept from disturbing the direction of the words around it.
+    /// </summary>
+    /// <param name="value">The identifier.</param>
+    /// <returns>The identifier, isolated when the interface is in Arabic.</returns>
+    private string Identifier(string? value) =>
+        _languageService.CurrentLanguage.StartsWith("ar", StringComparison.OrdinalIgnoreCase)
+            ? BidiText.Isolate(value)
+            : value ?? string.Empty;
 
     private void RaiseSummaryChanged()
     {

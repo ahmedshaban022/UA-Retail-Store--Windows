@@ -22,6 +22,12 @@ public static class BidiText
     /// <summary>The character that closes an isolate.</summary>
     private const char PopDirectionalIsolate = '\u2069';
 
+    /// <summary>The character that opens a left-to-right embedding.</summary>
+    private const char LeftToRightEmbedding = '\u202A';
+
+    /// <summary>The character that closes an embedding.</summary>
+    private const char PopDirectionalFormatting = '\u202C';
+
     /// <summary>
     /// Wraps an identifier so that it keeps its own direction inside a sentence.
     /// </summary>
@@ -35,5 +41,25 @@ public static class BidiText
         }
 
         return string.Concat(LeftToRightIsolate, value, PopDirectionalIsolate);
+    }
+
+    /// <summary>
+    /// Wraps a piece of text so that it is written left to right inside an Arabic line.
+    /// </summary>
+    /// <param name="value">The text. A missing or empty text gives an empty string.</param>
+    /// <returns>The text, wrapped in a left-to-right embedding.</returns>
+    /// <remarks>
+    /// The embedding is the older of the two ways of saying this, and it is the one the text engine
+    /// honours: the whole of the wrapped text is written left to right, including the bracket or the
+    /// space at its end, which an isolate does not always carry with it.
+    /// </remarks>
+    public static string Embed(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return string.Empty;
+        }
+
+        return string.Concat(LeftToRightEmbedding, value, PopDirectionalFormatting);
     }
 }

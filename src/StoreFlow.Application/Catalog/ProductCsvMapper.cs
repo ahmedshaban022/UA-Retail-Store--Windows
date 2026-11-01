@@ -262,7 +262,9 @@ public static class ProductCsvMapper
                 issues.Add(new ImportIssue(
                     FieldSku,
                     DuplicateSkuInFileCode,
-                    $"The stock-keeping unit code {sku} already appears on line {firstLine}."));
+                    $"The stock-keeping unit code {sku} already appears on line {firstLine}.",
+                    sku,
+                    firstLine));
             }
             else
             {
@@ -286,7 +288,8 @@ public static class ProductCsvMapper
                     issues.Add(new ImportIssue(
                         FieldSku,
                         SkuExistsCode,
-                        $"A product with the stock-keeping unit code {sku} already exists."));
+                        $"A product with the stock-keeping unit code {sku} already exists.",
+                        sku));
                 }
                 else
                 {
@@ -308,7 +311,8 @@ public static class ProductCsvMapper
                     issues.Add(new ImportIssue(
                         FieldCategory,
                         UnknownCategoryCode,
-                        $"There is no category called {category}. Create it first, or leave the column empty."));
+                        $"There is no category called {category}. Create it first, or leave the column empty.",
+                        category));
                 }
             }
 
@@ -326,7 +330,8 @@ public static class ProductCsvMapper
                     issues.Add(new ImportIssue(
                         FieldUnit,
                         UnknownUnitCode,
-                        $"There is no unit called {unit}. Create it first, or leave the column empty."));
+                        $"There is no unit called {unit}. Create it first, or leave the column empty.",
+                        unit));
                 }
             }
             else if (unitId == 0)
@@ -351,7 +356,8 @@ public static class ProductCsvMapper
                     issues.Add(new ImportIssue(
                         FieldTaxCategory,
                         UnknownTaxCategoryCode,
-                        $"There is no tax category called {taxCategory}. Leave the column empty to use the default."));
+                        $"There is no tax category called {taxCategory}. Leave the column empty to use the default.",
+                        taxCategory));
                 }
             }
             else if (taxCategoryId == 0)
@@ -373,25 +379,57 @@ public static class ProductCsvMapper
                         ? "The selling price is missing."
                         : "The selling price is not a number."));
             }
+            else if (salePrice < 0m)
+            {
+                // The same rule the product editor applies. An import is another way into the
+                // catalogue, so it is held to the same standard.
+                issues.Add(new ImportIssue(
+                    FieldSalePrice,
+                    CatalogValidation.NegativePriceCode,
+                    "The selling price cannot be negative.",
+                    salePrice.ToString(CultureInfo.InvariantCulture)));
+            }
 
             decimal costPrice = 0m;
 
-            if (!string.IsNullOrWhiteSpace(raw[FieldCostPrice]) && !TryParseMoney(raw[FieldCostPrice], out costPrice))
+            if (!string.IsNullOrWhiteSpace(raw[FieldCostPrice]))
             {
-                issues.Add(new ImportIssue(
-                    FieldCostPrice,
-                    NotANumberCode,
-                    "The cost price is not a number."));
+                if (!TryParseMoney(raw[FieldCostPrice], out costPrice))
+                {
+                    issues.Add(new ImportIssue(
+                        FieldCostPrice,
+                        NotANumberCode,
+                        "The cost price is not a number."));
+                }
+                else if (costPrice < 0m)
+                {
+                    issues.Add(new ImportIssue(
+                        FieldCostPrice,
+                        CatalogValidation.NegativePriceCode,
+                        "The cost price cannot be negative.",
+                        costPrice.ToString(CultureInfo.InvariantCulture)));
+                }
             }
 
             decimal reorderLevel = 0m;
 
-            if (!string.IsNullOrWhiteSpace(raw[FieldReorderLevel]) && !TryParseMoney(raw[FieldReorderLevel], out reorderLevel))
+            if (!string.IsNullOrWhiteSpace(raw[FieldReorderLevel]))
             {
-                issues.Add(new ImportIssue(
-                    FieldReorderLevel,
-                    NotANumberCode,
-                    "The reorder level is not a number."));
+                if (!TryParseMoney(raw[FieldReorderLevel], out reorderLevel))
+                {
+                    issues.Add(new ImportIssue(
+                        FieldReorderLevel,
+                        NotANumberCode,
+                        "The reorder level is not a number."));
+                }
+                else if (reorderLevel < 0m)
+                {
+                    issues.Add(new ImportIssue(
+                        FieldReorderLevel,
+                        CatalogValidation.NegativeQuantityCode,
+                        "The reorder level cannot be negative.",
+                        reorderLevel.ToString(CultureInfo.InvariantCulture)));
+                }
             }
 
             string? barcode = null;
@@ -490,7 +528,9 @@ public static class ProductCsvMapper
             issues.Add(new ImportIssue(
                 field,
                 DuplicateBarcodeInFileCode,
-                $"The barcode {barcode} already appears on line {firstLine}."));
+                $"The barcode {barcode} already appears on line {firstLine}.",
+                barcode,
+                firstLine));
             return;
         }
 
@@ -501,7 +541,8 @@ public static class ProductCsvMapper
             issues.Add(new ImportIssue(
                 field,
                 BarcodeInUseCode,
-                $"The barcode {barcode} already belongs to another product."));
+                $"The barcode {barcode} already belongs to another product.",
+                barcode));
         }
     }
 

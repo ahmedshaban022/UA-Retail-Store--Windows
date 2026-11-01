@@ -70,10 +70,15 @@ public static class StoreFlowDialog {
     [DllImport("user32.dll")] private static extern IntPtr GetParent(IntPtr h);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern bool SetWindowText(IntPtr h, string t);
     [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr h, uint msg, IntPtr wp, IntPtr lp);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr SendMessage(IntPtr h, uint msg, IntPtr wp, StringBuilder lp);
     [DllImport("user32.dll")] private static extern bool PostMessage(IntPtr h, uint msg, IntPtr wp, IntPtr lp);
     [DllImport("user32.dll")] private static extern bool IsWindow(IntPtr h);
 
     private const uint WM_COMMAND = 0x0111;
+    private const uint WM_CHAR = 0x0102;
+    private const uint WM_GETTEXT = 0x000D;
+    private const uint WM_GETTEXTLENGTH = 0x000E;
+    private const uint EM_SETSEL = 0x00B1;
     private const uint EN_CHANGE = 0x0300;
     private const uint BM_CLICK = 0x00F5;
 
@@ -116,6 +121,23 @@ public static class StoreFlowDialog {
         return found;
     }
 
+    // The identifier alone is not enough. The modern dialog gives the toolbars of its address band
+    // the identifier 1001 as well, and typing a path into one of those is typing it into a toolbar.
+    public static IntPtr FindChildByIdAndClass(IntPtr parent, int id, string wanted) {
+        IntPtr found = IntPtr.Zero;
+        EnumChildWindows(parent, delegate(IntPtr h, IntPtr l) {
+            if (GetDlgCtrlID(h) == id && ClassOf(h) == wanted && found == IntPtr.Zero) { found = h; return false; }
+            return true;
+        }, IntPtr.Zero);
+        return found;
+    }
+
+    public static List<IntPtr> All(IntPtr parent) {
+        var found = new List<IntPtr>();
+        EnumChildWindows(parent, delegate(IntPtr h, IntPtr l) { found.Add(h); return true; }, IntPtr.Zero);
+        return found;
+    }
+
     public static IntPtr FindChildByClass(IntPtr parent, string wanted) {
         IntPtr found = IntPtr.Zero;
         EnumChildWindows(parent, delegate(IntPtr h, IntPtr l) {
@@ -125,20 +147,30 @@ public static class StoreFlowDialog {
         return found;
     }
 
-    // The file name box of the Windows dialog is the edit inside the combo that carries the name.
-    // The edit with the identifier 1001 belongs to something else, and a name written there is
-    // never read.
+    // The file name box of the Windows dialog. The classic dialog puts it in the edit with the
+    // identifier 1001. The modern one puts it in the edit with the identifier 1148, inside the
+    // combo that holds it, and gives the same identifier 1001 to the toolbars of its address band.
+    // A path typed into an address band is a path to a folder, not to a file.
     public static IntPtr FindFileNameEdit(IntPtr dialog) {
-        IntPtr host = FindChildByClass(dialog, "ComboBoxEx32");
+        IntPtr byId = FindChildByIdAndClass(dialog, 1001, "Edit");
+        if (byId != IntPtr.Zero) { return byId; }
+
+        IntPtr host = FindChildByIdAndClass(dialog, 1148, "ComboBoxEx32");
+        if (host == IntPtr.Zero) { host = FindChildByIdAndClass(dialog, 1148, "ComboBox"); }
         if (host != IntPtr.Zero) {
             IntPtr edit = FindChildByClass(host, "Edit");
             if (edit != IntPtr.Zero) { return edit; }
         }
 
-        IntPtr byId = FindChildById(dialog, 1001);
-        if (byId != IntPtr.Zero) { return byId; }
+        // Whatever else the dialog is made of, the file name box is the edit that sits in a combo.
+        foreach (IntPtr h in All(dialog)) {
+            if (ClassOf(h) == "ComboBox" || ClassOf(h) == "ComboBoxEx32") {
+                IntPtr edit = FindChildByClass(h, "Edit");
+                if (edit != IntPtr.Zero) { return edit; }
+            }
+        }
 
-        return FindChildByClass(dialog, "Edit");
+        return IntPtr.Zero;
     }
 
     public static string FileName(IntPtr dialog) {
@@ -146,18 +178,30 @@ public static class StoreFlowDialog {
         return edit == IntPtr.Zero ? "" : TextOf(edit);
     }
 
-    public static bool SetFileName(IntPtr dialog, string path) {
+    // The modern Windows dialog keeps its own copy of the name and ignores a name written into the
+    // box, so the path is typed into the box one character at a time. Typing is what makes the
+    // dialog take notice.
+    public static bool TypeFileName(IntPtr dialog, string path) {
         IntPtr edit = FindFileNameEdit(dialog);
         if (edit == IntPtr.Zero) return false;
 
-        SetWindowText(edit, path);
+        SendMessage(edit, EM_SETSEL, IntPtr.Zero, new IntPtr(-1));
+        SendMessage(edit, WM_CHAR, new IntPtr(0x08), IntPtr.Zero);
 
-        // The dialog only learns of the new name when the box tells it that its text has changed.
-        IntPtr parent = GetParent(edit);
-        if (parent != IntPtr.Zero) {
-            SendMessage(parent, WM_COMMAND, (IntPtr)((EN_CHANGE << 16) | GetDlgCtrlID(edit)), edit);
+        foreach (char character in path) {
+            SendMessage(edit, WM_CHAR, new IntPtr(character), new IntPtr(1));
         }
-        return true;
+
+        // Read the box back. A path that did not land in the box is worth knowing about before the
+        // dialog is closed, because afterwards nothing can be told apart.
+        return ReadText(edit).Trim() == path.Trim();
+    }
+
+    public static string ReadText(IntPtr h) {
+        int length = (int)SendMessage(h, WM_GETTEXTLENGTH, IntPtr.Zero, IntPtr.Zero);
+        var buffer = new StringBuilder(length + 2);
+        SendMessage(h, WM_GETTEXT, new IntPtr(buffer.Capacity), buffer);
+        return buffer.ToString();
     }
 
     public static void PressAccept(IntPtr dialog) {
@@ -176,6 +220,10 @@ public static class StoreFlowDialog {
     }
 
     public static bool IsOpen(IntPtr dialog) { return IsWindow(dialog); }
+
+    public static bool HasFileNameBox(IntPtr dialog) {
+        return dialog != IntPtr.Zero && FindFileNameEdit(dialog) != IntPtr.Zero;
+    }
 }
 '@
 
@@ -260,6 +308,21 @@ function Wait-Window([int]$processId, [string]$name, [int]$seconds = 30) {
     return $null
 }
 
+# The shell is the one window of the application that is wider than a dialog.
+function Wait-Shell([int]$processId, [int]$seconds = 30) {
+    $cond = New-Object System.Windows.Automation.PropertyCondition($AE::ProcessIdProperty, $processId)
+    $deadline = (Get-Date).AddSeconds($seconds)
+    while ((Get-Date) -lt $deadline) {
+        foreach ($w in $AE::RootElement.FindAll($TS::Children, $cond)) {
+            try {
+                if ($w.Current.BoundingRectangle.Width -gt 600) { return $w }
+            } catch { }
+        }
+        Start-Sleep -Milliseconds 700
+    }
+    return $null
+}
+
 function Get-VisibleEdits($window) {
     $cond = New-Object System.Windows.Automation.PropertyCondition(
         $AE::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)
@@ -303,9 +366,41 @@ function Get-TextsContaining($window, [string]$needle) {
     return $result
 }
 
+# Every name on the screen, whatever kind of element it belongs to.
+function Get-TextNames($window) {
+    $result = @()
+    foreach ($e in $window.FindAll($TS::Descendants, [System.Windows.Automation.Condition]::TrueCondition)) {
+        try {
+            if ($e.Current.Name) { $result += $e.Current.Name }
+        } catch { }
+    }
+    return $result
+}
+
+# Looks for a piece of text anywhere on the screen, and waits for it: the rows of a table are only
+# there once the table has drawn them. When the text never turns up, the screen is written out, so
+# that a failed check says what was on it.
+function Find-Text($window, [string]$needle) {
+    $deadline = (Get-Date).AddSeconds(10)
+
+    while ((Get-Date) -lt $deadline) {
+        foreach ($name in (Get-TextNames $window)) {
+            if ($name -and $name.Contains($needle)) { return $true }
+        }
+        Start-Sleep -Milliseconds 500
+    }
+
+    Write-Host ('    the text "' + $needle + '" never turned up. The screen says:')
+    foreach ($name in (Get-TextNames $window)) {
+        if ($name) { Write-Host ('      ' + $name) }
+    }
+    return $false
+}
+
 # Captures a window by asking it to draw itself. A right-to-left window comes out mirrored, so the
-# capture is flipped back and both versions are written out.
-function Save-WindowShot($element, [string]$fileName) {
+# capture is flipped back and both versions are written out. A window that reads left to right comes
+# out as it is, and flipping it would be a lie about the screen.
+function Save-WindowShot($element, [string]$fileName, [bool]$rightToLeft = $true) {
     if (-not $element) { Write-Output ('  no window for ' + $fileName); return }
 
     $handle = [IntPtr]$element.Current.NativeWindowHandle
@@ -331,17 +426,21 @@ function Save-WindowShot($element, [string]$fileName) {
     $path = Join-Path $outDir $fileName
     $bitmap.Save([System.IO.Path]::ChangeExtension($path, '.raw.png'), [System.Drawing.Imaging.ImageFormat]::Png)
 
-    $flipped = New-Object System.Drawing.Bitmap $width, $height
-    $g2 = [System.Drawing.Graphics]::FromImage($flipped)
-    $g2.TranslateTransform($width, 0)
-    $g2.ScaleTransform(-1, 1)
-    $g2.DrawImage($bitmap, 0, 0)
-    $g2.Dispose()
-    $flipped.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
-    $flipped.Dispose()
+    if ($rightToLeft) {
+        $flipped = New-Object System.Drawing.Bitmap $width, $height
+        $g2 = [System.Drawing.Graphics]::FromImage($flipped)
+        $g2.TranslateTransform($width, 0)
+        $g2.ScaleTransform(-1, 1)
+        $g2.DrawImage($bitmap, 0, 0)
+        $g2.Dispose()
+        $flipped.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
+        $flipped.Dispose()
+    } else {
+        $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
+    }
     $bitmap.Dispose()
 
-    Write-Output ('  screenshot -> ' + $fileName + ' (drawn=' + $ok + ', ' + $width + 'x' + $height + ')')
+    Write-Output ('  screenshot -> ' + $fileName + ' (drawn=' + $ok + ', ' + $width + 'x' + $height + ', flipped=' + $rightToLeft + ')')
 }
 
 # The Windows file dialog belongs to Windows, not to the application, so it is found by the file
@@ -374,19 +473,43 @@ function Wait-FileDialog([int]$processId, $shell, [int]$seconds = 25) {
 # Every note printed from these functions goes to the host and never to the pipeline, so the function
 # can return a plain yes or no. (A note in the pipeline turns the answer into an array, and the check
 # that reads it then refuses to bind an array to a yes or no.)
+# The name the dialog's file name box holds, read from the box itself rather than from the
+# accessibility tree, which shows the address bar of the modern dialog under the same identifier.
+function Get-FileNameText($handle) {
+    return [StoreFlowDialog]::FileName($handle)
+}
+
 function Drive-FileDialog($dialog, [string]$path, [int]$processId = 0) {
+    # The dialog is found in three ways, because the modern Windows dialog is not always a window
+    # of its own process and does not always hand out a handle of its own.
+    $candidates = @()
+    $owner = $processId
+    try {
+        $candidates += [IntPtr]$dialog.Current.NativeWindowHandle
+        $owner = $dialog.Current.ProcessId
+    } catch { }
+    if ($owner -gt 0) { $candidates += [StoreFlowDialog]::FindDialog($owner) }
+    if ($processId -gt 0) { $candidates += [StoreFlowDialog]::FindDialog($processId) }
+
     $handle = [IntPtr]::Zero
-    try { $handle = [IntPtr]$dialog.Current.NativeWindowHandle } catch { }
-    if ($handle -eq [IntPtr]::Zero -and $processId -gt 0) { $handle = [StoreFlowDialog]::FindDialog($processId) }
-    if ($handle -eq [IntPtr]::Zero) { Write-Host '    the file dialog has no window handle'; return $false }
+    foreach ($candidate in $candidates) {
+        if ($candidate -eq [IntPtr]::Zero) { continue }
+        Write-Host ('    a candidate window: 0x' + $candidate.ToString('X'))
+        if ([StoreFlowDialog]::HasFileNameBox($candidate)) { $handle = $candidate; break }
+    }
+
+    if ($handle -eq [IntPtr]::Zero) {
+        Write-Host '    the file dialog has no window with a file name box'
+        return $false
+    }
 
     foreach ($line in [StoreFlowDialog]::Describe($handle)) { Write-Host ('      the dialog offers: ' + $line) }
 
-    if (-not [StoreFlowDialog]::SetFileName($handle, $path)) {
-        Write-Host '    the dialog has no file name box'
+    if (-not [StoreFlowDialog]::TypeFileName($handle, $path)) {
+        Write-Host '    the path did not land in the file name box'
         return $false
     }
-    Write-Host ('    the file name box holds: [' + [StoreFlowDialog]::FileName($handle) + ']')
+    Write-Host ('    the file name box holds: [' + (Get-FileNameText $handle) + ']')
 
     [StoreFlowDialog]::PressAccept($handle)
     return $true
@@ -428,13 +551,17 @@ $arStoreNameAr = A @(0x0645,0x062A,0x062C,0x0631,0x0020,0x0645,0x0635,0x0631,0x0
 $importCsv = Join-Path $runRoot 'import.csv'
 $oilAr = A @(0x0632,0x064A,0x062A,0x0020,0x0632,0x064A,0x062A,0x0648,0x0646,0x0020,0x0031,0x0020,0x0644,0x062A,0x0631)
 $teaAr = A @(0x0634,0x0627,0x064A,0x0020,0x0623,0x062E,0x0636,0x0631)
-$csvText = @(
-    'sku,name,namear,category,unit,saleprice,costprice,reorderlevel,barcode,isactive',
-    'OIL-001,Olive Oil 1L,' + $oilAr + ',Grains,Box,320.00,260.00,5,6221000000024,true',
-    'TEA-001,Green Tea 250g,' + $teaAr + ',Grains,,180.00,120.00,3,6221000000031,true',
-    'BAD-001,Broken Row,,Grains,Box,-5.00,0,0,6221000000048,true'
-) -join "`n"
+# The rows are built one at a time. Inside a comma-separated array literal PowerShell binds the
+# comma tighter than the plus sign, so 'a' + $name + 'c' would arrive as three separate elements
+# and the Arabic name would end up on a line of its own.
+$rows = @('sku,name,namear,category,unit,saleprice,costprice,reorderlevel,barcode,isactive')
+$rows += 'OIL-001,Olive Oil 1L,' + $oilAr + ',Grains,Box,320.00,260.00,5,6221000000024,true'
+$rows += 'TEA-001,Green Tea 250g,' + $teaAr + ',Grains,,180.00,120.00,3,6221000000031,true'
+$rows += 'BAD-001,Broken Row,,Grains,Box,-5.00,0,0,6221000000048,true'
+$csvText = $rows -join "`n"
 [System.IO.File]::WriteAllText($importCsv, $csvText, (New-Object System.Text.UTF8Encoding($false)))
+
+Write-Host ('  the import file has ' + ((Get-Content $importCsv).Count) + ' lines')
 
 $p = Start-Process -FilePath $exe -PassThru
 Write-Output ('launched pid=' + $p.Id)
@@ -496,9 +623,14 @@ Start-Sleep -Seconds 7
 # --- The shell ---------------------------------------------------------------
 $cond = New-Object System.Windows.Automation.PropertyCondition($AE::ProcessIdProperty, $p.Id)
 $shell = $null
-foreach ($w in $AE::RootElement.FindAll($TS::Children, $cond)) {
-    Write-Output ('  window: [' + $w.Current.Name + '] offscreen=' + $w.Current.IsOffscreen)
-    if ($w.Current.BoundingRectangle.Width -gt 600) { $shell = $w }
+$deadline = (Get-Date).AddSeconds(30)
+while ((Get-Date) -lt $deadline) {
+    foreach ($w in $AE::RootElement.FindAll($TS::Children, $cond)) {
+        Write-Output ('  window: [' + $w.Current.Name + '] offscreen=' + $w.Current.IsOffscreen + ' width=' + [Math]::Round($w.Current.BoundingRectangle.Width))
+        if ($w.Current.BoundingRectangle.Width -gt 600) { $shell = $w; break }
+    }
+    if ($shell) { break }
+    Start-Sleep -Milliseconds 700
 }
 if (-not $shell) { Write-Output 'FAIL: no shell window'; Stop-Process -Id $p.Id -Force; exit 1 }
 Write-Output ('shell: "' + $shell.Current.Name + '"')
@@ -667,6 +799,14 @@ Save-WindowShot $shell 'phase1-14-suppliers-arabic.png'
 # --- The audit trail ---------------------------------------------------------
 Write-Output ('  open the audit trail: ' + (Invoke-ById $shell 'Audit'))
 Start-Sleep -Seconds 3
+Check ((Get-TextsContaining $shell (A @(0x0645,0x0644,0x062E,0x0635))).Count -gt 0) 'the audit trail is in Arabic'
+$typeChoice = Get-TextById $shell 'Audit.EntityType'
+$recordShown = Get-TextsContaining $shell 'AuditEntityTypeOption'
+if ($recordShown.Count -gt 0) {
+    Fail ('the audit trail filter shows the record instead of the name: ' + ($recordShown -join ' | '))
+} else {
+    Write-Output '  ok   the audit trail filter shows the name of the choice, not the record'
+}
 $auditRows = Get-TextsContaining $shell 'Product'
 Write-Output ('  the trail mentions the product: ' + ($auditRows.Count -gt 0))
 Check ($auditRows.Count -gt 0) 'the audit trail records the catalogue changes'
@@ -751,11 +891,19 @@ Check ((Get-TextsContaining $shell 'BAD-001').Count -eq 0) 'the refused row was 
 Save-WindowShot $shell 'phase1-19-products-after-import-arabic.png'
 
 # --- The same screens in English ---------------------------------------------
+# The language is chosen from the picker in the shell. When the picker cannot be pressed — the
+# desktop is locked and the popup of a combo box is a window of its own that the automation cannot
+# reach — the language is written into the theme the application reads when it starts, and the
+# application is started again. The screens are then read in English exactly as the shopkeeper
+# would read them.
 Write-Output '  switch to English'
+$switched = $false
+
 $languageCombo = Find-ById $shell 'LanguagePicker'
 if ($languageCombo) {
-    $expand = $languageCombo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
-    $expand.Expand()
+    try {
+        $languageCombo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()
+    } catch { }
     Start-Sleep -Milliseconds 1200
 
     $itemCond = New-Object System.Windows.Automation.AndCondition(
@@ -767,33 +915,117 @@ if ($languageCombo) {
     if (-not $item) { $item = $AE::RootElement.FindFirst($TS::Subtree, $itemCond) }
 
     if ($item) {
+        Write-Host ('  the English entry is a ' + $item.Current.ControlType.ProgrammaticName + ' named [' + $item.Current.Name + ']')
+        $chosen = $false
+
         try {
             $select = $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
             $select.Select()
+            $chosen = $true
+        } catch {
+            Write-Host ('  it cannot be selected: ' + $_.Exception.Message)
+        }
+
+        if (-not $chosen) {
+            try {
+                $item.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+                $chosen = $true
+            } catch {
+                Write-Host ('  it cannot be pressed: ' + $_.Exception.Message)
+            }
+        }
+
+        if (-not $chosen) {
+            try {
+                $item.GetCurrentPattern([System.Windows.Automation.LegacyIAccessiblePattern]::Pattern).DoDefaultAction()
+                $chosen = $true
+            } catch {
+                Write-Host ('  it has no default action: ' + $_.Exception.Message)
+            }
+        }
+
+        if ($chosen) {
             Start-Sleep -Seconds 3
+            $switched = $true
             Write-Output '  the language is now English'
             Check ((Get-TextsContaining $shell 'Products').Count -gt 0) 'the navigation rail reads in English'
-        } catch {
-            Fail ('the English entry could not be chosen: ' + $_.Exception.Message)
         }
     } else {
-        Fail 'the English entry was not found in the language picker'
+        Write-Output '  the English entry was not found in the language picker'
     }
 } else {
-    Fail 'the language picker was not found'
+    Write-Output '  the language picker was not found'
+}
+
+if (-not $switched) {
+    Write-Output '  the language is written into the theme and the application is started again'
+    Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 3
+
+    $themeFile = Join-Path $runRoot 'themes\active.sftheme.json'
+    if (-not (Test-Path $themeFile)) {
+        Fail 'the theme file is not where the application keeps it'
+    } else {
+        $theme = Get-Content -Raw -Encoding UTF8 $themeFile
+        $theme = [regex]::Replace($theme, '"default"\s*:\s*"ar"', '"default": "en"')
+        [System.IO.File]::WriteAllText($themeFile, $theme, (New-Object System.Text.UTF8Encoding($false)))
+        Write-Output '  the theme now asks for English'
+
+        $p = Start-Process -FilePath $exe -PassThru
+        Start-Sleep -Seconds 8
+
+        $login = Wait-Window $p.Id 'Sign in' 30
+        if (-not $login) {
+            Fail 'the sign-in window never appeared in English'
+        } else {
+            Write-Output ('  sign in: "' + $login.Current.Name + '"')
+            $edits = Get-VisibleEdits $login
+            $passwords = Get-PasswordEdits $login
+            if ($edits.Count -ge 1) { Set-EditValue $edits[0] 'owner' }
+            if ($passwords.Count -ge 1) { Set-EditValue $passwords[0] 'StoreFlow!2026' }
+            Start-Sleep -Milliseconds 700
+            Invoke-ById $login 'Login.SignIn' | Out-Null
+            Start-Sleep -Seconds 7
+        }
+
+        $shell = Wait-Shell $p.Id
+        if (-not $shell) {
+            Fail 'the shell never appeared in English'
+        } else {
+            Write-Output ('  shell: "' + $shell.Current.Name + '"')
+            $railButton = Find-ById $shell 'Products'
+            if ($railButton) {
+                $railRect = $railButton.Current.BoundingRectangle
+                $shellRect = $shell.Current.BoundingRectangle
+                if ($railRect.Left -lt $shellRect.Left + $shellRect.Width / 2) {
+                    Write-Output '  ok   the navigation rail is on the left: the interface reads left to right'
+                } else {
+                    Fail 'the navigation rail is not on the left in English'
+                }
+            } else {
+                Fail 'the products entry is not in the navigation rail in English'
+            }
+            Check ((Get-TextsContaining $shell 'Products').Count -gt 0) 'the navigation rail reads in English'
+        }
+    }
 }
 
 Write-Output ('  open products in English: ' + (Invoke-ById $shell 'Products'))
 Start-Sleep -Seconds 3
-Save-WindowShot $shell 'phase1-20-products-english.png'
+Save-WindowShot $shell 'phase1-20-products-english.png' $false
+Check ((Get-TextsContaining $shell 'Selling price').Count -gt 0) 'the products table reads in English'
+Check ((Get-TextsContaining $shell 'EGP').Count -gt 0) 'the money reads in English'
+Check ((Find-Text $shell 'RICE-001')) 'the products are still there in English'
 
 Write-Output ('  open the audit trail in English: ' + (Invoke-ById $shell 'Audit'))
 Start-Sleep -Seconds 3
-Save-WindowShot $shell 'phase1-21-audit-english.png'
+Save-WindowShot $shell 'phase1-21-audit-english.png' $false
+Check ((Get-TextsContaining $shell 'Summary').Count -gt 0) 'the audit trail reads in English'
 
 Write-Output ('  open categories in English: ' + (Invoke-ById $shell 'Categories'))
 Start-Sleep -Seconds 3
-Save-WindowShot $shell 'phase1-22-categories-english.png'
+Save-WindowShot $shell 'phase1-22-categories-english.png' $false
+Check ((Get-TextsContaining $shell 'Arabic name').Count -gt 0) 'the categories table reads in English'
 
 # --- Report ------------------------------------------------------------------
 Dump-Windows $p.Id $shell

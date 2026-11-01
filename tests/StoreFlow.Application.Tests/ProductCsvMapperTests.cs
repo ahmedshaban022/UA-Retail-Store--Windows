@@ -282,4 +282,74 @@ public sealed class ProductCsvMapperTests
 
         result.ShouldHaveSingleItem();
     }
+
+    [Fact]
+    public void A_negative_selling_price_is_refused_the_way_the_editor_refuses_it()
+    {
+        IReadOnlyList<string[]> rows = [["SKU", "Name", "SalePrice"], ["RICE-001", "Rice", "-5.00"]];
+
+        IReadOnlyList<ProductImportRow> result = ProductCsvMapper.BuildRows(
+            rows,
+            Map(rows[0]),
+            Snapshot(),
+            ProductImportMode.CreateOnly);
+
+        ProductImportRow row = result.ShouldHaveSingleItem();
+
+        row.IsValid.ShouldBeFalse();
+        row.Issues.ShouldContain(issue => issue.Code == CatalogValidation.NegativePriceCode);
+    }
+
+    [Fact]
+    public void A_negative_cost_price_is_refused()
+    {
+        IReadOnlyList<string[]> rows = [["SKU", "Name", "SalePrice", "CostPrice"], ["RICE-001", "Rice", "450.00", "-1.00"]];
+
+        IReadOnlyList<ProductImportRow> result = ProductCsvMapper.BuildRows(
+            rows,
+            Map(rows[0]),
+            Snapshot(),
+            ProductImportMode.CreateOnly);
+
+        ProductImportRow row = result.ShouldHaveSingleItem();
+
+        row.IsValid.ShouldBeFalse();
+        row.Issues.ShouldContain(issue => issue.Code == CatalogValidation.NegativePriceCode);
+    }
+
+    [Fact]
+    public void A_negative_reorder_level_is_refused()
+    {
+        IReadOnlyList<string[]> rows = [["SKU", "Name", "SalePrice", "ReorderLevel"], ["RICE-001", "Rice", "450.00", "-2"]];
+
+        IReadOnlyList<ProductImportRow> result = ProductCsvMapper.BuildRows(
+            rows,
+            Map(rows[0]),
+            Snapshot(),
+            ProductImportMode.CreateOnly);
+
+        ProductImportRow row = result.ShouldHaveSingleItem();
+
+        row.IsValid.ShouldBeFalse();
+        row.Issues.ShouldContain(issue => issue.Code == CatalogValidation.NegativeQuantityCode);
+    }
+
+    [Fact]
+    public void The_problem_carries_the_value_that_caused_it()
+    {
+        IReadOnlyList<string[]> rows = [["SKU", "Name", "SalePrice"], ["RICE-001", "Rice", "450.00"]];
+
+        var skus = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) { ["RICE-001"] = 7 };
+
+        IReadOnlyList<ProductImportRow> result = ProductCsvMapper.BuildRows(
+            rows,
+            Map(rows[0]),
+            Snapshot(skus: skus),
+            ProductImportMode.CreateOnly);
+
+        ImportIssue issue = result.ShouldHaveSingleItem().Issues.ShouldHaveSingleItem();
+
+        issue.Code.ShouldBe(ProductCsvMapper.SkuExistsCode);
+        issue.Value.ShouldBe("RICE-001");
+    }
 }

@@ -83,6 +83,16 @@ public static class StringKeys
     public const string ErrorImageUnsupported = "Error.ImageUnsupported";
     public const string ErrorImageWriteFailed = "Error.ImageWriteFailed";
     public const string ErrorImportFileNotReadable = "Error.ImportFileNotReadable";
+    public const string ErrorImportMissingValue = "Error.ImportMissingValue";
+    public const string ErrorImportNotANumber = "Error.ImportNotANumber";
+    public const string ErrorImportNotABoolean = "Error.ImportNotABoolean";
+    public const string ErrorImportUnknownCategory = "Error.ImportUnknownCategory";
+    public const string ErrorImportUnknownUnit = "Error.ImportUnknownUnit";
+    public const string ErrorImportUnknownTaxCategory = "Error.ImportUnknownTaxCategory";
+    public const string ErrorImportSkuExists = "Error.ImportSkuExists";
+    public const string ErrorImportDuplicateSku = "Error.ImportDuplicateSku";
+    public const string ErrorImportDuplicateBarcode = "Error.ImportDuplicateBarcode";
+    public const string ErrorImportUnknownField = "Error.ImportUnknownField";
     public const string ErrorInvalidBarcode = "Error.InvalidBarcode";
     public const string ErrorInvalidPrecision = "Error.InvalidPrecision";
     public const string ErrorInvalidReference = "Error.InvalidReference";

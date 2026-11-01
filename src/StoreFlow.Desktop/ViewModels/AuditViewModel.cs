@@ -10,7 +10,18 @@ namespace StoreFlow.Desktop.ViewModels;
 /// <summary>One choice in the audit trail's type filter.</summary>
 /// <param name="Key">The entity type the filter matches; empty for every type.</param>
 /// <param name="DisplayName">The name to show.</param>
-public sealed record AuditEntityTypeOption(string Key, string DisplayName);
+public sealed record AuditEntityTypeOption(string Key, string DisplayName)
+{
+    /// <summary>
+    /// The name a select shows for this entry.
+    /// </summary>
+    /// <remarks>
+    /// A select shows the selected item's own text. Without this override the closed control would
+    /// show the record's generated <c>ToString</c>, which reads as
+    /// <c>AuditEntityTypeOption { Key = , DisplayName = All }</c> instead of the name of the choice.
+    /// </remarks>
+    public override string ToString() => DisplayName;
+}
 
 /// <summary>
 /// The audit trail screen. It reads what the application has recorded and nothing else: the trail

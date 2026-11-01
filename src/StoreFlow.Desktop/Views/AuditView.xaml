@@ -56,10 +56,11 @@
                               Binding="{Binding TimestampUtc, Converter={StaticResource Timestamp}}"
                               Width="180">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.WhenHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding DataContext.WhenHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
+          
             <DataGridTextColumn.ElementStyle>
-              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Identifier}" />
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
 
@@ -75,10 +76,11 @@
                               Binding="{Binding Action}"
                               Width="200">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.ActionHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding DataContext.ActionHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
+          
             <DataGridTextColumn.ElementStyle>
-              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Identifier}" />
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
 
@@ -94,8 +96,12 @@
                               Binding="{Binding Summary}"
                               Width="2*" MinWidth="200" >
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.SummaryHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding DataContext.SummaryHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
+          
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+            </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
         </DataGrid.Columns>
       </DataGrid>

@@ -140,11 +140,35 @@
   <!--
     An identifier — a stock-keeping unit code, a barcode, a phone number. These are read left to
     right even inside an Arabic line, so they are given their own direction and never reordered
-    into the surrounding sentence.
+    into the surrounding sentence. In a table the identifier is wrapped in a directional isolate
+    instead, so that it keeps its own order and the cell still stands where the heading that names
+    it stands.
   -->
   <Style x:Key="Type.Identifier" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}">
     <Setter Property="FlowDirection" Value="LeftToRight" />
     <Setter Property="TextAlignment" Value="Left" />
+  </Style>
+
+  <!--
+    A piece of text written left to right as a whole — a moment in time, a summary with a code in
+    it — standing against the right-hand edge of its cell, where the heading that names it stands.
+    The cell is given its own direction, because the text engine reads the whole of it that way: a
+    hyphen between letters and digits, and a bracket at the end, are both part of the text and must
+    not be moved to the other end of the line.
+  -->
+  <Style x:Key="Type.LeftToRight" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}">
+    <Setter Property="FlowDirection" Value="LeftToRight" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="TextAlignment" Value="Right" />
+  </Style>
+
+  <!--
+    The heading of a column whose figures stand against the right-hand edge of their cell. The
+    heading stands over the values it names, in either direction, so that a column reads as one
+    column and not as a heading floating beside its figures.
+  -->
+  <Style x:Key="Type.ColumnValue" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.SectionLabel}">
+    <Setter Property="HorizontalAlignment" Value="Right" />
   </Style>
 
 </ResourceDictionary>

@@ -50,7 +50,19 @@ public sealed record GetCatalogReferenceDataQuery : IQuery<Result<CatalogReferen
 /// <param name="Field">The field the problem is in.</param>
 /// <param name="Code">A stable code, so the interface can react without parsing the message.</param>
 /// <param name="Message">An actionable message.</param>
-public sealed record ImportIssue(string Field, string Code, string Message);
+/// <param name="Value">The value that caused the problem, when the problem is about a value.</param>
+/// <param name="Line">The other line the problem refers to, when it refers to one.</param>
+/// <remarks>
+/// The message is the English fallback. The interface builds its own message from the code and the
+/// value, so the owner reads the problem in their own language and sees the offending value
+/// rather than a sentence about it.
+/// </remarks>
+public sealed record ImportIssue(
+    string Field,
+    string Code,
+    string Message,
+    string? Value = null,
+    int? Line = null);
 
 /// <summary>A row resolved into the values that would be written.</summary>
 /// <param name="Sku">The stock-keeping unit code.</param>
