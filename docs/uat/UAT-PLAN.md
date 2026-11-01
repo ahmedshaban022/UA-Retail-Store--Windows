@@ -55,6 +55,10 @@ screen, a real printer and a real shop PC. Nothing in this plan has been execute
    Inventory, POS, Sales, Reports, Users, Settings, Backup and Audit. Entries that this build does not provide
    yet are disabled in the rail. Labels come from `src/StoreFlow.Desktop/Localization/StringKeys.cs` and
    `src/StoreFlow.Desktop/Resources/Strings.resx`.
+9. The **Purchases** and **Inventory** rail entries are live from Phase 2. **Purchases** is the purchase register;
+   **Inventory** carries three tabs — *stock on hand*, *movements* and *counts* — under a valuation panel that
+   shows what the shelf is worth. The dialogs are **New purchase**, **New stock count**, **Stock adjustment**,
+   **Opening stock** and the reason prompt that a reversal and an approval both use.
 
 ### 2.2 Test data precondition
 
@@ -100,7 +104,7 @@ The moving-average case uses the PRD's own worked example (PRD §6.1): 10 pieces
 |---|---|---|---|---|---|---|---|
 | UAT-01 | PRD-01, PRD-02, PRD-03, BAR-01 | Owner signed in; no product uses barcode 6221000000017 | Products → New Product; enter the RICE-001 row; Save; then scan the barcode | Product saves, is searchable by name, SKU and barcode, and the scanner lookup returns RICE-001 | Manual (hardware) | Not run |  |
 | UAT-02 | PRD-03, PRD-08 | RICE-001 exists with barcode 6221000000017 | Products → New Product; enter barcode 6221000000017 for a second product; Save | Actionable duplicate-barcode error; no second product saved; RICE-001 unchanged | Manual | Not run |  |
-| UAT-03 | PUR-03, INV-01, INV-02 | RICE-001 exists with zero stock | Purchases → New purchase; pick Test Supplier; line RICE-001, qty 10, unit cost 50.00 EGP; Save draft; Post | On-hand becomes 10; exactly one +10 PurchaseReceipt movement referencing the document number | Manual | Not run |  |
+| UAT-03 | PUR-03, INV-01, INV-02 | RICE-001 exists with zero stock | Purchases → New purchase; pick Test Supplier; line RICE-001, qty 10, unit cost 50.00 EGP; Save draft; Post | On-hand becomes 10; exactly one +10 PurchaseReceipt movement referencing the document number | Auto | Not run |  |
 | UAT-04 | POS-01, INV-01, INV-02, POS-08, BAR-01 | UAT-03 done: RICE-001 on hand 10 | POS → scan 6221000000017 three times → Confirm Sale | Exactly one invoice; on-hand 7; one -3 Sale movement; receipt total 1,350.00 EGP | Manual (hardware) | Not run |  |
 | UAT-05 | POS-01, POS-02 | RICE-001 on hand 10, empty cart | POS → scan 6221000000017 → scan the same barcode again | One cart line with quantity 2, unit price 450.00 EGP, line total 900.00 EGP | Manual (hardware) | Not run |  |
 | UAT-06 | INV-04 | RICE-001 on hand 7 (after UAT-04) | POS → set the RICE-001 line to 9 → Confirm Sale | Whole checkout rejected; no invoice, no payment, no stock change; on-hand stays 7 | Manual | Not run |  |
@@ -111,7 +115,7 @@ The moving-average case uses the PRD's own worked example (PRD §6.1): 10 pieces
 | UAT-11 | SAL-03 | A posted invoice for 3 units with no prior return | Sales → that invoice → Return; enter qty 4; Post | Return rejected with an actionable message; no return document; stock unchanged | Manual | Not run |  |
 | UAT-12 | PRD-05, PRD-01 | A posted invoice for RICE-001 at unit price 450.00 EGP exists | Products → RICE-001 → sale price 500.00 EGP → Save; reopen the invoice and the gross-profit report | Old invoice still shows 450.00 EGP and 1,350.00 EGP; profit unchanged; new sales use 500.00 EGP | Manual | Not run |  |
 | UAT-13 | POS-03, GEN-02, GEN-03 | Cashier signed in; discount policy limit set; a manager account available | POS → RICE-001 qty 1 → apply a 50.00 EGP discount → Confirm Sale | Discount blocked or routed to manager approval; no invoice without approval; total never negative | Manual | Not run |  |
-| UAT-14 | INV-05, INV-02 | RICE-001 book quantity known | Inventory → Stock count; new session; select RICE-001; counted 5 against book 7; submit; approve; post | Book quantity unchanged until approval; after approval on-hand 5 with a -2 CountCorrection movement and reason; audit entry recorded | Manual | Not run |  |
+| UAT-14 | INV-05, INV-02 | RICE-001 book quantity known | Inventory → the **Counts** tab → New stock count; select RICE-001; counted 5 against book 7; Submit for approval; Approve with a reason; Post count | Book quantity unchanged until approval; after approval on-hand 5 with a -2 CountCorrection movement and reason; audit entry recorded | Auto | Not run |  |
 | UAT-15 | REP-10 | A product with an Arabic name exists (WTR-002 "مياه") | Reports → Daily sales summary → Export CSV; open the file in Excel | CSV opens in Excel with Arabic text intact and no mojibake; headers and rows in order | Auto | Not run |  |
 | UAT-16 | NFR-08, NFR-12 | Backup target configured; invoice count, sales total and on-hand quantity recorded | Backup → Back up now; copy the artifact to a clean test PC; install StoreFlow there; restore; compare the figures | Invoice count, sales total and inventory figures identical after restore; backup integrity check passes | Manual (hardware) | Not run |  |
 | UAT-17 | NFR-01 | Network cable unplugged; RICE-001 in stock | POS → scan 6221000000017 → Confirm Sale → print the receipt | Checkout completes offline; local receipt prints; amount due 450.00 EGP; no network error | Manual | Not run |  |
@@ -149,13 +153,14 @@ user-facing message is what this case verifies.
 
 1. Purchases → **New purchase**; supplier **Test Supplier**.
 2. Add the line: RICE-001, quantity `10`, unit cost `50.00`.
-3. **Save** the document as a draft.
+3. **Save draft** the document.
 4. Reopen the draft and confirm the on-hand quantity of RICE-001 is still `0` (a draft changes nothing).
-5. Press **Post** (receive the goods).
+5. Press **Post** (receive the goods). **Save and post** does both in one step.
 
 Expected: on-hand quantity of RICE-001 becomes `10`; the stock movement ledger shows exactly one `+10`
 PurchaseReceipt movement whose source document is the purchase number, with the posting user and timestamp; the
-average unit cost becomes `50.00 EGP`. The document is no longer editable.
+average unit cost becomes `50.00 EGP`. The document is no longer editable, and pressing **Post** a second
+time is refused with a message that says the document has already been posted.
 
 ### UAT-04 — Sell 3 units by scanning
 
@@ -272,16 +277,21 @@ request as the manager and confirm the sale then completes with the approved dis
 
 ### UAT-14 — Stock count differs by 2, then approve
 
-1. Inventory → **Stock count** → start a new session; select RICE-001; note the book quantity (7 after
+1. Inventory → the **Counts** tab → **New stock count**; select RICE-001; note the book quantity (7 after
    UAT-04).
-2. Enter the counted quantity `5` and submit the count.
+2. Enter the counted quantity `5` and **Submit for approval**.
 3. Confirm the book quantity is still `7` before approval (a count does not change posted stock).
-4. Approve the count as a user with stock-approval permission, and post it.
+4. Press **Approve**, give the reason, and then press **Post count**.
 
 Expected: the difference is shown as `-2` with an estimated value difference. After approval and posting,
 the on-hand quantity of RICE-001 is `5`, and the ledger contains one `-2` CountCorrection movement that
 references the count document and carries the adjustment reason. The count, the approver and the timestamp
 are recorded in the audit trail (PRD INV-05, INV-02). The selling price is not altered by the count.
+
+The approval needs a **second authorised person**: a clerk who counted the shelf cannot approve their own
+count, and the application refuses it with a message saying so. An administrator — the owner of a shop
+with one account — may approve their own count, because otherwise a one-account shop could never close a
+count.
 
 ### UAT-15 — Export report containing Arabic names
 
@@ -422,8 +432,38 @@ backup survives a different machine or a disk failure, so the recovery objective
 Each of the six above must be executed on the shop's own scanner and printer, on the intended Windows
 machine, before the release candidate is accepted (PRD §12.1 definition of done, NFR-09).
 
-## 5. Sign-off
+### 4.1 Which cases this build can reach
 
+The catalogue and the inventory are built, so these cases can be executed end to end on this build:
+
+| Case | Reaches |
+|---|---|
+| UAT-01, UAT-02, UAT-18 | The catalogue screens. UAT-01 and UAT-18 also need the point of sale, which is Phase 3. |
+| UAT-03, UAT-14 | The purchase and inventory screens. Both are fully implementable now. |
+| UAT-19 | The purchase and the valuation are implementable now; **step 4 (the sale and its COGS snapshot) needs Phase 4**, so the case cannot be signed off before then. |
+
+The point of sale, sales, returns, the reports, the backup and the users screens are not built yet, so
+the cases that depend on them cannot be executed. The rail entries for them are disabled rather than
+hidden, so the plan and the application agree on what exists.
+
+### 4.2 What to look at while running these cases
+
+Running the application through UI Automation for Phase 2 turned up eight defects that a tester
+would otherwise have to find by hand. They are fixed and pinned by tests, but they are worth a
+glance, because each of them was invisible on the screen until the right action was taken:
+
+| What to check | What was wrong | What to look for now |
+|---|---|---|
+| Picking a product in a purchase, a count or the opening balances | The picker did not write the choice back until the field lost the focus, which never happens inside a table cell — so the line saved with no product at all | Pick a product in a line; the quantity and cost fill in and the line saves with that product on it |
+| The **movements** and **counts** tabs of the Inventory screen | The column headings came out blank, because a heading is not part of the visual tree and could not find the page it belongs to | Open both tabs; every column has its heading, in English and in Arabic |
+| The ledger in the Inventory screen | The ledger showed the quantity and the balance but not which product had moved | The ledger names the product and shows its stock-keeping code beside the name |
+| Every table in the application | A value that did not fit its column was cut through by the column next door, and the digits in a field were cut off at the bottom | No value is cut; a value that is too long is shortened with an ellipsis and the whole of it is shown when the pointer rests on it |
+| The **stock on hand** tab of the Inventory screen | The badge that marks a low product read a property the stock position does not have, so the badge came out as an empty box | A product at or below its reorder level carries a badge that reads "Low" in English and "منخفض" in Arabic |
+| The search box on every list screen | The placeholder was bound to the flag that says the box is empty, and the binding turned that flag around — so the placeholder appeared exactly when it should have disappeared | An empty search box says what it searches for; the placeholder goes as soon as you type |
+| The **movements** tab of the Inventory screen | The moment a movement was posted did not fit its column: "2026-11-01 13:45" was shortened to "2026-11-01 13:…" | The whole timestamp is readable |
+| Every amount — the valuation panel, the purchase totals, a stock value | The grids wrote the money one way (6,460.00 EGP) and the totals another (7600.00), so the same money looked like two different numbers | Every amount that is read is written the same way, with the currency; a field that is edited keeps plain digits |
+
+## 5. Sign-off
 | Field | Value |
 |---|---|
 | Tester name | |
