@@ -278,19 +278,55 @@ than by a shopkeeper.
 
 ## The phase gate
 
-| Row | What it needs | Where it stands |
+PRD §11 numbers twenty acceptance cases. This table answers in **the PRD's own numbering**, because
+the labels a phase attaches to its own work are worth nothing if the plan and the report cannot be
+read against the same list. The first table is the PRD §11 rows the till answers for; the second is
+the till's own requirements in PRD §5.5, which §11 has no row for.
+
+| PRD §11 row | What it needs | Where it stands |
 |---|---|---|
-| UAT-01 | A product is found by its barcode at the till | **Proved**, by the application and by the database |
-| UAT-04 | A discount is routed, or blocked when it is over the limit | **Proved for the block**; the approval request is not wired to the till |
-| UAT-05 | The tax is right | **Proved**, for a price that carries the tax and for one that does not |
-| UAT-06 | The payment method is recorded, and nothing claims a processor settled it | **Proved** |
-| UAT-07 | The cash and the change are right | **Proved** |
-| UAT-08 | A repeated save does not sell twice | **Proved**, against a real database |
-| UAT-09 | 80 mm and A4, and a reprint that does not sell again | **Proved for the document**; the printer itself was not exercised, because there is no printer here |
-| UAT-10 | A cart can be put aside without reserving stock | **Proved** |
-| UAT-11 | The till can be worked from the keyboard | **Proved**, and measured |
-| UAT-12 | The invoice numbers are unique and in order | **Proved** |
-| UAT-18, UAT-19 | The catalogue at the till, and the sale carrying its cost | **Proved for the till**; the register and the cost of goods are Phase 4 |
+| UAT-01 | A product is found by its barcode at the till | **Proved for the till half**, by the application and by the database; the save and the search were proved in Phase 1 |
+| UAT-06 | The checkout is rejected whole when the shelf is short | **Proved**, by the application and by the database |
+| UAT-07 | One sale per key, however many times the button is pressed | **Proved**, against a real database |
+| UAT-08 | The sale stands when the printer is gone, and can be printed again | **Proved for the document only**; the printer itself was not exercised, because there is no printer here |
+| UAT-09 | Nothing is left half-written when the application is killed mid-posting | **Not reached** — killing the process is Phase 7's row |
+| UAT-13 | A discount over the policy limit is blocked or routed to an approver | **Proved for the block only**; the approval request is not wired to the till |
+
+### The till's own requirements
+
+PRD §11 has no row for the tax, the payment method, the cash and the change, the held cart, the
+keyboard or the invoice numbering, so they are proved against PRD §5.5 instead. They are listed
+here so that the two documents cannot be mistaken for one list:
+
+| PRD §5.5 row | What it needs | Where it stands |
+|---|---|---|
+| POS-01 | A complete scan resolves one barcode to one product | **Proved** |
+| POS-02 | The cart is edited without touching the stock | **Proved** |
+| POS-04 | The tax is right, for a price that carries the tax and for one that does not | **Proved** |
+| POS-05 | The payment method is recorded, and nothing claims a processor settled it | **Proved** |
+| POS-06 | The cash handed over and the change given back are right | **Proved** |
+| POS-07 | The invoice numbers are unique and in order | **Proved** |
+| POS-08 | 80 mm and A4, and a reprint that does not sell again | **Proved for the document**; the printer itself was not exercised, because there is no printer here |
+| POS-09 | A cart can be put aside without reserving stock | **Proved** |
+| POS-10 | The till can be worked from the keyboard | **Proved**, and measured |
+
+### The rows this phase did not reach
+
+The rest of PRD §11 belongs to another phase, or to a person standing at the till with the
+hardware. Saying which is which is the point of the table:
+
+| PRD §11 row | What it needs | Where it stands |
+|---|---|---|
+| UAT-02 | A second product on the same barcode is refused | **Proved** in Phase 1, and it still holds |
+| UAT-03, UAT-14 | The purchase receipt and the approved count | **Proved** in Phase 2 |
+| UAT-04, UAT-05 | Selling three units by scanning, and scanning the same barcode twice | **Proved in substance** by the sale tests and the till smoke run; the manual chain in `docs/uat/UAT-PLAN.md` is still waiting for a person to walk it |
+| UAT-09 | Killing the application in the middle of a posting | Phase 7 |
+| UAT-10, UAT-11, UAT-12, UAT-20 | The sales register, the returns, and the gross-profit reading behind a price change | Phase 4 |
+| UAT-15 | A report exported with Arabic names in it | Phase 5 |
+| UAT-16 | A backup and a restore on a clean machine | Phase 6 |
+| UAT-17 | A sale with the internet disconnected | Phase 6 |
+| UAT-18 | A product deactivated after it had already been sold | The catalogue half is proved; the register half is Phase 4 |
+| UAT-19 | A receipt at a higher cost, and the cost of goods sold | The shelf half is proved in Phase 2; the sale half is Phase 4 |
 
 **The phase is complete, and the gate is open for the till.** Everything the point of sale is
 responsible for is built, proved by tests, and proved again by driving the real application with a

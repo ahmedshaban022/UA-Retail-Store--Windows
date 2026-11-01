@@ -442,16 +442,17 @@ end on this build:
 | UAT-01, UAT-02, UAT-18 | The catalogue screens and the till. A product is found by its barcode at the till, so the till half of UAT-01 and UAT-18 can now be run. |
 | UAT-03, UAT-14 | The purchase and inventory screens. Both are fully implementable now. |
 | UAT-19 | The purchase and the valuation are implementable now; **step 4 (the sale and its COGS snapshot) needs Phase 4**, so the case cannot be signed off before then. |
-| UAT-04, UAT-05, UAT-06, UAT-07, UAT-08, UAT-10, UAT-11, UAT-12 | The point of sale. Every one of these is implemented and proved by the Phase 3 gate table. |
+| UAT-04, UAT-05, UAT-06, UAT-07, UAT-08 | The point of sale. Every one of these is implemented and proved in substance by the Phase 3 gate table; the manual steps are still waiting for a person to walk them. |
 
 Each phase says in its own report which of these rows it proved and which it could not reach, and
 this plan and that report must not disagree. The gate table in
 [`docs/phases/PHASE-2-INVENTORY.md`](../phases/PHASE-2-INVENTORY.md) is the Phase 2 answer: it
 proves UAT-03 and UAT-14, proves the shelf half of UAT-19, and says plainly that the till half of
 UAT-01 and UAT-18 waits for Phase 3. The gate table in
-[`docs/phases/PHASE-3-POS.md`](../phases/PHASE-3-POS.md) is the Phase 3 answer: it proves the
-till rows above, and says plainly that UAT-09's printer, UAT-04's approval request and the
-register behind UAT-18 and UAT-19 are not in this phase.
+[`docs/phases/PHASE-3-POS.md`](../phases/PHASE-3-POS.md) is the Phase 3 answer: it proves UAT-01
+for the till, UAT-06, UAT-07 and UAT-08 for the document, and UAT-13 for the block, and it says
+plainly that UAT-09 — killing the application in the middle of a posting — belongs to Phase 7,
+and that the register behind UAT-18 and UAT-19 is Phase 4.
 
 The `Status` column above stays `Not run` until a person executes the manual step, because rule 4
 of §2.3 requires both the automated counterpart to be green **and** the manual step to have been
