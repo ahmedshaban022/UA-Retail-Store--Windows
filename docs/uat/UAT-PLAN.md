@@ -434,27 +434,33 @@ machine, before the release candidate is accepted (PRD §12.1 definition of done
 
 ### 4.1 Which cases this build can reach
 
-The catalogue and the inventory are built, so these cases can be executed end to end on this build:
+The catalogue, the inventory and the point of sale are built, so these cases can be executed end to
+end on this build:
 
 | Case | Reaches |
 |---|---|
-| UAT-01, UAT-02, UAT-18 | The catalogue screens. UAT-01 and UAT-18 also need the point of sale, which is Phase 3. |
+| UAT-01, UAT-02, UAT-18 | The catalogue screens and the till. A product is found by its barcode at the till, so the till half of UAT-01 and UAT-18 can now be run. |
 | UAT-03, UAT-14 | The purchase and inventory screens. Both are fully implementable now. |
 | UAT-19 | The purchase and the valuation are implementable now; **step 4 (the sale and its COGS snapshot) needs Phase 4**, so the case cannot be signed off before then. |
+| UAT-04, UAT-05, UAT-06, UAT-07, UAT-08, UAT-10, UAT-11, UAT-12 | The point of sale. Every one of these is implemented and proved by the Phase 3 gate table. |
 
 Each phase says in its own report which of these rows it proved and which it could not reach, and
 this plan and that report must not disagree. The gate table in
 [`docs/phases/PHASE-2-INVENTORY.md`](../phases/PHASE-2-INVENTORY.md) is the Phase 2 answer: it
 proves UAT-03 and UAT-14, proves the shelf half of UAT-19, and says plainly that the till half of
-UAT-01 and UAT-18 waits for Phase 3.
+UAT-01 and UAT-18 waits for Phase 3. The gate table in
+[`docs/phases/PHASE-3-POS.md`](../phases/PHASE-3-POS.md) is the Phase 3 answer: it proves the
+till rows above, and says plainly that UAT-09's printer, UAT-04's approval request and the
+register behind UAT-18 and UAT-19 are not in this phase.
 
 The `Status` column above stays `Not run` until a person executes the manual step, because rule 4
 of §2.3 requires both the automated counterpart to be green **and** the manual step to have been
 executed. A phase report is evidence that the automated half is green; it is not a sign-off.
 
-The point of sale, sales, returns, the reports, the backup and the users screens are not built yet, so
+The sales register, the returns, the reports, the backup and the users screens are not built yet, so
 the cases that depend on them cannot be executed. The rail entries for them are disabled rather than
-hidden, so the plan and the application agree on what exists.
+hidden, so the plan and the application agree on what exists. The **Point of sale** rail entry is
+live from Phase 3, in both languages.
 
 ### 4.2 What to look at while running these cases
 
@@ -472,6 +478,35 @@ glance, because each of them was invisible on the screen until the right action 
 | The search box on every list screen | The placeholder was bound to the flag that says the box is empty, and the binding turned that flag around — so the placeholder appeared exactly when it should have disappeared | An empty search box says what it searches for; the placeholder goes as soon as you type |
 | The **movements** tab of the Inventory screen | The moment a movement was posted did not fit its column: "2026-11-01 13:45" was shortened to "2026-11-01 13:…" | The whole timestamp is readable |
 | Every amount — the valuation panel, the purchase totals, a stock value | The grids wrote the money one way (6,460.00 EGP) and the totals another (7600.00), so the same money looked like two different numbers | Every amount that is read is written the same way, with the currency; a field that is edited keeps plain digits |
+
+Running the application through UI Automation for Phase 3 turned up twelve more defects, and each of
+them was invisible until the right action was taken. They are fixed and pinned by tests, and they
+are worth a glance because a tester would otherwise meet them and not know they were not supposed
+to be there:
+
+| What to check | What was wrong | What to look for now |
+|---|---|---|
+| The change on the receipt | The invoice subtracted the total from the amount paid, and the payment row subtracted it from the cash that was handed over — so the invoice said there was no change while the customer was owed forty pounds | The invoice, the payment row, the till and the receipt all carry the same change |
+| The receipt | It never said how much cash was handed over, only what was paid and what came back | The receipt carries the cash received between the paid and the change |
+| A quantity the selling unit cannot express | Two and a half pieces of something sold by the piece was quietly rounded to three, and the total was for three | The line is refused and the reason is on the screen; the total is for the line as it stands |
+| A line for a product the shop does not sell | The cashier was told the same product was on the cart twice | The missing product is named, and the duplicate is not raised |
+| Opening the till | The application died: the payment buttons passed the word "Cash" to a command that wanted the payment method | The till opens; the three payment buttons choose cash, card and other |
+| Opening the till | The application died again: the list of waiting carts was ordered by a moment in time, which the database cannot sort | The till opens and the waiting carts are listed oldest first |
+| The printer | The fallback face was added with a call that takes a file name, so it threw when the embedded faces could not be read | The receipt prints in Arabic on a machine with no font installed |
+| Closing the receipt | The close button shut the whole application down | It closes the receipt and leaves the till open |
+| A line the cart refuses | The till threw the cart's complaints away — the line was dropped from the total and nothing was said | The reason is on the screen, and it goes when the reason is answered |
+| The numbers the cashier types | They were read with the language of the screen, and the Arabic decimal separator is not a dot — so `12.5` did not parse on an Arabic till | The same rule in both languages; `12.5` means twelve and a half on either screen |
+| The invoice | The discount on the header was more than the sum of the discounts on the lines, so the invoice did not foot | The line discounts and the invoice-discount shares add up to the discount on the header |
+| The invoice number | Emptying the cart wiped the message that said which invoice had been posted | The number is on the screen when the receipt closes |
+
+Two more things are worth a glance, because they are new and not defects:
+
+- **The taxable amount is on the receipt and on the screen.** It is what the tax was charged on,
+  and the taxable amount plus the tax is always the total, whether the price carried the tax or
+  not. A discount is a discount on the price and the tax follows the price, so on a price that
+  does not carry the tax the customer saves a little more than the discount that was granted.
+- **A cart that is put aside reserves no stock.** The goods are still on the shelf, because they
+  have not been sold. The cart is a note, not a movement.
 
 ## 5. Sign-off
 | Field | Value |

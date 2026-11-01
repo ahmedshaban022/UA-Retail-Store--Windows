@@ -8,15 +8,19 @@ append-only stock ledger that reconciles to the piastre, and is **rebrandable by
 name, logo, colours, receipt content, currency, tax and locale are data, so the same binary can be resold to
 another shop without a recompile.
 
-**Status: Phase 2 (Inventory) complete.** The application builds, the database migrates, the theme switches
+**Status: Phase 3 (Point of sale) complete.** The application builds, the database migrates, the theme switches
 live, the AR/EN switch works, login is enforced, and the automated test suite is green. The
 catalogue — products, categories, units and suppliers, with the product editor, the search, the
 spreadsheet import and export, product pictures and the audit trail — is built and proved by
-driving the real application. The **inventory** is now built too: purchase receipts drafted and
+driving the real application. The **inventory** is built too: purchase receipts drafted and
 posted, a reversing document instead of a deletion, opening stock, the stock ledger and the
 balances it reconciles with, low-stock flags, a stock count that waits for an approval, manual
-adjustments, and the valuation of the shelf. Feature work (POS, sales, reports, backup) follows the
-phase plan below and stops at each phase boundary for review.
+adjustments, and the valuation of the shelf. And now the **till**: a barcode scan becomes a line,
+the money adds up on the screen, the customer is told what is coming back, the sale becomes an
+invoice with a number on it that cannot be posted twice, a cart can be put aside without reserving
+stock, and the receipt is drawn from the same layout the printer uses. Feature work (sales
+register, returns, reports, backup) follows the phase plan below and stops at each phase boundary
+for review.
 
 ---
 
@@ -72,14 +76,14 @@ On a machine with a normal .NET 10 installation, plain `dotnet` works and nothin
 & 'D:\dotnet\dotnet.exe' run --project 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\StoreFlow.Desktop.csproj'
 ```
 
-Current state of the suite — **253 tests, all passing**:
+Current state of the suite — **299 tests, all passing**:
 
 | Project | Tests | Covers |
 |---|---|---|
 | `StoreFlow.Domain.Tests` | 25 | money maths and rounding, moving weighted average, tax inclusive/exclusive, discounts, unit quantities |
-| `StoreFlow.Application.Tests` | 83 | password hashing (Argon2id + PBKDF2), permission matrix, scan buffer, CSV reading and writing, WCAG theme contrast validation, the catalogue's validation rules and its spreadsheet mapper, the inventory's validation rules and its approval thresholds |
-| `StoreFlow.Infrastructure.Tests` | 57 | real SQLite file: migrations, pragmas, immutability triggers, negative-stock trigger, integrity check, theme store round-trip, the catalogue handlers and their barcode triggers, the purchase and inventory handlers, and the ledger reconciling to the balance |
-| `StoreFlow.Desktop.Tests` | 88 | AR/EN resource parity, theme engine resource generation, value converters, the shell's contrast and the tables' headings, the localised messages of the import preview, how a code is laid out in an Arabic cell, the inventory screens' error messages and number reading, the editor flows against a real database, the column heading finding its words, and the rules that keep a table readable — a cell's margin, the trimming of text that does not fit, a heading that wraps, a box with room for the line it holds, and **every column measured against the value it has to hold** |
+| `StoreFlow.Application.Tests` | 102 | password hashing (Argon2id + PBKDF2), permission matrix, scan buffer, CSV reading and writing, WCAG theme contrast validation, the catalogue's validation rules and its spreadsheet mapper, the inventory's validation rules and its approval thresholds, and **the till's pricing core**: the tax on a price that carries it and on one that does not, the whole-sale discount spread across the lines, a quantity the selling unit cannot express |
+| `StoreFlow.Infrastructure.Tests` | 71 | real SQLite file: migrations, pragmas, immutability triggers, negative-stock trigger, integrity check, theme store round-trip, the catalogue handlers and their barcode triggers, the purchase and inventory handlers, the ledger reconciling to the balance, and **the sale handler**: one transaction, one sale for one key, the stock off the shelf exactly once, the change the invoice and the payment row agree on, and a cart that is put aside reserving nothing |
+| `StoreFlow.Desktop.Tests` | 101 | AR/EN resource parity, theme engine resource generation, value converters, the shell's contrast and the tables' headings, the localised messages of the import preview, how a code is laid out in an Arabic cell, the inventory screens' error messages and number reading, the editor flows against a real database, the column heading finding its words, the rules that keep a table readable — a cell's margin, the trimming of text that does not fit, a heading that wraps, a box with room for the line it holds, and **every column measured against the value it has to hold** — and **the till**: the money on the screen is the money the cart priced, the change from the cash that was typed, every error code having a message of its own, and the receipt carrying the same numbers as the screen |
 
 ### Useful commands
 
@@ -94,8 +98,8 @@ Current state of the suite — **253 tests, all passing**:
 
 ### Driving the real application
 
-Two scripts drive the running desktop application through UI Automation and photograph it. They are
-the evidence behind the phase reports, and they are run against a throwaway data folder, so the
+Three scripts drive the running desktop application through UI Automation and photograph it. They
+are the evidence behind the phase reports, and they are run against a throwaway data folder, so the
 shop's own data is never touched.
 
 ```powershell
@@ -104,10 +108,22 @@ shop's own data is never touched.
 
 # The purchase and inventory screens
 & '.\tools\smoke-inventory.ps1'
+
+# The till
+& '.\tools\smoke-pos.ps1'
+
+# How long the till takes to answer a scan (twenty scans, with the numbers)
+& '.\tools\scan-latency.ps1' 20
 ```
 
 Each script prints its checks, writes `failures: 0` or the first failure, and saves the pictures it
-took into `docs/phases/phaseN-screens/`.
+took into `docs/phases/phaseN-screens/`. The latency harness prints two sets of numbers — the
+wait the till itself took, from the till's own log, and the whole round trip including the
+automation watching the screen — and fails if the till's own 95th percentile is over fifty
+milliseconds.
+
+The till is scanned the way a scanner scans: the barcode goes into the field and Enter finishes it.
+The harness measures the wait between the Enter and the line appearing on the cart.
 
 **The application takes its own pictures.** A script starts the application with
 `--capture-pipe <name>`, and then asks it — over that pipe — to draw one of its own windows. The
@@ -330,7 +346,7 @@ boundary** for an explicit go-ahead.
 | **0 — Foundation** ✅ | SDK, solution, analyzers, domain, EF Core + first migration, SQLite pragmas and triggers, theme engine and presets, localisation shell, app shell, first-run wizard, login, roles, logging | App launches, DB migrates, theme switches live, AR/EN switch works, login enforced, all tests green |
 | **1 — Catalog** ✅ | Products, categories, units, suppliers, barcode uniqueness, product editor, search, CSV import/export, product images, audit trail | UAT-01/02/18 |
 | 2 — Inventory ✅ | Purchase draft → post → receive, opening stock, stock ledger and balances, low-stock, stock count with approval, adjustments, valuation report | UAT-03/14/19; ledger reconciles to zero |
-| 3 — POS | Scan buffer, cart, discounts, tax, payments, idempotent checkout, receipts and preview, hold cart, shortcuts | UAT-04/05/06/07/08; scan < 50 ms measured |
+| 3 — POS ✅ | Scan buffer, cart, discounts, tax, payments, idempotent checkout, receipts and preview, hold cart, shortcuts | UAT-04/05/06/07/08; the till answers a scan in a median of 4 ms |
 | 4 — Sales & Returns | Invoice history and detail, partial and full returns, resellable vs damaged, refund recording, reversal policy | UAT-10/11/12/20 |
 | 5 — Reports & Admin | All 11 reports with filters and CSV export, dashboard, users and roles UI, audit browser | UAT-13/15; figures match hand-computed values |
 | 6 — Backup & Cloud | `.sfb` engine, local and cloud targets, scheduler with retention, restore wizard, per-entity export/import, recovery wizard | UAT-16; restore into a different profile verified |
@@ -356,6 +372,8 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [`docs/phases/phase1-screens/`](docs/phases/phase1-screens/) | The twenty-two pictures of the running application that the Phase 1 report leans on |
 | [`docs/phases/PHASE-2-INVENTORY.md`](docs/phases/PHASE-2-INVENTORY.md) | The Phase 2 report: purchases, the stock ledger, the count that waits for an approval, the valuation, and what running it found |
 | [`docs/phases/phase2-screens/`](docs/phases/phase2-screens/) | The pictures of the running application that the Phase 2 report leans on |
+| [`docs/phases/PHASE-3-POS.md`](docs/phases/PHASE-3-POS.md) | The Phase 3 report: the till, the pricing core, the sale that cannot be posted twice, the cart that is put aside without reserving stock, the receipt, and the twelve defects that running it found |
+| [`docs/phases/phase3-screens/`](docs/phases/phase3-screens/) | The ten pictures of the running till that the Phase 3 report leans on |
 
 ---
 
