@@ -52,6 +52,17 @@ public sealed class SalesInvoice
     /// </summary>
     public Guid ClientOperationId { get; set; }
 
+    /// <summary>
+    /// The invoice this one reverses, when this document is the reversal of a posted invoice
+    /// (PRD §5.7). A posted invoice is never edited or deleted; it is undone by a linked document.
+    /// </summary>
+    public int? ReversesDocumentId { get; set; }
+
+    public SalesInvoice? ReversesDocument { get; set; }
+
+    /// <summary>The invoices that reverse this one. A posted invoice may be reversed only once.</summary>
+    public ICollection<SalesInvoice> ReversedBy { get; } = new List<SalesInvoice>();
+
     public string? Notes { get; set; }
 
     public ICollection<SalesInvoiceLine> Lines { get; } = new List<SalesInvoiceLine>();

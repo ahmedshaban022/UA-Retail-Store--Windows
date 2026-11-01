@@ -235,6 +235,9 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                     b.Property<long>("Change")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsRefund")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Method")
                         .HasColumnType("INTEGER");
 
@@ -242,14 +245,22 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("SalesInvoiceId")
+                    b.Property<int?>("SalesInvoiceId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("SalesReturnId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
                     b.HasIndex("SalesInvoiceId");
 
-                    b.ToTable("Payments", (string)null);
+                    b.HasIndex("SalesReturnId");
+
+                    b.ToTable("Payments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Payments_SingleOwner", "(\"SalesInvoiceId\" IS NOT NULL AND \"SalesReturnId\" IS NULL) OR (\"SalesInvoiceId\" IS NULL AND \"SalesReturnId\" IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("StoreFlow.Domain.Entities.Product", b =>
@@ -579,6 +590,9 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("PostedUtc")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("ReversesDocumentId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
@@ -605,6 +619,9 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("PostedUtc");
+
+                    b.HasIndex("ReversesDocumentId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -717,6 +734,9 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int>("RefundMethod")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("RefundTax")
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("RefundTotal")
@@ -1179,10 +1199,16 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                     b.HasOne("StoreFlow.Domain.Entities.SalesInvoice", "SalesInvoice")
                         .WithMany("Payments")
                         .HasForeignKey("SalesInvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("StoreFlow.Domain.Entities.SalesReturn", "SalesReturn")
+                        .WithMany("Payments")
+                        .HasForeignKey("SalesReturnId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("SalesInvoice");
+
+                    b.Navigation("SalesReturn");
                 });
 
             modelBuilder.Entity("StoreFlow.Domain.Entities.Product", b =>
@@ -1278,11 +1304,18 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("StoreFlow.Domain.Entities.SalesInvoice", b =>
                 {
+                    b.HasOne("StoreFlow.Domain.Entities.SalesInvoice", "ReversesDocument")
+                        .WithMany("ReversedBy")
+                        .HasForeignKey("ReversesDocumentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("StoreFlow.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ReversesDocument");
 
                     b.Navigation("User");
                 });
@@ -1455,6 +1488,8 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                     b.Navigation("Lines");
 
                     b.Navigation("Payments");
+
+                    b.Navigation("ReversedBy");
                 });
 
             modelBuilder.Entity("StoreFlow.Domain.Entities.SalesInvoiceLine", b =>
@@ -1465,6 +1500,8 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("StoreFlow.Domain.Entities.SalesReturn", b =>
                 {
                     b.Navigation("Lines");
+
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("StoreFlow.Domain.Entities.StockCount", b =>

@@ -434,15 +434,16 @@ machine, before the release candidate is accepted (PRD §12.1 definition of done
 
 ### 4.1 Which cases this build can reach
 
-The catalogue, the inventory and the point of sale are built, so these cases can be executed end to
-end on this build:
+The catalogue, the inventory, the point of sale and the sales register are built, so these cases can
+be executed end to end on this build:
 
 | Case | Reaches |
 |---|---|
 | UAT-01, UAT-02, UAT-18 | The catalogue screens and the till. A product is found by its barcode at the till, so the till half of UAT-01 and UAT-18 can now be run. |
 | UAT-03, UAT-14 | The purchase and inventory screens. Both are fully implementable now. |
-| UAT-19 | The purchase and the valuation are implementable now; **step 4 (the sale and its COGS snapshot) needs Phase 4**, so the case cannot be signed off before then. |
+| UAT-19 | The purchase and the valuation are implementable now; **step 4 (the sale and its COGS snapshot) needs Phase 5**, so the case cannot be signed off before then. |
 | UAT-04, UAT-05, UAT-06, UAT-07, UAT-08 | The point of sale. Every one of these is implemented and proved in substance by the Phase 3 gate table; the manual steps are still waiting for a person to walk them. |
+| UAT-10, UAT-11, UAT-12, UAT-20 | The sales register and the returns. The register, the return and the reversal are implemented and proved in substance by the Phase 4 gate table; **the gross-profit reading behind UAT-12 and UAT-20 needs Phase 5**, so those two cannot be signed off before then. |
 
 Each phase says in its own report which of these rows it proved and which it could not reach, and
 this plan and that report must not disagree. The gate table in
@@ -452,16 +453,19 @@ UAT-01 and UAT-18 waits for Phase 3. The gate table in
 [`docs/phases/PHASE-3-POS.md`](../phases/PHASE-3-POS.md) is the Phase 3 answer: it proves UAT-01
 for the till, UAT-06, UAT-07 and UAT-08 for the document, and UAT-13 for the block, and it says
 plainly that UAT-09 — killing the application in the middle of a posting — belongs to Phase 7,
-and that the register behind UAT-18 and UAT-19 is Phase 4.
+and that the register behind UAT-18 and UAT-19 is Phase 4 or later. The gate table in
+[`docs/phases/PHASE-4-SALES-AND-RETURNS.md`](../phases/PHASE-4-SALES-AND-RETURNS.md) is the
+Phase 4 answer: it proves UAT-10 and UAT-11 outright, proves the invoice half of UAT-12 and
+UAT-20, and says plainly that the gross-profit reading behind them is Phase 5.
 
 The `Status` column above stays `Not run` until a person executes the manual step, because rule 4
 of §2.3 requires both the automated counterpart to be green **and** the manual step to have been
 executed. A phase report is evidence that the automated half is green; it is not a sign-off.
 
-The sales register, the returns, the reports, the backup and the users screens are not built yet, so
-the cases that depend on them cannot be executed. The rail entries for them are disabled rather than
-hidden, so the plan and the application agree on what exists. The **Point of sale** rail entry is
-live from Phase 3, in both languages.
+The reports, the backup and the users screens are not built yet, so the cases that depend on them
+cannot be executed. The rail entries for them are disabled rather than hidden, so the plan and the
+application agree on what exists. The **Point of sale** rail entry is live from Phase 3, in both
+languages, and the **Sales** rail entry is live from Phase 4, in both languages.
 
 ### 4.2 What to look at while running these cases
 

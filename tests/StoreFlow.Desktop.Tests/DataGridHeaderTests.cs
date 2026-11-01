@@ -33,6 +33,9 @@ public sealed class DataGridHeaderTests
         "CsvImportWindow.xaml",
         "InventoryView.xaml",
         "PurchasesView.xaml",
+        "SalesView.xaml",
+        "ReturnDialogWindow.xaml",
+        "ReverseDialogWindow.xaml",
     ];
 
     private sealed class Labels

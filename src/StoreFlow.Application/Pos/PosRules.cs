@@ -30,7 +30,7 @@ public static class PosRules
     /// <param name="sequence">The sequence number within that year, starting at one.</param>
     /// <returns>The document number.</returns>
     public static string BuildNumber(string prefix, DateOnly businessDate, int sequence) =>
-        $"{prefix}-{businessDate.Year:D4}-{sequence:D4}";
+        Common.DocumentNumber.Build(prefix, businessDate, sequence);
 
     /// <summary>
     /// The tax on a line, given the amount the customer pays for it.
@@ -80,20 +80,6 @@ public static class PosRules
     /// <param name="quantity">The quantity the cashier asked for.</param>
     /// <param name="scale">The precision of the product's selling unit.</param>
     /// <returns>True when the quantity fits the unit exactly.</returns>
-    public static bool FitsScale(decimal quantity, int scale)
-    {
-        if (scale is < 0 or > QuantityScale.MaxScale)
-        {
-            return false;
-        }
-
-        decimal scaled = quantity * QuantityScale.PowerOfTen(scale);
-
-        if (decimal.Abs(scaled) > long.MaxValue)
-        {
-            return false;
-        }
-
-        return decimal.Truncate(scaled) == scaled;
-    }
+    public static bool FitsScale(decimal quantity, int scale) =>
+        Domain.Quantity.QuantityScale.Fits(quantity, scale);
 }

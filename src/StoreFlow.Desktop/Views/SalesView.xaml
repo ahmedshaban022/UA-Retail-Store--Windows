@@ -1,0 +1,394 @@
+<UserControl x:Class="StoreFlow.Desktop.Views.SalesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AutomationProperties.AutomationId="SalesView"
+             TextOptions.TextFormattingMode="Display">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- The screen's own toolbar -->
+    <Border Grid.Row="0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,0,0,1"
+            Padding="0,10,0,10">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <!--
+          The filters wrap rather than push the commands off the edge of the screen. The Arabic
+          words are wider than the English ones, and a toolbar that runs out of room has to give
+          something back: the filter line wraps onto a second row instead of the last button
+          being cut off.
+        -->
+        <WrapPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+          <!-- Search -->
+          <Grid Width="220" Margin="0,0,16,0" VerticalAlignment="Center">
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     AutomationProperties.AutomationId="SalesSearch"
+                     VerticalAlignment="Center" />
+            <TextBlock Text="{Binding SearchPlaceholder}"
+                       IsHitTestVisible="False"
+                       Margin="11,8"
+                       Foreground="{DynamicResource Text.Muted}"
+                       Visibility="{Binding HasNoSearchText, Converter={StaticResource BooleanToVisibility}}" />
+          </Grid>
+
+          <!-- Date range -->
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
+            <TextBlock Text="{Binding FromLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <TextBox Text="{Binding FromDateText, UpdateSourceTrigger=PropertyChanged}"
+                     Width="110"
+                     AutomationProperties.AutomationId="SalesFrom" />
+
+            <TextBlock Text="{Binding ToLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="12,0,6,0" />
+            <TextBox Text="{Binding ToDateText, UpdateSourceTrigger=PropertyChanged}"
+                     Width="110"
+                     AutomationProperties.AutomationId="SalesTo" />
+          </StackPanel>
+
+          <!-- Cashier -->
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="{Binding CashierLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <ComboBox ItemsSource="{Binding Cashiers}"
+                      DisplayMemberPath="DisplayName"
+                      SelectedValuePath="Id"
+                      MinWidth="160"
+                      AutomationProperties.AutomationId="SalesCashier">
+              <ComboBox.SelectedValue>
+                <Binding Path="CashierId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
+              </ComboBox.SelectedValue>
+            </ComboBox>
+          </StackPanel>
+        </WrapPanel>
+
+        <!-- Commands -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+          <Button Content="{Binding RefreshText}"
+                  Command="{Binding RefreshCommand}"
+                  Style="{StaticResource Button.Ghost}"
+                  Margin="0,0,8,0"
+                  AutomationProperties.AutomationId="SalesRefresh" />
+
+          <Button Content="{Binding ReturnText}"
+                  Command="{Binding ReturnSelectedCommand}"
+                  IsEnabled="{Binding CanReturnSelected}"
+                  Style="{StaticResource Button.Ghost}"
+                  Margin="0,0,8,0"
+                  AutomationProperties.AutomationId="SalesReturn" />
+
+          <Button Content="{Binding ReverseText}"
+                  Command="{Binding ReverseSelectedCommand}"
+                  IsEnabled="{Binding CanReverseSelected}"
+                  Style="{StaticResource Button.Primary}"
+                  AutomationProperties.AutomationId="SalesReverse" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- The register beside the detail of what is picked -->
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="1.15*" MinWidth="420" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="1*" MinWidth="380" />
+      </Grid.ColumnDefinitions>
+
+      <DataGrid x:Name="SalesRegister"
+                Grid.Column="0"
+                AutomationProperties.AutomationId="SalesRegister"
+                ItemsSource="{Binding Documents}"
+                SelectedItem="{Binding SelectedDocument, Mode=TwoWay}"
+                EnableColumnVirtualization="False"
+                Margin="0,12,12,0">
+        <DataGrid.Columns>
+          <DataGridTextColumn Width="135">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding NumberHeader}" Style="{StaticResource Type.ColumnValue}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.Binding>
+              <Binding Path="Number" />
+            </DataGridTextColumn.Binding>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Width="95">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding KindHeader}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Cell}" />
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.Binding>
+              <Binding Path="Kind" Converter="{StaticResource SalesLabel}" />
+            </DataGridTextColumn.Binding>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Width="105">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding DateHeader}" Style="{StaticResource Type.ColumnValue}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.Binding>
+              <Binding Path="BusinessDate" StringFormat="{}{0:yyyy-MM-dd}" />
+            </DataGridTextColumn.Binding>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Width="1.4*" MinWidth="120">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding CashierHeader}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Cell}" />
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.Binding>
+              <Binding Path="CashierName" />
+            </DataGridTextColumn.Binding>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Width="70">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding LinesHeader}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.Binding>
+              <Binding Path="LineCount" />
+            </DataGridTextColumn.Binding>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Width="125">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding TotalHeader}" Style="{StaticResource Type.ColumnValue}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.Binding>
+              <Binding Path="Total" Converter="{StaticResource Money}" />
+            </DataGridTextColumn.Binding>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Width="125">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding ReturnedHeader}" Style="{StaticResource Type.ColumnValue}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.Binding>
+              <Binding Path="ReturnedAmount" Converter="{StaticResource Money}" />
+            </DataGridTextColumn.Binding>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Width="135">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding RelatedHeader}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.Binding>
+              <Binding Path="RelatedNumber" />
+            </DataGridTextColumn.Binding>
+          </DataGridTextColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <!-- Nothing in the register yet -->
+      <Border Grid.Column="0"
+              Style="{StaticResource Surface.Panel}"
+              VerticalAlignment="Center"
+              HorizontalAlignment="Center"
+              Padding="32,24"
+              Visibility="{Binding IsEmpty, Converter={StaticResource BooleanToVisibility}}">
+        <TextBlock Text="{Binding EmptyText}"
+                   Style="{StaticResource Type.Body}"
+                   Foreground="{DynamicResource Text.Muted}"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   MaxWidth="420" />
+      </Border>
+
+      <!-- The search found nothing -->
+      <Border Grid.Column="0"
+              Style="{StaticResource Surface.Panel}"
+              VerticalAlignment="Center"
+              HorizontalAlignment="Center"
+              Padding="32,24"
+              Visibility="{Binding HasNoMatches, Converter={StaticResource BooleanToVisibility}}">
+        <TextBlock Text="{Binding NoMatchesText}"
+                   Style="{StaticResource Type.Body}"
+                   Foreground="{DynamicResource Text.Muted}"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   MaxWidth="420" />
+      </Border>
+
+      <!-- The document that is picked -->
+      <Border Grid.Column="2"
+              Style="{StaticResource Surface.Panel}"
+              Margin="12,12,0,0"
+              Padding="18,16"
+              AutomationProperties.AutomationId="SalesDetail">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+
+          <!-- The document itself -->
+          <StackPanel Grid.Row="0">
+            <TextBlock Text="{Binding DetailTitle}" Style="{StaticResource Type.SectionLabel}" />
+
+            <!-- An invoice or a reversal -->
+            <StackPanel Visibility="{Binding HasInvoice, Converter={StaticResource BooleanToVisibility}}" Margin="0,10,0,0">
+              <TextBlock Style="{StaticResource Type.Title}" Text="{Binding SelectedInvoice.Number}" />
+              <TextBlock Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}">
+                <Run Text="{Binding DetailDateLabel, Mode=OneWay}" />
+                <Run Text=" " />
+                <Run Text="{Binding SelectedInvoice.BusinessDate, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}" />
+              </TextBlock>
+              <TextBlock Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}">
+                <Run Text="{Binding DetailCashierLabel, Mode=OneWay}" />
+                <Run Text=" " />
+                <Run Text="{Binding SelectedInvoice.CashierName, Mode=OneWay}" />
+              </TextBlock>
+
+              <TextBlock Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,4,0,0"
+                         Text="{Binding ReversesText}"
+                         Visibility="{Binding ReversesText, Converter={StaticResource StringToVisibility}}" />
+              <TextBlock Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}"
+                         Text="{Binding ReversedByText}"
+                         Visibility="{Binding ReversedByText, Converter={StaticResource StringToVisibility}}" />
+            </StackPanel>
+
+            <!-- A return -->
+            <StackPanel Visibility="{Binding HasReturn, Converter={StaticResource BooleanToVisibility}}" Margin="0,10,0,0">
+              <TextBlock Style="{StaticResource Type.Title}" Text="{Binding SelectedReturn.Number}" />
+              <TextBlock Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}">
+                <Run Text="{Binding DetailDateLabel, Mode=OneWay}" />
+                <Run Text=" " />
+                <Run Text="{Binding SelectedReturn.BusinessDate, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}" />
+              </TextBlock>
+              <TextBlock Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}">
+                <Run Text="{Binding DetailCashierLabel, Mode=OneWay}" />
+                <Run Text=" " />
+                <Run Text="{Binding SelectedReturn.CashierName, Mode=OneWay}" />
+              </TextBlock>
+              <TextBlock Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,4,0,0">
+                <Run Text="{Binding DetailReasonLabel, Mode=OneWay}" />
+                <Run Text=" " />
+                <Run Text="{Binding SelectedReturn.Reason, Mode=OneWay}" />
+              </TextBlock>
+              <TextBlock Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}">
+                <Run Text="{Binding DetailMethodLabel, Mode=OneWay}" />
+                <Run Text=" " />
+                <Run Text="{Binding SelectedReturn.RefundMethod, Mode=OneWay, Converter={StaticResource SalesLabel}}" />
+              </TextBlock>
+            </StackPanel>
+          </StackPanel>
+
+          <!-- The money of the invoice -->
+          <Grid Grid.Row="1" Margin="0,14,0,0">
+            <StackPanel Visibility="{Binding HasInvoice, Converter={StaticResource BooleanToVisibility}}">
+              <TextBlock Text="{Binding DetailSubtotalLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
+              <TextBlock Text="{Binding SelectedInvoice.Subtotal, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+
+              <TextBlock Text="{Binding DetailDiscountLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
+              <TextBlock Text="{Binding SelectedInvoice.Discount, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+
+              <TextBlock Text="{Binding DetailTaxLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
+              <TextBlock Text="{Binding SelectedInvoice.Tax, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+
+              <TextBlock Text="{Binding DetailTotalLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
+              <TextBlock Text="{Binding SelectedInvoice.Total, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+
+              <TextBlock Text="{Binding DetailPaidLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
+              <TextBlock Text="{Binding SelectedInvoice.Paid, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+
+              <TextBlock Text="{Binding DetailReturnedLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
+              <TextBlock Text="{Binding SelectedInvoice.ReturnedAmount, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+            </StackPanel>
+
+            <StackPanel Visibility="{Binding HasReturn, Converter={StaticResource BooleanToVisibility}}">
+              <TextBlock Text="{Binding DetailTotalLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
+              <TextBlock Text="{Binding SelectedReturn.RefundTotal, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+            </StackPanel>
+          </Grid>
+
+          <!-- The lines of the document -->
+          <StackPanel Grid.Row="2" Margin="0,14,0,0">
+            <TextBlock Text="{Binding DetailLinesLabel}" Style="{StaticResource Type.SectionLabel}" />
+            <DataGrid ItemsSource="{Binding DetailLines}"
+                      EnableColumnVirtualization="False"
+                      IsReadOnly="True"
+                      MaxHeight="220">
+              <DataGrid.Columns>
+                <DataGridTextColumn Width="1.6*" Binding="{Binding Product}" />
+                <DataGridTextColumn Width="80" Binding="{Binding Quantity}" ElementStyle="{StaticResource Type.Numeric}" />
+                <DataGridTextColumn Width="120" Binding="{Binding Total, Converter={StaticResource Money}}" ElementStyle="{StaticResource Type.Numeric}" />
+              </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- The returns recorded against the invoice -->
+            <StackPanel Visibility="{Binding HasInvoice, Converter={StaticResource BooleanToVisibility}}" Margin="0,12,0,0">
+              <TextBlock Text="{Binding DetailReturnsLabel}" Style="{StaticResource Type.SectionLabel}" />
+              <ItemsControl ItemsSource="{Binding DetailReturns}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Grid Margin="0,2,0,2">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="135" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="Auto" />
+                      </Grid.ColumnDefinitions>
+
+                      <TextBlock Grid.Column="0" Text="{Binding Number}" Style="{StaticResource Type.LeftToRight}" />
+                      <TextBlock Grid.Column="1" Text="{Binding Reason}" Style="{StaticResource Type.Cell}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="2" Text="{Binding Refund, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </StackPanel>
+
+          <!-- Nothing has been picked -->
+          <TextBlock Grid.Row="0"
+                     Grid.RowSpan="3"
+                     Text="{Binding SelectDocumentText}"
+                     Style="{StaticResource Type.Body}"
+                     Foreground="{DynamicResource Text.Muted}"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     VerticalAlignment="Center"
+                     MaxWidth="320"
+                     Visibility="{Binding HasNoSelection, Converter={StaticResource BooleanToVisibility}}" />
+        </Grid>
+      </Border>
+    </Grid>
+
+    <!-- The message the last action left behind -->
+    <TextBlock Grid.Row="2"
+               Text="{Binding StatusMessage}"
+               Style="{StaticResource Type.Caption}"
+               AutomationProperties.AutomationId="SalesStatus"
+               Margin="0,10,0,0"
+               Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
+  </Grid>
+</UserControl>

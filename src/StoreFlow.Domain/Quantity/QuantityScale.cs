@@ -30,4 +30,32 @@ public static class QuantityScale
         6 => 1_000_000m,
         _ => throw new ArgumentOutOfRangeException(nameof(scale)),
     };
+
+    /// <summary>
+    /// True when the quantity can be written exactly in the unit of the given precision.
+    /// </summary>
+    /// <remarks>
+    /// A quantity the unit cannot express is refused rather than quietly rounded. A request for
+    /// 2.6 kilograms of a product sold by the piece is a mistake, and the operator is told about it
+    /// instead of being handed three.
+    /// </remarks>
+    /// <param name="quantity">The quantity in the unit's own terms.</param>
+    /// <param name="scale">The precision of the unit.</param>
+    /// <returns>True when the quantity fits the unit exactly.</returns>
+    public static bool Fits(decimal quantity, int scale)
+    {
+        if (scale is < 0 or > MaxScale)
+        {
+            return false;
+        }
+
+        decimal scaled = quantity * PowerOfTen(scale);
+
+        if (decimal.Abs(scaled) > long.MaxValue)
+        {
+            return false;
+        }
+
+        return decimal.Truncate(scaled) == scaled;
+    }
 }

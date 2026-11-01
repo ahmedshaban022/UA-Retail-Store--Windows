@@ -21,8 +21,17 @@ public sealed class SalesReturn
     /// <summary>The reason for the return, captured for the audit trail.</summary>
     public string Reason { get; set; } = string.Empty;
 
-    /// <summary>The total amount refunded.</summary>
+    /// <summary>
+    /// The total amount refunded, as a magnitude. The register shows it on the other side of the
+    /// column from the sale it undoes, because money is going back to the customer.
+    /// </summary>
     public Money RefundTotal { get; set; }
+
+    /// <summary>
+    /// The tax that came back with the refund. It is kept apart from the refund so the net of the
+    /// return can be read without the tax, which is the figure the day's takings are measured by.
+    /// </summary>
+    public Money RefundTax { get; set; }
 
     /// <summary>How the refund was made.</summary>
     public PaymentMethod RefundMethod { get; set; }
@@ -38,4 +47,7 @@ public sealed class SalesReturn
     public string? Notes { get; set; }
 
     public ICollection<SalesReturnLine> Lines { get; } = new List<SalesReturnLine>();
+
+    /// <summary>The refund rows that record how the money went back to the customer.</summary>
+    public ICollection<Payment> Payments { get; } = new List<Payment>();
 }

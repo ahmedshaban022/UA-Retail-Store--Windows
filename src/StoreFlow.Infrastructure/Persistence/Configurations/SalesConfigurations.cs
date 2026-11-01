@@ -30,10 +30,16 @@ internal sealed class SalesInvoiceConfiguration : IEntityTypeConfiguration<Sales
         builder.HasIndex(invoice => invoice.BusinessDate);
         builder.HasIndex(invoice => invoice.PostedUtc);
         builder.HasIndex(invoice => invoice.UserId);
+        builder.HasIndex(invoice => invoice.ReversesDocumentId).IsUnique();
 
         builder.HasOne(invoice => invoice.User)
             .WithMany()
             .HasForeignKey(invoice => invoice.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(invoice => invoice.ReversesDocument)
+            .WithMany(reversed => reversed.ReversedBy)
+            .HasForeignKey(invoice => invoice.ReversesDocumentId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
@@ -78,7 +84,16 @@ internal sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 {
     public void Configure(EntityTypeBuilder<Payment> builder)
     {
-        builder.ToTable("Payments");
+        builder.ToTable("Payments", table =>
+        {
+            // A payment belongs to a sale or to the refund of a return, never to both and never to
+            // neither. The database refuses a row that does not know what it is.
+            table.HasCheckConstraint(
+                "CK_Payments_SingleOwner",
+                "(\"SalesInvoiceId\" IS NOT NULL AND \"SalesReturnId\" IS NULL) "
+                + "OR (\"SalesInvoiceId\" IS NULL AND \"SalesReturnId\" IS NOT NULL)");
+        });
+
         builder.HasKey(payment => payment.Id);
 
         builder.Property(payment => payment.Amount).HasConversion(Converters.MoneyToMinorUnits);
@@ -87,10 +102,16 @@ internal sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(payment => payment.Reference).HasMaxLength(120);
 
         builder.HasIndex(payment => payment.SalesInvoiceId);
+        builder.HasIndex(payment => payment.SalesReturnId);
 
         builder.HasOne(payment => payment.SalesInvoice)
             .WithMany(invoice => invoice.Payments)
             .HasForeignKey(payment => payment.SalesInvoiceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(payment => payment.SalesReturn)
+            .WithMany(salesReturn => salesReturn.Payments)
+            .HasForeignKey(payment => payment.SalesReturnId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
@@ -108,6 +129,7 @@ internal sealed class SalesReturnConfiguration : IEntityTypeConfiguration<SalesR
         builder.Property(salesReturn => salesReturn.Notes).HasMaxLength(1000);
 
         builder.Property(salesReturn => salesReturn.RefundTotal).HasConversion(Converters.MoneyToMinorUnits);
+        builder.Property(salesReturn => salesReturn.RefundTax).HasConversion(Converters.MoneyToMinorUnits);
         builder.Property(salesReturn => salesReturn.BusinessDate).HasColumnType("TEXT");
         builder.Property(salesReturn => salesReturn.PostedUtc).HasColumnType("TEXT");
 

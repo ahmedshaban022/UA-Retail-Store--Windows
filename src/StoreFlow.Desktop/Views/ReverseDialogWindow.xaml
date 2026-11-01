@@ -1,0 +1,105 @@
+<Window x:Class="StoreFlow.Desktop.Views.ReverseDialogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}"
+        Width="560"
+        Height="500"
+        MinWidth="500"
+        MinHeight="440"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        AutomationProperties.AutomationId="ReverseDialog"
+        Background="{DynamicResource Surface.Canvas}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,0,0,1"
+            Padding="24,16">
+      <StackPanel>
+        <TextBlock Text="{Binding Title}" Style="{StaticResource Type.Title}" />
+        <TextBlock Text="{Binding Hint}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,18,24,0">
+      <StackPanel>
+        <TextBlock Text="{Binding ReasonLabel}" Style="{StaticResource Type.FieldLabel}" />
+        <TextBlock Text="{Binding ReasonHint}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
+        <TextBox Text="{Binding Reason, UpdateSourceTrigger=PropertyChanged}"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 Height="72"
+                 VerticalScrollBarVisibility="Auto"
+                 AutomationProperties.AutomationId="ReverseDialogReason" />
+
+        <TextBlock Text="{Binding MethodLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,16,0,0" />
+        <ComboBox ItemsSource="{Binding Methods}"
+                  DisplayMemberPath="DisplayName"
+                  SelectedValuePath="Method"
+                  AutomationProperties.AutomationId="ReverseDialogMethod">
+          <ComboBox.SelectedValue>
+            <Binding Path="RefundMethod" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
+          </ComboBox.SelectedValue>
+        </ComboBox>
+
+        <TextBlock Text="{Binding ConditionLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,16,0,0" />
+        <StackPanel Orientation="Horizontal">
+          <RadioButton Content="{Binding ResellableText}"
+                       IsChecked="{Binding IsResellable, Mode=TwoWay}"
+                       AutomationProperties.AutomationId="ReverseDialogResellable" />
+          <RadioButton Content="{Binding DamagedText}"
+                       IsChecked="{Binding IsResellable, Converter={StaticResource InverseBoolean}, Mode=TwoWay}"
+                       Margin="16,0,0,0"
+                       AutomationProperties.AutomationId="ReverseDialogDamaged" />
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,1,0,0"
+            Padding="24,12"
+            Margin="0,16,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0"
+                   Text="{Binding StatusMessage}"
+                   Style="{StaticResource Type.Error}"
+                   AutomationProperties.AutomationId="ReverseDialogStatus"
+                   VerticalAlignment="Center"
+                   Margin="0,0,12,0"
+                   TextWrapping="Wrap"
+                   Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
+
+        <Button Grid.Column="1"
+                Content="{Binding CancelText}"
+                Command="{Binding CancelCommand}"
+                Style="{StaticResource Button.Ghost}"
+                Margin="0,0,8,0"
+                AutomationProperties.AutomationId="ReverseDialogCancel" />
+
+        <Button Grid.Column="2"
+                Content="{Binding PostText}"
+                Command="{Binding PostCommand}"
+                Style="{StaticResource Button.Primary}"
+                AutomationProperties.AutomationId="ReverseDialogPost" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

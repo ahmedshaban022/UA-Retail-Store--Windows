@@ -98,7 +98,7 @@ Current state of the suite — **299 tests, all passing**:
 
 ### Driving the real application
 
-Three scripts drive the running desktop application through UI Automation and photograph it. They
+Four scripts drive the running desktop application through UI Automation and photograph it. They
 are the evidence behind the phase reports, and they are run against a throwaway data folder, so the
 shop's own data is never touched.
 
@@ -111,6 +111,9 @@ shop's own data is never touched.
 
 # The till
 & '.\tools\smoke-pos.ps1'
+
+# The sales register, the return and the reversal
+& '.\tools\smoke-sales.ps1'
 
 # How long the till takes to answer a scan (twenty scans, with the numbers)
 & '.\tools\scan-latency.ps1' 20
@@ -347,7 +350,7 @@ boundary** for an explicit go-ahead.
 | **1 — Catalog** ✅ | Products, categories, units, suppliers, barcode uniqueness, product editor, search, CSV import/export, product images, audit trail | UAT-01/02/18 |
 | 2 — Inventory ✅ | Purchase draft → post → receive, opening stock, stock ledger and balances, low-stock, stock count with approval, adjustments, valuation report | UAT-03/14/19; ledger reconciles to zero |
 | 3 — POS ✅ | Scan buffer, cart, discounts, tax, payments, idempotent checkout, receipts and preview, hold cart, shortcuts | UAT-04/05/06/07/08; the till answers a scan in a median of 4 ms |
-| 4 — Sales & Returns | Invoice history and detail, partial and full returns, resellable vs damaged, refund recording, reversal policy | UAT-10/11/12/20 |
+| 4 — Sales & Returns ✅ | Invoice history and detail, partial and full returns, resellable vs damaged, refund recording, reversal policy | UAT-10/11/12/20 |
 | 5 — Reports & Admin | All 11 reports with filters and CSV export, dashboard, users and roles UI, audit browser | UAT-13/15; figures match hand-computed values |
 | 6 — Backup & Cloud | `.sfb` engine, local and cloud targets, scheduler with retention, restore wizard, per-entity export/import, recovery wizard | UAT-16; restore into a different profile verified |
 | 7 — Hardening & Release | Performance harness, crash recovery, fault injection on every write point, MSI installer, user guide, recovery runbook, accessibility pass, final design review | Definition of Done fully met |
@@ -374,6 +377,8 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [`docs/phases/phase2-screens/`](docs/phases/phase2-screens/) | The pictures of the running application that the Phase 2 report leans on |
 | [`docs/phases/PHASE-3-POS.md`](docs/phases/PHASE-3-POS.md) | The Phase 3 report: the till, the pricing core, the sale that cannot be posted twice, the cart that is put aside without reserving stock, the receipt, and the twelve defects that running it found |
 | [`docs/phases/phase3-screens/`](docs/phases/phase3-screens/) | The ten pictures of the running till that the Phase 3 report leans on |
+| [`docs/phases/PHASE-4-SALES-AND-RETURNS.md`](docs/phases/PHASE-4-SALES-AND-RETURNS.md) | The Phase 4 report: the sales register, the return that puts the goods back, the reversal that undoes an invoice, and what running it found |
+| [`docs/phases/phase4-screens/`](docs/phases/phase4-screens/) | The pictures of the running sales register that the Phase 4 report leans on |
 
 ---
 

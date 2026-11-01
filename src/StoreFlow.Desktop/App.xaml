@@ -23,6 +23,7 @@
       <controls:MoneyValueConverter x:Key="Money" />
       <controls:CatalogStatusConverter x:Key="CatalogStatus" />
       <controls:InventoryLabelConverter x:Key="InventoryLabel" />
+      <controls:SalesLabelConverter x:Key="SalesLabel" />
       <controls:ProductImageConverter x:Key="ProductImage" />
       <controls:TimestampValueConverter x:Key="Timestamp" />
 
@@ -66,6 +67,10 @@
 
       <DataTemplate DataType="{x:Type viewModels:PosViewModel}">
         <views:PosView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:SalesViewModel}">
+        <views:SalesView />
       </DataTemplate>
     </ResourceDictionary>
   </Application.Resources>

@@ -41,31 +41,61 @@ public static class SchemaTriggers
         END;
 
         -- Posted invoice lines are frozen; corrections happen through a linked return.
+        --
+        -- The one thing that may move on a posted line is the counter of what has come back, because
+        -- a return has to be able to say that a unit of this line is on its way back to the shelf.
+        -- Every other column is compared one by one, so the line stays as frozen as it was.
+        DROP TRIGGER IF EXISTS trg_SalesInvoiceLines_NoUpdate;
+
         CREATE TRIGGER IF NOT EXISTS trg_SalesInvoiceLines_NoUpdate
         BEFORE UPDATE ON SalesInvoiceLines
-        WHEN (SELECT Status FROM SalesInvoices WHERE Id = OLD.SalesInvoiceId) = 1
+        WHEN (SELECT Status FROM SalesInvoices WHERE Id = OLD.SalesInvoiceId) IN (1, 2)
+             AND (
+                  NEW.SalesInvoiceId IS NOT OLD.SalesInvoiceId
+               OR NEW.ProductId IS NOT OLD.ProductId
+               OR NEW.NameSnapshot IS NOT OLD.NameSnapshot
+               OR NEW.SkuSnapshot IS NOT OLD.SkuSnapshot
+               OR NEW.BarcodeSnapshot IS NOT OLD.BarcodeSnapshot
+               OR NEW.UnitSnapshot IS NOT OLD.UnitSnapshot
+               OR NEW.QuantityScaled IS NOT OLD.QuantityScaled
+               OR NEW.QuantityScale IS NOT OLD.QuantityScale
+               OR NEW.UnitPrice IS NOT OLD.UnitPrice
+               OR NEW.Discount IS NOT OLD.Discount
+               OR NEW.InvoiceDiscountShare IS NOT OLD.InvoiceDiscountShare
+               OR NEW.DiscountPercentScaled IS NOT OLD.DiscountPercentScaled
+               OR NEW.Tax IS NOT OLD.Tax
+               OR NEW.Total IS NOT OLD.Total
+               OR NEW.UnitCostSnapshot IS NOT OLD.UnitCostSnapshot
+               OR NEW.TaxRateSnapshotBasisPoints IS NOT OLD.TaxRateSnapshotBasisPoints
+               OR NEW.TaxPriceIncludedSnapshot IS NOT OLD.TaxPriceIncludedSnapshot)
         BEGIN
             SELECT RAISE(ABORT, 'Posted invoice lines are immutable');
         END;
+
+        DROP TRIGGER IF EXISTS trg_SalesInvoiceLines_NoDelete;
 
         CREATE TRIGGER IF NOT EXISTS trg_SalesInvoiceLines_NoDelete
         BEFORE DELETE ON SalesInvoiceLines
-        WHEN (SELECT Status FROM SalesInvoices WHERE Id = OLD.SalesInvoiceId) = 1
+        WHEN (SELECT Status FROM SalesInvoices WHERE Id = OLD.SalesInvoiceId) IN (1, 2)
         BEGIN
             SELECT RAISE(ABORT, 'Posted invoice lines are immutable');
         END;
 
-        -- A posted purchase line is frozen too.
+        -- A posted purchase line is frozen too, and stays frozen once it has been reversed.
+        DROP TRIGGER IF EXISTS trg_PurchaseLines_NoUpdate;
+
         CREATE TRIGGER IF NOT EXISTS trg_PurchaseLines_NoUpdate
         BEFORE UPDATE ON PurchaseLines
-        WHEN (SELECT Status FROM PurchaseDocuments WHERE Id = OLD.PurchaseDocumentId) = 1
+        WHEN (SELECT Status FROM PurchaseDocuments WHERE Id = OLD.PurchaseDocumentId) IN (1, 2)
         BEGIN
             SELECT RAISE(ABORT, 'Posted purchase lines are immutable');
         END;
 
+        DROP TRIGGER IF EXISTS trg_PurchaseLines_NoDelete;
+
         CREATE TRIGGER IF NOT EXISTS trg_PurchaseLines_NoDelete
         BEFORE DELETE ON PurchaseLines
-        WHEN (SELECT Status FROM PurchaseDocuments WHERE Id = OLD.PurchaseDocumentId) = 1
+        WHEN (SELECT Status FROM PurchaseDocuments WHERE Id = OLD.PurchaseDocumentId) IN (1, 2)
         BEGIN
             SELECT RAISE(ABORT, 'Posted purchase lines are immutable');
         END;

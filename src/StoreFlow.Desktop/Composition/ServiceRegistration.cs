@@ -15,6 +15,7 @@ using StoreFlow.Application.Setup;
 using StoreFlow.Application.Theming;
 using StoreFlow.Application.Settings;
 using StoreFlow.Application.Pos;
+using StoreFlow.Application.Sales;
 using StoreFlow.Desktop.Localization;
 using StoreFlow.Desktop.Printing;
 using StoreFlow.Desktop.Services;
@@ -27,6 +28,7 @@ using StoreFlow.Infrastructure.Inventory;
 using StoreFlow.Infrastructure.Persistence;
 using StoreFlow.Infrastructure.Pos;
 using StoreFlow.Infrastructure.Reporting;
+using StoreFlow.Infrastructure.Sales;
 using StoreFlow.Infrastructure.Security;
 using StoreFlow.Infrastructure.Services;
 using StoreFlow.Infrastructure.Settings;
@@ -149,6 +151,16 @@ public static class ServiceRegistration
         services.AddSingleton<IQueryHandler<ListHeldCartsQuery, Result<IReadOnlyList<HeldCartSummary>>>, ListHeldCartsQueryHandler>();
         services.AddSingleton<IQueryHandler<GetHeldCartQuery, Result<HeldCartDetails>>, GetHeldCartQueryHandler>();
 
+        // The sales register and the returns. A posted invoice is never edited: it is corrected by
+        // a linked return or a linked reversal (PRD §5.7, SAL-06).
+        services.AddSingleton<ICommandHandler<PostReturnCommand, Result<RefundReceipt>>, PostReturnCommandHandler>();
+        services.AddSingleton<ICommandHandler<ReverseInvoiceCommand, Result<RefundReceipt>>, ReverseInvoiceCommandHandler>();
+
+        services.AddSingleton<IQueryHandler<ListSalesRegisterQuery, Result<IReadOnlyList<SalesRegisterRow>>>, ListSalesRegisterQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetSalesInvoiceQuery, Result<SalesInvoiceDetails>>, GetSalesInvoiceQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetSalesReturnQuery, Result<SalesReturnDetails>>, GetSalesReturnQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListSalesCashiersQuery, Result<IReadOnlyList<SalesCashierOption>>>, ListSalesCashiersQueryHandler>();
+
         services.AddLogging(logging =>
         {
             logging.ClearProviders();
@@ -202,6 +214,12 @@ public static class ServiceRegistration
         services.AddSingleton<IPrintService, WindowsPrintService>();
         services.AddSingleton<ReceiptBuilder>();
         services.AddTransient<PosViewModel>();
+
+        // The sales register, its dialogs and the two view models behind them.
+        services.AddSingleton<ISalesDialogs, SalesDialogs>();
+        services.AddTransient<SalesViewModel>();
+        services.AddTransient<ReturnDialogViewModel>();
+        services.AddTransient<ReverseDialogViewModel>();
 
         return services;
     }

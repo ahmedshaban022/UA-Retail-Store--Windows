@@ -1218,4 +1218,352 @@
   <data name="Pos.Taxable" xml:space="preserve">
     <value>Taxable amount</value>
   </data>
+
+  <data name="Sales.Title" xml:space="preserve">
+    <value>Sales</value>
+  </data>
+
+  <data name="Sales.Search" xml:space="preserve">
+    <value>Search by number or cashier</value>
+  </data>
+
+  <data name="Sales.From" xml:space="preserve">
+    <value>From</value>
+  </data>
+
+  <data name="Sales.To" xml:space="preserve">
+    <value>To</value>
+  </data>
+
+  <data name="Sales.Cashier" xml:space="preserve">
+    <value>Cashier</value>
+  </data>
+
+  <data name="Sales.AllCashiers" xml:space="preserve">
+    <value>All cashiers</value>
+  </data>
+
+  <data name="Sales.Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+
+  <data name="Sales.Number" xml:space="preserve">
+    <value>Number</value>
+  </data>
+
+  <data name="Sales.Kind" xml:space="preserve">
+    <value>Kind</value>
+  </data>
+
+  <data name="Sales.Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+
+  <data name="Sales.Lines" xml:space="preserve">
+    <value>Lines</value>
+  </data>
+
+  <data name="Sales.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+
+  <data name="Sales.Returned" xml:space="preserve">
+    <value>Returned</value>
+  </data>
+
+  <data name="Sales.Related" xml:space="preserve">
+    <value>Against</value>
+  </data>
+
+  <data name="Sales.KindInvoice" xml:space="preserve">
+    <value>Sale</value>
+  </data>
+
+  <data name="Sales.KindReturn" xml:space="preserve">
+    <value>Return</value>
+  </data>
+
+  <data name="Sales.KindReversal" xml:space="preserve">
+    <value>Reversal</value>
+  </data>
+
+  <data name="Sales.Return" xml:space="preserve">
+    <value>Return</value>
+  </data>
+
+  <data name="Sales.Reverse" xml:space="preserve">
+    <value>Reverse invoice</value>
+  </data>
+
+  <data name="Sales.ReturnPosted" xml:space="preserve">
+    <value>Return {0} was posted</value>
+  </data>
+
+  <data name="Sales.ReversalPosted" xml:space="preserve">
+    <value>Reversal {0} was posted</value>
+  </data>
+
+  <data name="Sales.Detail" xml:space="preserve">
+    <value>Document</value>
+  </data>
+
+  <data name="Sales.SelectDocument" xml:space="preserve">
+    <value>Select a document to see its details</value>
+  </data>
+
+  <data name="Sales.DetailNumber" xml:space="preserve">
+    <value>Number</value>
+  </data>
+
+  <data name="Sales.DetailDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+
+  <data name="Sales.DetailCashier" xml:space="preserve">
+    <value>Cashier</value>
+  </data>
+
+  <data name="Sales.DetailStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+
+  <data name="Sales.DetailSubtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+
+  <data name="Sales.DetailDiscount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+
+  <data name="Sales.DetailTax" xml:space="preserve">
+    <value>Tax</value>
+  </data>
+
+  <data name="Sales.DetailTotal" xml:space="preserve">
+    <value>Total</value>
+  </data>
+
+  <data name="Sales.DetailPaid" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+
+  <data name="Sales.DetailChange" xml:space="preserve">
+    <value>Change</value>
+  </data>
+
+  <data name="Sales.DetailReturned" xml:space="preserve">
+    <value>Returned</value>
+  </data>
+
+  <data name="Sales.DetailReason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+
+  <data name="Sales.DetailMethod" xml:space="preserve">
+    <value>Method</value>
+  </data>
+
+  <data name="Sales.DetailNotes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+
+  <data name="Sales.DetailLines" xml:space="preserve">
+    <value>Lines</value>
+  </data>
+
+  <data name="Sales.DetailReturns" xml:space="preserve">
+    <value>Returns against this invoice</value>
+  </data>
+
+  <data name="Sales.DetailReturnLines" xml:space="preserve">
+    <value>Lines that came back</value>
+  </data>
+
+  <data name="Sales.DetailReverses" xml:space="preserve">
+    <value>Reverses</value>
+  </data>
+
+  <data name="Sales.DetailReversedBy" xml:space="preserve">
+    <value>Reversed by</value>
+  </data>
+
+  <data name="Sales.FullReturn" xml:space="preserve">
+    <value>Whole invoice returned</value>
+  </data>
+
+  <data name="Sales.Empty" xml:space="preserve">
+    <value>There are no sales yet</value>
+  </data>
+
+  <data name="Sales.NoMatches" xml:space="preserve">
+    <value>No sales match this search</value>
+  </data>
+
+  <data name="Sales.LineProduct" xml:space="preserve">
+    <value>Product</value>
+  </data>
+
+  <data name="Sales.LineQuantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+
+  <data name="Sales.LineReturned" xml:space="preserve">
+    <value>Returned</value>
+  </data>
+
+  <data name="Sales.LinePrice" xml:space="preserve">
+    <value>Price</value>
+  </data>
+
+  <data name="Sales.LineDiscount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+
+  <data name="Sales.LineTax" xml:space="preserve">
+    <value>Tax</value>
+  </data>
+
+  <data name="Sales.LineTotal" xml:space="preserve">
+    <value>Total</value>
+  </data>
+
+  <data name="Sales.LineCost" xml:space="preserve">
+    <value>Cost</value>
+  </data>
+
+  <data name="Sales.ReturnTitle" xml:space="preserve">
+    <value>Return against {0}</value>
+  </data>
+
+  <data name="Sales.ReturnHint" xml:space="preserve">
+    <value>Type how many come back, and whether they can be sold again.</value>
+  </data>
+
+  <data name="Sales.ReturnQuantity" xml:space="preserve">
+    <value>Quantity to return</value>
+  </data>
+
+  <data name="Sales.ReturnRemaining" xml:space="preserve">
+    <value>Remaining</value>
+  </data>
+
+  <data name="Sales.ReturnCondition" xml:space="preserve">
+    <value>Condition</value>
+  </data>
+
+  <data name="Sales.ReturnResellable" xml:space="preserve">
+    <value>Resellable</value>
+  </data>
+
+  <data name="Sales.ReturnDamaged" xml:space="preserve">
+    <value>Damaged</value>
+  </data>
+
+  <data name="Sales.ReturnReason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+
+  <data name="Sales.ReturnReasonHint" xml:space="preserve">
+    <value>Why are the goods coming back?</value>
+  </data>
+
+  <data name="Sales.ReturnMethod" xml:space="preserve">
+    <value>Refund method</value>
+  </data>
+
+  <data name="Sales.ReturnTotal" xml:space="preserve">
+    <value>Refund</value>
+  </data>
+
+  <data name="Sales.ReturnPost" xml:space="preserve">
+    <value>Post the return</value>
+  </data>
+
+  <data name="Sales.ReturnEmpty" xml:space="preserve">
+    <value>There is nothing left to return on this invoice</value>
+  </data>
+
+  <data name="Sales.ReverseTitle" xml:space="preserve">
+    <value>Reverse invoice {0}</value>
+  </data>
+
+  <data name="Sales.ReverseHint" xml:space="preserve">
+    <value>The invoice stays on the record; the reversal is a new document.</value>
+  </data>
+
+  <data name="Sales.ReverseReason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+
+  <data name="Sales.ReverseReasonHint" xml:space="preserve">
+    <value>Why is this invoice being reversed?</value>
+  </data>
+
+  <data name="Sales.ReverseMethod" xml:space="preserve">
+    <value>Refund method</value>
+  </data>
+
+  <data name="Sales.ReverseCondition" xml:space="preserve">
+    <value>Condition of the goods</value>
+  </data>
+
+  <data name="Sales.ReversePost" xml:space="preserve">
+    <value>Reverse the invoice</value>
+  </data>
+
+  <data name="Error.Sales.InvoiceNotFound" xml:space="preserve">
+    <value>This invoice no longer exists.</value>
+  </data>
+
+  <data name="Error.Sales.InvoiceNotPosted" xml:space="preserve">
+    <value>Only a posted invoice can be returned against.</value>
+  </data>
+
+  <data name="Error.Sales.InvoiceAlreadyReversed" xml:space="preserve">
+    <value>This invoice has already been reversed.</value>
+  </data>
+
+  <data name="Error.Sales.InvoiceIsReversal" xml:space="preserve">
+    <value>A reversal cannot be reversed again.</value>
+  </data>
+
+  <data name="Error.Sales.NoLines" xml:space="preserve">
+    <value>A return must have at least one line.</value>
+  </data>
+
+  <data name="Error.Sales.LineNotOnInvoice" xml:space="preserve">
+    <value>One of the lines is not on this invoice.</value>
+  </data>
+
+  <data name="Error.Sales.InvalidQuantity" xml:space="preserve">
+    <value>A quantity that the selling unit cannot express cannot be returned.</value>
+  </data>
+
+  <data name="Error.Sales.QuantityExceedsSold" xml:space="preserve">
+    <value>More is being returned than was sold on that line.</value>
+  </data>
+
+  <data name="Error.Sales.QuantityExceedsRemaining" xml:space="preserve">
+    <value>More is being returned than is left to return on that line.</value>
+  </data>
+
+  <data name="Error.Sales.ReasonRequired" xml:space="preserve">
+    <value>A return must say why the goods came back.</value>
+  </data>
+
+  <data name="Error.Sales.NothingToReturn" xml:space="preserve">
+    <value>There is nothing left to return on this invoice.</value>
+  </data>
+
+  <data name="Error.Sales.ReversalNotAllowed" xml:space="preserve">
+    <value>This invoice cannot be reversed.</value>
+  </data>
+
+  <data name="Error.Sales.RefundTooLarge" xml:space="preserve">
+    <value>The refund cannot be larger than what was paid.</value>
+  </data>
+
+  <data name="Error.Sales.StockNotRestored" xml:space="preserve">
+    <value>The stock could not be put back on the shelf.</value>
+  </data>
 </root>

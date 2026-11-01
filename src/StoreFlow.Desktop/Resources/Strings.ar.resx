@@ -1218,4 +1218,352 @@
   <data name="Pos.Taxable" xml:space="preserve">
     <value>المبلغ الخاضع للضريبة</value>
   </data>
+
+  <data name="Sales.Title" xml:space="preserve">
+    <value>المبيعات</value>
+  </data>
+
+  <data name="Sales.Search" xml:space="preserve">
+    <value>ابحث برقم المستند أو الكاشير</value>
+  </data>
+
+  <data name="Sales.From" xml:space="preserve">
+    <value>من</value>
+  </data>
+
+  <data name="Sales.To" xml:space="preserve">
+    <value>إلى</value>
+  </data>
+
+  <data name="Sales.Cashier" xml:space="preserve">
+    <value>الكاشير</value>
+  </data>
+
+  <data name="Sales.AllCashiers" xml:space="preserve">
+    <value>كل الكاشيرين</value>
+  </data>
+
+  <data name="Sales.Refresh" xml:space="preserve">
+    <value>تحديث</value>
+  </data>
+
+  <data name="Sales.Number" xml:space="preserve">
+    <value>الرقم</value>
+  </data>
+
+  <data name="Sales.Kind" xml:space="preserve">
+    <value>النوع</value>
+  </data>
+
+  <data name="Sales.Date" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+
+  <data name="Sales.Lines" xml:space="preserve">
+    <value>البنود</value>
+  </data>
+
+  <data name="Sales.Total" xml:space="preserve">
+    <value>الإجمالي</value>
+  </data>
+
+  <data name="Sales.Returned" xml:space="preserve">
+    <value>المرتجع</value>
+  </data>
+
+  <data name="Sales.Related" xml:space="preserve">
+    <value>بخصوص</value>
+  </data>
+
+  <data name="Sales.KindInvoice" xml:space="preserve">
+    <value>بيع</value>
+  </data>
+
+  <data name="Sales.KindReturn" xml:space="preserve">
+    <value>مرتجع</value>
+  </data>
+
+  <data name="Sales.KindReversal" xml:space="preserve">
+    <value>عكس</value>
+  </data>
+
+  <data name="Sales.Return" xml:space="preserve">
+    <value>مرتجع</value>
+  </data>
+
+  <data name="Sales.Reverse" xml:space="preserve">
+    <value>عكس الفاتورة</value>
+  </data>
+
+  <data name="Sales.ReturnPosted" xml:space="preserve">
+    <value>تم نشر المرتجع {0}</value>
+  </data>
+
+  <data name="Sales.ReversalPosted" xml:space="preserve">
+    <value>تم نشر عكس الفاتورة {0}</value>
+  </data>
+
+  <data name="Sales.Detail" xml:space="preserve">
+    <value>المستند</value>
+  </data>
+
+  <data name="Sales.SelectDocument" xml:space="preserve">
+    <value>اختر مستندًا لعرض تفاصيله</value>
+  </data>
+
+  <data name="Sales.DetailNumber" xml:space="preserve">
+    <value>الرقم</value>
+  </data>
+
+  <data name="Sales.DetailDate" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+
+  <data name="Sales.DetailCashier" xml:space="preserve">
+    <value>الكاشير</value>
+  </data>
+
+  <data name="Sales.DetailStatus" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+
+  <data name="Sales.DetailSubtotal" xml:space="preserve">
+    <value>المجموع الفرعي</value>
+  </data>
+
+  <data name="Sales.DetailDiscount" xml:space="preserve">
+    <value>الخصم</value>
+  </data>
+
+  <data name="Sales.DetailTax" xml:space="preserve">
+    <value>الضريبة</value>
+  </data>
+
+  <data name="Sales.DetailTotal" xml:space="preserve">
+    <value>الإجمالي</value>
+  </data>
+
+  <data name="Sales.DetailPaid" xml:space="preserve">
+    <value>المدفوع</value>
+  </data>
+
+  <data name="Sales.DetailChange" xml:space="preserve">
+    <value>الباقي</value>
+  </data>
+
+  <data name="Sales.DetailReturned" xml:space="preserve">
+    <value>المرتجع</value>
+  </data>
+
+  <data name="Sales.DetailReason" xml:space="preserve">
+    <value>السبب</value>
+  </data>
+
+  <data name="Sales.DetailMethod" xml:space="preserve">
+    <value>الطريقة</value>
+  </data>
+
+  <data name="Sales.DetailNotes" xml:space="preserve">
+    <value>ملاحظات</value>
+  </data>
+
+  <data name="Sales.DetailLines" xml:space="preserve">
+    <value>البنود</value>
+  </data>
+
+  <data name="Sales.DetailReturns" xml:space="preserve">
+    <value>المرتجعات الخاصة بهذه الفاتورة</value>
+  </data>
+
+  <data name="Sales.DetailReturnLines" xml:space="preserve">
+    <value>البنود العائدة</value>
+  </data>
+
+  <data name="Sales.DetailReverses" xml:space="preserve">
+    <value>يعكس</value>
+  </data>
+
+  <data name="Sales.DetailReversedBy" xml:space="preserve">
+    <value>تم عكسها بواسطة</value>
+  </data>
+
+  <data name="Sales.FullReturn" xml:space="preserve">
+    <value>تم إرجاع الفاتورة كاملة</value>
+  </data>
+
+  <data name="Sales.Empty" xml:space="preserve">
+    <value>لا توجد مبيعات بعد</value>
+  </data>
+
+  <data name="Sales.NoMatches" xml:space="preserve">
+    <value>لا توجد مبيعات مطابقة لهذا البحث</value>
+  </data>
+
+  <data name="Sales.LineProduct" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+
+  <data name="Sales.LineQuantity" xml:space="preserve">
+    <value>الكمية</value>
+  </data>
+
+  <data name="Sales.LineReturned" xml:space="preserve">
+    <value>المرتجع</value>
+  </data>
+
+  <data name="Sales.LinePrice" xml:space="preserve">
+    <value>السعر</value>
+  </data>
+
+  <data name="Sales.LineDiscount" xml:space="preserve">
+    <value>الخصم</value>
+  </data>
+
+  <data name="Sales.LineTax" xml:space="preserve">
+    <value>الضريبة</value>
+  </data>
+
+  <data name="Sales.LineTotal" xml:space="preserve">
+    <value>الإجمالي</value>
+  </data>
+
+  <data name="Sales.LineCost" xml:space="preserve">
+    <value>التكلفة</value>
+  </data>
+
+  <data name="Sales.ReturnTitle" xml:space="preserve">
+    <value>مرتجع مقابل {0}</value>
+  </data>
+
+  <data name="Sales.ReturnHint" xml:space="preserve">
+    <value>اكتب الكمية العائدة وهل يمكن بيعها مرة أخرى.</value>
+  </data>
+
+  <data name="Sales.ReturnQuantity" xml:space="preserve">
+    <value>الكمية المرتجعة</value>
+  </data>
+
+  <data name="Sales.ReturnRemaining" xml:space="preserve">
+    <value>المتبقي</value>
+  </data>
+
+  <data name="Sales.ReturnCondition" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+
+  <data name="Sales.ReturnResellable" xml:space="preserve">
+    <value>قابل للبيع</value>
+  </data>
+
+  <data name="Sales.ReturnDamaged" xml:space="preserve">
+    <value>تالف</value>
+  </data>
+
+  <data name="Sales.ReturnReason" xml:space="preserve">
+    <value>السبب</value>
+  </data>
+
+  <data name="Sales.ReturnReasonHint" xml:space="preserve">
+    <value>لماذا تعود البضاعة؟</value>
+  </data>
+
+  <data name="Sales.ReturnMethod" xml:space="preserve">
+    <value>طريقة الاسترداد</value>
+  </data>
+
+  <data name="Sales.ReturnTotal" xml:space="preserve">
+    <value>المبلغ المسترد</value>
+  </data>
+
+  <data name="Sales.ReturnPost" xml:space="preserve">
+    <value>نشر المرتجع</value>
+  </data>
+
+  <data name="Sales.ReturnEmpty" xml:space="preserve">
+    <value>لم يتبقَّ شيء يمكن إرجاعه في هذه الفاتورة</value>
+  </data>
+
+  <data name="Sales.ReverseTitle" xml:space="preserve">
+    <value>عكس الفاتورة {0}</value>
+  </data>
+
+  <data name="Sales.ReverseHint" xml:space="preserve">
+    <value>تبقى الفاتورة في السجل، والعكس مستند جديد.</value>
+  </data>
+
+  <data name="Sales.ReverseReason" xml:space="preserve">
+    <value>السبب</value>
+  </data>
+
+  <data name="Sales.ReverseReasonHint" xml:space="preserve">
+    <value>لماذا يتم عكس هذه الفاتورة؟</value>
+  </data>
+
+  <data name="Sales.ReverseMethod" xml:space="preserve">
+    <value>طريقة الاسترداد</value>
+  </data>
+
+  <data name="Sales.ReverseCondition" xml:space="preserve">
+    <value>حالة البضاعة</value>
+  </data>
+
+  <data name="Sales.ReversePost" xml:space="preserve">
+    <value>عكس الفاتورة</value>
+  </data>
+
+  <data name="Error.Sales.InvoiceNotFound" xml:space="preserve">
+    <value>لم تعد هذه الفاتورة موجودة.</value>
+  </data>
+
+  <data name="Error.Sales.InvoiceNotPosted" xml:space="preserve">
+    <value>يمكن المرتجع مقابل فاتورة منشورة فقط.</value>
+  </data>
+
+  <data name="Error.Sales.InvoiceAlreadyReversed" xml:space="preserve">
+    <value>تم عكس هذه الفاتورة بالفعل.</value>
+  </data>
+
+  <data name="Error.Sales.InvoiceIsReversal" xml:space="preserve">
+    <value>لا يمكن عكس مستند عكس.</value>
+  </data>
+
+  <data name="Error.Sales.NoLines" xml:space="preserve">
+    <value>يجب أن يحتوي المرتجع على بند واحد على الأقل.</value>
+  </data>
+
+  <data name="Error.Sales.LineNotOnInvoice" xml:space="preserve">
+    <value>أحد البنود ليس على هذه الفاتورة.</value>
+  </data>
+
+  <data name="Error.Sales.InvalidQuantity" xml:space="preserve">
+    <value>لا يمكن إرجاع كمية لا تعبّر عنها وحدة البيع.</value>
+  </data>
+
+  <data name="Error.Sales.QuantityExceedsSold" xml:space="preserve">
+    <value>يتم إرجاع أكثر مما بيع في ذلك البند.</value>
+  </data>
+
+  <data name="Error.Sales.QuantityExceedsRemaining" xml:space="preserve">
+    <value>يتم إرجاع أكثر مما تبقّى للإرجاع في ذلك البند.</value>
+  </data>
+
+  <data name="Error.Sales.ReasonRequired" xml:space="preserve">
+    <value>يجب أن يذكر المرتجع سبب عودة البضاعة.</value>
+  </data>
+
+  <data name="Error.Sales.NothingToReturn" xml:space="preserve">
+    <value>لم يتبقَّ شيء للإرجاع في هذه الفاتورة.</value>
+  </data>
+
+  <data name="Error.Sales.ReversalNotAllowed" xml:space="preserve">
+    <value>لا يمكن عكس هذه الفاتورة.</value>
+  </data>
+
+  <data name="Error.Sales.RefundTooLarge" xml:space="preserve">
+    <value>لا يمكن أن يكون المبلغ المسترد أكبر من المدفوع.</value>
+  </data>
+
+  <data name="Error.Sales.StockNotRestored" xml:space="preserve">
+    <value>لم تتمكن البضاعة من العودة إلى الرف.</value>
+  </data>
 </root>

@@ -90,7 +90,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             new("Purchases", "▥", _strings[StringKeys.NavPurchases]),
             new("Inventory", "▣", _strings[StringKeys.NavInventory]),
             new("Pos", "▶", _strings[StringKeys.NavPos]),
-            new("Sales", "≡", _strings[StringKeys.NavSales], IsAvailable: false),
+            new("Sales", "≡", _strings[StringKeys.NavSales]),
             new("Reports", "◫", _strings[StringKeys.NavReports], IsAvailable: false),
             new("Users", "◉", _strings[StringKeys.NavUsers], IsAvailable: false),
             new("Settings", "⚙", _strings[StringKeys.NavSettings]),
@@ -145,6 +145,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             "Purchases" => _services.GetService(typeof(PurchasesViewModel)),
             "Inventory" => _services.GetService(typeof(InventoryViewModel)),
             "Pos" => _services.GetService(typeof(PosViewModel)),
+            "Sales" => _services.GetService(typeof(SalesViewModel)),
             "Settings" => _services.GetService(typeof(SettingsViewModel)),
             _ => null,
         };
@@ -187,6 +188,9 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             case PosViewModel pos:
                 pos.RefreshHeldCartsCommand.Execute(null);
                 break;
+            case SalesViewModel sales:
+                sales.RefreshCommand.Execute(null);
+                break;
         }
     }
 
@@ -202,6 +206,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         "Purchases" => _strings[StringKeys.PurchasesTitle],
         "Inventory" => _strings[StringKeys.NavInventory],
         "Pos" => _strings[StringKeys.PosTitle],
+        "Sales" => _strings[StringKeys.SalesTitle],
         _ => _strings[StringKeys.NavSettings],
     };
 
