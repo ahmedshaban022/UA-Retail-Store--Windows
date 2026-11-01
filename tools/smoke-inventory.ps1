@@ -8,12 +8,15 @@ $ErrorActionPreference = 'Continue'
 # not depend on the wording of the interface in either language. The only words the script uses are
 # the stock-keeping codes of the products it creates, which are the same in every language.
 #
-# The screens are captured by asking each window to draw itself, rather than by photographing the
-# screen. That keeps the evidence faithful when the desktop is locked or another window is in front.
+# The screens are captured by the application itself. The script asks the running application to
+# draw one of its own windows over the capture pipe, and the application writes the picture. A
+# picture taken from outside the process comes back mirrored for a right-to-left window and shows a
+# frame that is not the one the owner sees, so it is not used.
 
 $exe = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
 $outDir = 'D:\Coding\UA Retail Store\docs\phases\phase2-screens'
 $runRoot = Join-Path $env:TEMP ('storeflow-phase2-' + [Guid]::NewGuid().ToString('N'))
+$pipeName = 'storeflow-phase2-capture-' + [Guid]::NewGuid().ToString('N')
 
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 New-Item -ItemType Directory -Force -Path $runRoot | Out-Null
@@ -34,21 +37,6 @@ Write-Output ('shots folder: ' + $outDir)
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
-
-Add-Type @'
-using System;
-using System.Runtime.InteropServices;
-public static class StoreFlowCapture {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
-    [DllImport("user32.dll")]
-    public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
-    [DllImport("user32.dll")]
-    public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, uint flags);
-    public const uint PW_RENDERFULLCONTENT = 2;
-}
-'@
 
 $AE = [System.Windows.Automation.AutomationElement]
 $TS = [System.Windows.Automation.TreeScope]
@@ -322,50 +310,53 @@ function Set-GridField($grid, [string]$id, [string]$value) {
     }
 }
 
-# Captures a window by asking it to draw itself. A right-to-left window comes out mirrored, so the
-# capture is flipped back and both versions are written out. A window that reads left to right comes
-# out as it is, and flipping it would be a lie about the screen.
-function Save-WindowShot($element, [string]$fileName, [bool]$rightToLeft = $true) {
-    if (-not $element) { Write-Output ('  no window for ' + $fileName); return }
+# Pictures are taken by the application itself. The script sends one command down the capture pipe
+# and the application draws the window it names and writes the picture itself, so a right-to-left
+# window comes out the way the owner sees it rather than mirrored.
+function Send-Capture([string]$command) {
+    $writer = $null
+    $reader = $null
+    $pipe = New-Object System.IO.Pipes.NamedPipeClientStream(
+        '.', $pipeName, [System.IO.Pipes.PipeDirection]::InOut)
 
-    $handle = [IntPtr]$element.Current.NativeWindowHandle
-    if ($handle -eq [IntPtr]::Zero) { Write-Output ('  no handle for ' + $fileName); return }
+    try {
+        $pipe.Connect(20000)
 
-    $rect = New-Object StoreFlowCapture+RECT
-    if (-not [StoreFlowCapture]::GetWindowRect($handle, [ref]$rect)) {
-        Write-Output ('  no rectangle for ' + $fileName)
+        $writer = New-Object System.IO.StreamWriter($pipe, (New-Object System.Text.UTF8Encoding($false)))
+        $writer.AutoFlush = $true
+        $reader = New-Object System.IO.StreamReader($pipe, [System.Text.Encoding]::UTF8, $false, 1024, $true)
+
+        $writer.WriteLine($command)
+
+        # A named pipe cannot be given a read timeout of its own, so the answer is waited for
+        # here instead. The application always answers, even when the capture failed.
+        $answer = $reader.ReadLineAsync()
+        if (-not $answer.Wait(30000)) {
+            return 'ERR the application did not answer in time'
+        }
+
+        return $answer.Result
+    } catch {
+        return ('ERR ' + $_.Exception.Message)
+    } finally {
+        if ($reader) { $reader.Dispose() }
+        if ($writer) { $writer.Dispose() }
+        $pipe.Dispose()
+    }
+}
+
+# Draws the window with the given automation identifier and saves the picture under the given name.
+function Save-Shot([string]$windowId, [string]$fileName) {
+    $path = Join-Path $outDir $fileName
+    $reply = Send-Capture ('CAPTURE ' + $windowId + ' ' + $path)
+
+    if ($reply -and $reply.StartsWith('OK')) {
+        Write-Output ('  screenshot -> ' + $fileName + ' (' + $windowId + ')')
         return
     }
 
-    $width = $rect.Right - $rect.Left
-    $height = $rect.Bottom - $rect.Top
-    if ($width -le 0 -or $height -le 0) { Write-Output ('  empty rectangle for ' + $fileName); return }
-
-    $bitmap = New-Object System.Drawing.Bitmap $width, $height
-    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-    $hdc = $graphics.GetHdc()
-    $ok = [StoreFlowCapture]::PrintWindow($handle, $hdc, [StoreFlowCapture]::PW_RENDERFULLCONTENT)
-    $graphics.ReleaseHdc($hdc)
-    $graphics.Dispose()
-
-    $path = Join-Path $outDir $fileName
-    $bitmap.Save([System.IO.Path]::ChangeExtension($path, '.raw.png'), [System.Drawing.Imaging.ImageFormat]::Png)
-
-    if ($rightToLeft) {
-        $flipped = New-Object System.Drawing.Bitmap $width, $height
-        $g2 = [System.Drawing.Graphics]::FromImage($flipped)
-        $g2.TranslateTransform($width, 0)
-        $g2.ScaleTransform(-1, 1)
-        $g2.DrawImage($bitmap, 0, 0)
-        $g2.Dispose()
-        $flipped.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
-        $flipped.Dispose()
-    } else {
-        $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
-    }
-    $bitmap.Dispose()
-
-    Write-Output ('  screenshot -> ' + $fileName + ' (drawn=' + $ok + ', ' + $width + 'x' + $height + ', flipped=' + $rightToLeft + ')')
+    Write-Output ('  no screenshot for ' + $fileName + ': ' + $reply)
+    Fail ('the picture of ' + $fileName + ' could not be taken: ' + $reply)
 }
 
 function Dump-Windows([int]$processId, $shell) {
@@ -388,7 +379,7 @@ function Dump-Windows([int]$processId, $shell) {
 $arStoreNameAr = A @(0x0645,0x062A,0x062C,0x0631,0x0020,0x0645,0x0635,0x0631,0x064A,0x0629)
 
 # --- The application -----------------------------------------------------------
-$p = Start-Process -FilePath $exe -PassThru
+$p = Start-Process -FilePath $exe -ArgumentList @('--capture-pipe', $pipeName) -PassThru
 Write-Output ('launched pid=' + $p.Id)
 Start-Sleep -Seconds 7
 
@@ -435,7 +426,7 @@ Start-Sleep -Seconds 7
 $shell = Wait-Shell $p.Id
 if (-not $shell) { Write-Output 'FAIL: no shell window'; Stop-Process -Id $p.Id -Force; exit 1 }
 Write-Output ('shell: "' + $shell.Current.Name + '"')
-Save-WindowShot $shell 'phase2-01-shell-arabic.png'
+Save-Shot 'MainWindow' 'phase2-01-shell-arabic.png'
 
 # --- Two products to buy -------------------------------------------------------
 Write-Output ('  open products: ' + (Invoke-ById $shell 'Products'))
@@ -471,7 +462,7 @@ Check (Find-Text $shell 'RICE-001') 'the products are in the catalogue'
 # --- A purchase receipt --------------------------------------------------------
 Write-Output ('  open purchases: ' + (Invoke-ById $shell 'Purchases'))
 Start-Sleep -Seconds 3
-Save-WindowShot $shell 'phase2-02-purchases-empty-arabic.png'
+Save-Shot 'MainWindow' 'phase2-02-purchases-empty-arabic.png'
 Check ((Find-ById $shell 'Purchases.Grid') -ne $null) 'the purchase register is on the page'
 
 Write-Output ('  new purchase: ' + (Invoke-ById $shell 'Purchases.New'))
@@ -483,7 +474,7 @@ if (-not $editor) {
     Dump-Windows $p.Id $shell
 } else {
     Write-Output '  the purchase editor is up'
-    Save-WindowShot $editor 'phase2-03-purchase-editor-arabic.png'
+    Save-Shot 'PurchaseEditorWindow' 'phase2-03-purchase-editor-arabic.png'
 
     Invoke-ById $editor 'PurchaseEditor.AddLine' | Out-Null
     Start-Sleep -Milliseconds 900
@@ -495,7 +486,7 @@ if (-not $editor) {
     Check (Set-GridField $grid 'PurchaseEditor.Line.Quantity' '20') 'the quantity was written into the line'
     Check (Set-GridField $grid 'PurchaseEditor.Line.UnitCost' '380.00') 'the unit cost was written into the line'
 
-    Save-WindowShot $editor 'phase2-04-purchase-editor-filled-arabic.png'
+    Save-Shot 'PurchaseEditorWindow' 'phase2-04-purchase-editor-filled-arabic.png'
 
     Write-Output ('  save and post: ' + (Invoke-ById $editor 'PurchaseEditor.SaveAndPost'))
     Start-Sleep -Seconds 5
@@ -505,14 +496,14 @@ if (-not $editor) {
     Write-Output ('  the editor says: ' + (Get-TextById $editor 'PurchaseEditor.Status'))
 
     Check (Wait-Gone $shell 'PurchaseEditorWindow' 20) 'the purchase editor closed after posting'
-    Save-WindowShot $shell 'phase2-05-purchases-posted-arabic.png'
+    Save-Shot 'MainWindow' 'phase2-05-purchases-posted-arabic.png'
     Check (Find-Text $shell 'PUR-') 'the purchase is in the register'
 }
 
 # --- The inventory -------------------------------------------------------------
 Write-Output ('  open inventory: ' + (Invoke-ById $shell 'Inventory'))
 Start-Sleep -Seconds 4
-Save-WindowShot $shell 'phase2-06-inventory-balances-arabic.png'
+Save-Shot 'MainWindow' 'phase2-06-inventory-balances-arabic.png'
 Check ((Find-ById $shell 'Inventory.Balances') -ne $null) 'the stock on hand table is on the page'
 Check (Find-Text $shell 'RICE-001') 'the received product is in the stock list'
 
@@ -525,14 +516,14 @@ Write-Output ('  the screen has ' + $tabs.Count + ' tabs')
 if ($tabs.Count -ge 2) {
     try { $tabs[1].GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select() } catch { }
     Start-Sleep -Seconds 3
-    Save-WindowShot $shell 'phase2-07-inventory-movements-arabic.png'
+    Save-Shot 'MainWindow' 'phase2-07-inventory-movements-arabic.png'
     Check (Find-Text $shell 'RICE-001') 'the ledger names the product that moved'
 }
 
 if ($tabs.Count -ge 3) {
     try { $tabs[2].GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select() } catch { }
     Start-Sleep -Seconds 2
-    Save-WindowShot $shell 'phase2-08-inventory-counts-arabic.png'
+    Save-Shot 'MainWindow' 'phase2-08-inventory-counts-arabic.png'
 }
 
 # --- A stock count -------------------------------------------------------------
@@ -549,7 +540,7 @@ if (-not $counter) {
     Fail 'the stock count window never appeared'
 } else {
     Write-Output '  the stock count window is up'
-    Save-WindowShot $counter 'phase2-09-stock-count-arabic.png'
+    Save-Shot 'StockCountWindow' 'phase2-09-stock-count-arabic.png'
 
     Invoke-ById $counter 'StockCount.AddLine' | Out-Null
     Start-Sleep -Milliseconds 900
@@ -560,7 +551,7 @@ if (-not $counter) {
     $grid = Find-ById $counter 'StockCount.Lines'
     Check (Set-GridField $grid 'StockCount.Line.Counted' '18') 'the counted quantity was written into the line'
 
-    Save-WindowShot $counter 'phase2-10-stock-count-filled-arabic.png'
+    Save-Shot 'StockCountWindow' 'phase2-10-stock-count-filled-arabic.png'
 
     Write-Output ('  submit the count: ' + (Invoke-ById $counter 'StockCount.Submit'))
     Start-Sleep -Seconds 4
@@ -577,7 +568,7 @@ if ($approveButton) {
 
     $prompt = Wait-ById $shell 'ReasonPromptWindow' 15
     if ($prompt) {
-        Save-WindowShot $prompt 'phase2-11-approve-count-arabic.png'
+        Save-Shot 'ReasonPromptWindow' 'phase2-11-approve-count-arabic.png'
         Set-ById $prompt 'ReasonPrompt.Reason' 'Recount of the shelf' | Out-Null
         Start-Sleep -Milliseconds 500
         Invoke-ById $prompt 'ReasonPrompt.Accept' | Out-Null
@@ -592,7 +583,7 @@ if ($approveButton) {
 
 Write-Output ('  post the count: ' + (Invoke-ById $shell 'Inventory.PostCount'))
 Start-Sleep -Seconds 4
-Save-WindowShot $shell 'phase2-12-inventory-counts-posted-arabic.png'
+Save-Shot 'MainWindow' 'phase2-12-inventory-counts-posted-arabic.png'
 
 # --- A stock adjustment --------------------------------------------------------
 Write-Output ('  stock adjustment: ' + (Invoke-ById $shell 'Inventory.Adjustment'))
@@ -602,7 +593,7 @@ $adjuster = Wait-ById $shell 'StockAdjustmentWindow' 20
 if (-not $adjuster) {
     Fail 'the stock adjustment window never appeared'
 } else {
-    Save-WindowShot $adjuster 'phase2-13-stock-adjustment-arabic.png'
+    Save-Shot 'StockAdjustmentWindow' 'phase2-13-stock-adjustment-arabic.png'
 
     Check (Select-ComboItem $adjuster 'StockAdjustment.Product' 'RICE-001') 'the adjusted product was chosen'
 
@@ -622,7 +613,7 @@ Start-Sleep -Seconds 2
 if ($tabs.Count -ge 1) {
     try { $tabs[0].GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select() } catch { }
     Start-Sleep -Seconds 3
-    Save-WindowShot $shell 'phase2-14-inventory-balances-after-arabic.png'
+    Save-Shot 'MainWindow' 'phase2-14-inventory-balances-after-arabic.png'
 }
 
 # --- The same screens in English -----------------------------------------------
@@ -690,7 +681,7 @@ if (-not $switched) {
         [System.IO.File]::WriteAllText($themeFile, $theme, (New-Object System.Text.UTF8Encoding($false)))
         Write-Output '  the theme now asks for English'
 
-        $p = Start-Process -FilePath $exe -PassThru
+        $p = Start-Process -FilePath $exe -ArgumentList @('--capture-pipe', $pipeName) -PassThru
         Start-Sleep -Seconds 8
 
         $login = Wait-Window $p.Id 'Sign in' 30
@@ -717,13 +708,13 @@ if (-not $switched) {
 
 Write-Output ('  open purchases in English: ' + (Invoke-ById $shell 'Purchases'))
 Start-Sleep -Seconds 4
-Save-WindowShot $shell 'phase2-15-purchases-english.png' $false
+Save-Shot 'MainWindow' 'phase2-15-purchases-english.png'
 Check ((Get-TextsContaining $shell 'Number').Count -gt 0) 'the purchase register reads in English'
 Check (Find-Text $shell 'PUR-') 'the purchase is still there in English'
 
 Write-Output ('  open inventory in English: ' + (Invoke-ById $shell 'Inventory'))
 Start-Sleep -Seconds 4
-Save-WindowShot $shell 'phase2-16-inventory-balances-english.png' $false
+Save-Shot 'MainWindow' 'phase2-16-inventory-balances-english.png'
 Check ((Get-TextsContaining $shell 'On hand').Count -gt 0) 'the stock on hand table reads in English'
 Check (Find-Text $shell 'RICE-001') 'the received product is still there in English'
 
@@ -731,7 +722,7 @@ $tabs = $shell.FindAll($TS::Descendants, $tabCond)
 if ($tabs.Count -ge 2) {
     try { $tabs[1].GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select() } catch { }
     Start-Sleep -Seconds 3
-    Save-WindowShot $shell 'phase2-17-inventory-movements-english.png' $false
+    Save-Shot 'MainWindow' 'phase2-17-inventory-movements-english.png'
     Check ((Get-TextsContaining $shell 'Balance').Count -gt 0) 'the ledger reads in English'
 }
 

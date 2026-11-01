@@ -46,6 +46,10 @@ packages/
 *.sftheme.json
 exports/
 
+## Pictures the smoke scripts used to take from outside the process. The application now draws
+## its own windows, so there is no mirrored twin to keep.
+*.raw.png
+
 ## OS
 Thumbs.db
 ehthumbs.db

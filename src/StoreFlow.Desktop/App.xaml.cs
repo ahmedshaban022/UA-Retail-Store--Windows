@@ -13,6 +13,7 @@ namespace StoreFlow.Desktop;
 public partial class App : System.Windows.Application
 {
     private AppHost? _host;
+    private CaptureChannel? _captureChannel;
 
     /// <summary>The running host, so views can reach a service they need.</summary>
     public static AppHost? Host { get; private set; }
@@ -30,6 +31,10 @@ public partial class App : System.Windows.Application
         try
         {
             StartupDiagnostics.Write("Starting StoreFlow.");
+
+            // The capture channel is opened before any window is shown, so that a harness can
+            // photograph the wizard and the sign-in window as well as the shell.
+            StartCaptureChannel(e.Args);
 
             _host = await AppHost.CreateAsync();
             Host = _host;
@@ -153,5 +158,26 @@ public partial class App : System.Windows.Application
         };
 
         window.ContentRendered += (_, _) => timer.Start();
+    }
+
+    /// <summary>
+    /// Opens the capture channel when the application was started with
+    /// <c>--capture-pipe &lt;name&gt;</c>, so that a harness can ask the running application to
+    /// photograph its own windows.
+    /// </summary>
+    /// <param name="args">The command line of the application.</param>
+    private void StartCaptureChannel(string[] args)
+    {
+        string? pipeName = CaptureChannel.ReadPipeName(args);
+
+        if (pipeName is null)
+        {
+            return;
+        }
+
+        _captureChannel = new CaptureChannel(pipeName, Dispatcher);
+        _captureChannel.Start();
+
+        StartupDiagnostics.Write("The capture channel is listening on " + pipeName + ".");
     }
 }
