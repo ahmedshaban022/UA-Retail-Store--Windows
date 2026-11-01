@@ -1,6 +1,6 @@
 # Phase 1 — Catalogue
 
-**Status:** complete · **Commit:** `TBD` · **Date:** 2026-10-27
+**Status:** complete · **Commits:** `82336a7` (the phase itself) · `424a6c3` (the twelve defects) · **Date:** 2026-10-27
 
 The second of eight phases. This phase ends with a shop's catalogue in place: products, categories,
 units and suppliers, each with its own screen, a product editor that refuses bad data in plain
@@ -96,6 +96,27 @@ The reference editor is **one dialog for three record types**, driven by a descr
 fields. Adding a fourth kind of reference record is a matter of describing its fields, not of
 writing a new window.
 
+### The tables
+
+The catalogue is read in tables, and the tables follow the design system's rule: **a grid keeps a
+minimum column width and scrolls sideways below it**. Every column says what it holds, the name
+and the Arabic name are the two that grow, and the money columns are set in tabular figures at the
+leading edge so the digits stack up and can be compared down the column.
+
+**A heading stands over the values it names.** A column of prose and a column of figures do not
+stand in the same place: prose follows the direction of the page, and figures stand against the
+right-hand edge of their cell, so the digits can be compared down the column. The heading of each
+column stands where that column's values stand.
+
+A code — a product's code, a barcode, a telephone number, the moment a change happened — is
+written left to right wherever it is read, so the cell that holds it is given that direction. The
+hyphen in a code, and the bracket at the end of a summary, are part of the text and are not moved
+to the other end of the line.
+
+A heading is a label rather than a piece of text, and the label is bound to the grid it belongs
+to. The reason is written down under the bugs below, because the shape that looks obvious is the
+one that cannot work.
+
 ### The spreadsheet contract
 
 Thirteen fields, and the headings that mean them:
@@ -111,13 +132,14 @@ the Arabic names for the same fields. A file this application wrote can be read 
 
 A product with no category exports with an **empty** category cell rather than a placeholder, so
 the round trip loses nothing. The selling price is required on import; the cost price and the
-reorder level default to zero. The import runs in one of two modes: **create only**, which refuses
+reorder level default to zero. No price and no quantity may be negative — the importer holds to
+the same rule as the editor. The import runs in one of two modes: **create only**, which refuses
 a row whose code already exists, or **update by code**, which changes what is there.
 
 ### The strings
 
-One hundred and twenty new keys, added to `Strings.resx` and `Strings.ar.resx` together, taking
-both files to **one hundred and eighty keys each with matching names**. Every word the catalogue
+One hundred and thirty new keys, added to `Strings.resx` and `Strings.ar.resx` together, taking
+both files to **one hundred and ninety keys each with matching names**. Every word the catalogue
 shows — in Arabic or in English — comes from one of those two files; no screen carries a literal
 sentence. The Arabic file is UTF-8 without a byte-order mark and keeps its line endings, and the
 Arabic is checked after every change rather than assumed.
@@ -130,16 +152,16 @@ Arabic is checked after every change rather than assumed.
 
 ```
 dotnet build   →  succeeded, 0 warnings, 0 errors
-dotnet test    →  Passed!  Failed: 0, Passed: 25 (domain) / 67 (application) / 37 (desktop) / 36 (infrastructure)
+dotnet test    →  Passed!  Failed: 0, Passed: 25 (domain) / 71 (application) / 56 (desktop) / 36 (infrastructure)
 ```
 
-**One hundred and sixty-five tests.** The build treats warnings as errors and runs the analyzers,
+**One hundred and eighty-eight tests.** The build treats warnings as errors and runs the analyzers,
 so a clean build is a real result and not a quiet one.
 
-Fifty-five of those tests are new in this phase: the CSV reader against quoted fields, Arabic
+Seventy-two of those tests are new in this phase: the CSV reader against quoted fields, Arabic
 spreadsheets and Windows-1256 files; the validation rules; the spreadsheet mapper; the catalogue
-handlers against a real SQLite database with its migrations and its triggers; and the two
-behaviours described below that were found by running the application.
+handlers against a real SQLite database with its migrations and its triggers; and the behaviours
+described below that were found by running the application.
 
 ### The real application, driven end to end
 
@@ -153,9 +175,13 @@ Every control is found by its **automation identifier**, not by its label, so th
 depend on the wording of the interface in either language. The application is pointed at a
 throwaway folder through `STOREFLOW_HOME`, so the shop's own data is never touched.
 
-The pictures in `artifacts/phase1/` are taken by asking each window to draw itself, and then
-flipped back, because a right-to-left window comes out mirrored when it is captured from outside
-its own process.
+The pictures in [`phase1-screens/`](phase1-screens/) are taken by asking each window to draw itself.
+A right-to-left window comes out mirrored when it is captured from outside its own process, so the
+Arabic pictures are flipped back; the English ones are left as they are, because flipping a
+left-to-right window would be a lie about the screen.
+
+The last run of the script made **forty checks and reported zero failures**. It wrote
+`failures: 0` at the end and exited cleanly.
 
 ### What the run proved
 
@@ -172,8 +198,19 @@ its own process.
 | The search finds a product by its code and leaves out what does not match | pass |
 | The export writes a spreadsheet that holds the product | pass |
 | The import reads a spreadsheet, shows the row it would create **and the row it would refuse**, and imports the first | pass |
-| The refused row was not written | pass |
+| The refused row — the one with the negative selling price — was not written | pass |
+| The import preview says what is wrong with a row, in the language of the interface | pass |
+| The audit trail's type filter shows the name of the choice, not the record | pass |
+| The money reads in the language of the interface: `EGP` in English | pass |
 | The same screens in English | pass |
+
+**The import caught a broken spreadsheet before anything was written.** The verification script
+builds its test spreadsheet in PowerShell, and PowerShell binds the comma tighter than the plus
+sign inside a comma-separated array — so `'a' + $name + 'c'` arrived as three pieces and the
+Arabic name landed on a line of its own. The importer read the file exactly as it was written,
+showed the owner that six of the seven rows had problems, and imported the one row that was
+whole. The script was wrong and the application was right, which is the only way round that leaves
+a spreadsheet trustworthy.
 
 ---
 
@@ -228,6 +265,126 @@ Excel writes one at the start of a UTF-8 file, and it became part of the first h
 first column was never recognised. It is now stripped on the way in, in both the file reading and
 the string reading.
 
+### 6. The tables had no headings, and the product's name was crushed to nothing
+
+Every catalogue table rendered with an **empty band** where the column headings should have been,
+and the product's name was not in the row at all.
+
+Both came from the same place. A heading was written as a binding on the column itself:
+
+```xml
+<DataGridTextColumn Header="{Binding SkuHeader}" … />
+```
+
+**A data grid column is not part of the visual tree.** It inherits no data context of its own, so
+the binding had nothing to read and the heading came out empty. The heading is now a label inside
+the column, and the label says which grid it reads from, because a heading does not inherit the
+grid's data context either:
+
+```xml
+<DataGridTextColumn.Header>
+  <TextBlock Text="{Binding DataContext.SkuHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" … />
+</DataGridTextColumn.Header>
+```
+
+The crushed name was the second half of the same screen: the columns had fixed widths that added
+up to more than the space the window had, so the two columns sized with a star — the name and the
+Arabic name — were given what was left, which was **fifteen pixels**. The names now carry a
+minimum width, and the design system's own rule applies: below the width the columns need, the
+table scrolls sideways rather than crushing a column until it cannot be read.
+
+Three tests pin it: one that a heading that is a label reads its label from the grid, one that a
+binding written straight on the column reads nothing, and one that reads the views themselves and
+fails if a heading ever goes back to the shape that cannot work.
+
+### 7. The money was written the wrong way round in Arabic
+
+The price in the table read `450.00 ج.م`, while the same figure on the dashboard read `ج.م 0.00`.
+Only one of them can be right, and in Arabic the answer is the second: the **amount is read first
+and the currency after it**.
+
+The style for a money column forced the text to read left to right, which put the currency on the
+wrong side of the amount in the Arabic interface. It now keeps the direction of the page, so the
+two screens agree.
+
+### 8. An identifier in the middle of an Arabic sentence
+
+The message that refuses a duplicate barcode reads *"الباركود … مستخدم بالفعل لمنتج آخر."*, with
+the barcode standing in the middle of it. An identifier is wrapped in a **left-to-right isolate**
+(`U+2066` … `U+2069`), the invisible marks that say where the identifier begins and ends, so it
+cannot be read as part of the words around it. Only identifiers are isolated; a name is the
+owner's own writing and may be Arabic, and forcing it left to right would be worse than the
+problem it solves.
+
+**What the isolate is worth, measured.** The marks are in the string and they are invisible to the
+reader, but WPF's text engine **does not read them**: it treats them as marks to be ignored, so the
+text they surround is laid out as if they were not there. A rendering test
+(`tests/StoreFlow.Desktop.Tests/BidiRenderingTests.cs`) draws the same text four ways and compares
+the ink:
+
+| | draws the same as the English cell? |
+|---|---|
+| the text alone in an Arabic cell | no |
+| the text with the isolate marks in an Arabic cell | no — the marks change nothing |
+| the text with a left-to-right embedding in an Arabic cell | no |
+| **the cell given its own direction** | **yes** |
+
+So the marks stay in the sentences, where they cost nothing and say what is meant, but the tables
+do not rely on them: **what keeps a code in order in a table is the direction of the cell itself.**
+Bug 12 is what that cost before it was measured.
+
+### 9. The import took a product with a negative selling price
+
+The editor refuses a price below zero, and the rule lives in `CatalogValidation`. The **import did
+not ask it**: it checked that the price was a number and stopped there. A spreadsheet with a
+selling price of −5.00 was previewed as ready, imported, and written into the catalogue.
+
+The importer now applies the same rule as the editor — the same code, the same message — for the
+selling price, the cost price and the reorder level. An import is another way into the catalogue,
+so it is held to the same standard.
+
+The preview also had nothing to say. Every problem the importer found carried a code, and **not one
+of those codes had a message**: each of them fell through to the catch-all sentence that says
+something went wrong, so a row with a missing price, an unknown category or a code that already
+existed all said the same useless thing. The codes now have messages of their own in both
+languages, the problem carries the value that caused it, and the interface names the field in the
+language the shopkeeper is reading. A code or a barcode in a sentence is isolated, as it is
+everywhere else.
+
+### 10. The English interface showed the Arabic currency
+
+Switching the interface to English left the money reading `180.00 ج.م`. The symbol was chosen by
+the **theme's** language, not by the language the interface was in, so a shopkeeper reading English
+saw amounts in a currency written in the other language. The symbol now follows the language of the
+interface.
+
+### 11. The audit trail's filter showed the record instead of the name
+
+The type filter in the audit trail read `AuditEntityTypeOption { Key = , DisplayName = All }` — a
+line of code where a word should be. This is the same trap as the tax picker in bug 4, in a second
+place: a closed select shows the selected item's own text, so an option that goes into a select
+has to say what it is called. The option now does, and a test in
+`tests/StoreFlow.Desktop.Tests/SelectShowsTheNameTests.cs` builds a select with the
+application's own theme, opens it, and fails if the record shows instead of the name.
+
+### 12. The codes in the tables stood away from their heading
+
+A code in a table — the product's code, the barcode, the moment a change happened — was written
+left to right by turning the whole cell left to right. The cell then sat at the **left** of its
+column while the heading that named it sat at the right, so the two were not over each other.
+
+The obvious repair — wrap the code in a directional isolate and let the cell keep the direction of
+the page — **made things worse**, and the run showed it: the audit trail's moment in time came out
+as `07:53 2026-11-01`, with the date and the time in two pieces, and the summary came out as
+`(Rice 1kg (RICE-001`, with its closing bracket moved to the other end of the line. The reason is
+in bug 8: the text engine does not read the marks.
+
+A cell that is written left to right as a whole is now **given that direction**, and it stands
+against the right-hand edge of its cell, where the heading that names it stands. The money columns
+had the same problem the other way round, and only in English: the figures stood against the
+right-hand edge of their cell while their heading stood at the left. A heading now stands over the
+values it names, wherever they stand.
+
 ---
 
 ## What is deliberately not in this phase
@@ -245,6 +402,15 @@ The search covers the name, the Arabic name, the code, the barcode and the extra
 composed query with the wildcards escaped. A catalogue of a few tens of thousands of products does
 not need FTS5, and a unique index on the code and the barcode is already there. Should the
 catalogue grow past what a composed `LIKE` can serve, the search is the thing to change.
+
+### The product list is not paged on the server
+
+The plan's performance table asks for a product list that answers in two seconds at ten thousand
+products, served **50 rows to a page** with the filtering done in the database. The catalogue
+reads its list in one query and filters it in the application, which is comfortable for the few
+hundreds of products a shop actually has and is the thing to change when the catalogue grows. The
+performance harness that proves the two seconds belongs to Phase 7, and the paging belongs with
+it: changing the shape of the read now would mean changing it again in a month.
 
 ### The exit gate is partly open, and here is exactly where
 
@@ -268,6 +434,12 @@ the catalogue rules are proved and the till rows are not yet reachable.
 
 ## Known papercuts
 
+- **The name in the top bar shows the login name where the role belongs.** The shopkeeper's name is
+  followed by the name they sign in with, not by the job they do. The session does not carry the
+  role, so the fix is to carry the role's code and let the interface name it in the language it is
+  written in. It was left alone here because it belongs to the shell, which Phase 0 built, and
+  because it is the sort of small thing that is easier to change once there are three roles on
+  screen rather than one.
 - **`StoreFlow.slnx` is still untracked.** The solution is built from `StoreFlow.sln`; the `.slnx`
   file is left where it is rather than deleted, because deleting files is not something this
   workspace will do. It is a leftover from the scaffold and should be removed by hand.
@@ -279,6 +451,18 @@ the catalogue rules are proved and the till rows are not yet reachable.
 - **The theme's live dictionary is written to the log at start-up.** This was added while chasing
   the button bug and is worth keeping: a missing colour role shows up as a control quietly falling
   back to another colour, and on a shop PC there is no debugger.
+- **A file was left in the shopkeeper's own documents.** An early run of the verification could not
+  make the Windows file dialog take the folder it was told to, so the export landed in the
+  documents folder instead of the throwaway folder the run uses. The driver now types the path into
+  the dialog and the file goes where it is told, but that one file is still there and should be
+  deleted by hand.
+- **The catalogue tables turn column virtualisation off.** The design system asks for it always, and
+  row virtualisation is on: a catalogue of ten thousand products scrolls without building ten
+  thousand rows. **Column** virtualisation is off in the four catalogue tables, because WPF ignores
+  the minimum width of a column that sizes itself with a star, and a column squeezed to fifteen
+  pixels is the bug this phase already had once. The rule and the exception are both real; the
+  exception belongs to the tables that size themselves, and it is revisited with the paging in
+  Phase 7, which is where a ten-thousand-row list has to be proved.
 
 ---
 

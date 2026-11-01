@@ -8,10 +8,12 @@ append-only stock ledger that reconciles to the piastre, and is **rebrandable by
 name, logo, colours, receipt content, currency, tax and locale are data, so the same binary can be resold to
 another shop without a recompile.
 
-**Status: Phase 0 (Foundation) complete.** The application builds, the database migrates, the theme switches
-live, the AR/EN switch works, login is enforced, and the automated test suite is green. Feature work
-(catalog, inventory, POS, sales, reports, backup) follows the phase plan below and stops at each phase
-boundary for review.
+**Status: Phase 1 (Catalogue) complete.** The application builds, the database migrates, the theme switches
+live, the AR/EN switch works, login is enforced, and the automated test suite is green. The
+catalogue — products, categories, units and suppliers, with the product editor, the search, the
+spreadsheet import and export, product pictures and the audit trail — is built and proved by
+driving the real application. Feature work (inventory, POS, sales, reports, backup) follows the
+phase plan below and stops at each phase boundary for review.
 
 ---
 
@@ -67,14 +69,14 @@ On a machine with a normal .NET 10 installation, plain `dotnet` works and nothin
 & 'D:\dotnet\dotnet.exe' run --project 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\StoreFlow.Desktop.csproj'
 ```
 
-Current state of the suite — **79 tests, all passing**:
+Current state of the suite — **188 tests, all passing**:
 
 | Project | Tests | Covers |
 |---|---|---|
 | `StoreFlow.Domain.Tests` | 25 | money maths and rounding, moving weighted average, tax inclusive/exclusive, discounts, unit quantities |
-| `StoreFlow.Application.Tests` | 30 | password hashing (Argon2id + PBKDF2), permission matrix, scan buffer, CSV writing, WCAG theme contrast validation |
-| `StoreFlow.Infrastructure.Tests` | 13 | real SQLite file: migrations, pragmas, immutability triggers, negative-stock trigger, integrity check, theme store round-trip |
-| `StoreFlow.Desktop.Tests` | 11 | AR/EN resource parity, theme engine resource generation, value converters |
+| `StoreFlow.Application.Tests` | 71 | password hashing (Argon2id + PBKDF2), permission matrix, scan buffer, CSV reading and writing, WCAG theme contrast validation, the catalogue's validation rules and its spreadsheet mapper |
+| `StoreFlow.Infrastructure.Tests` | 36 | real SQLite file: migrations, pragmas, immutability triggers, negative-stock trigger, integrity check, theme store round-trip, the catalogue handlers and their barcode triggers |
+| `StoreFlow.Desktop.Tests` | 56 | AR/EN resource parity, theme engine resource generation, value converters, the shell's contrast and the tables' headings, the localised messages of the import preview, how a code is laid out in an Arabic cell |
 
 ### Useful commands
 
@@ -293,7 +295,8 @@ boundary** for an explicit go-ahead.
 
 | Phase | Scope | Exit gate |
 |---|---|---|
-| **0 — Foundation** ✅ | SDK, solution, analyzers, domain, EF Core + first migration, SQLite pragmas and triggers, theme engine and presets, localisation shell, app shell, first-run wizard, login, roles, logging | App launches, DB migrates, theme switches live, AR/EN switch works, login enforced, all tests green || 1 — Catalog | Products, categories, units, suppliers, barcode uniqueness, product editor, search, CSV import/export, product images, audit trail | UAT-01/02/18 |
+| **0 — Foundation** ✅ | SDK, solution, analyzers, domain, EF Core + first migration, SQLite pragmas and triggers, theme engine and presets, localisation shell, app shell, first-run wizard, login, roles, logging | App launches, DB migrates, theme switches live, AR/EN switch works, login enforced, all tests green |
+| **1 — Catalog** ✅ | Products, categories, units, suppliers, barcode uniqueness, product editor, search, CSV import/export, product images, audit trail | UAT-01/02/18 |
 | 2 — Inventory | Purchase draft → post → receive, opening stock, stock ledger and balances, low-stock, stock count with approval, adjustments, valuation report | UAT-03/14/19; ledger reconciles to zero |
 | 3 — POS | Scan buffer, cart, discounts, tax, payments, idempotent checkout, receipts and preview, hold cart, shortcuts | UAT-04/05/06/07/08; scan < 50 ms measured |
 | 4 — Sales & Returns | Invoice history and detail, partial and full returns, resellable vs damaged, refund recording, reversal policy | UAT-10/11/12/20 |
@@ -317,6 +320,8 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [`docs/decisions/ADR-0004-typography.md`](docs/decisions/ADR-0004-typography.md) | One face per locale, the embedded Arabic face, and why a composite family is not possible on WPF |
 | [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN.md) | The manual acceptance script, one row per PRD case, with sign-off columns |
 | [`docs/phases/PHASE-0-FOUNDATION.md`](docs/phases/PHASE-0-FOUNDATION.md) | The Phase 0 report: what was built, how it was verified, and what was found by running it |
+| [`docs/phases/PHASE-1-CATALOG.md`](docs/phases/PHASE-1-CATALOG.md) | The Phase 1 report: the catalogue, its screens and its spreadsheet contract, what was verified, and the twelve bugs that running it found |
+| [`docs/phases/phase1-screens/`](docs/phases/phase1-screens/) | The twenty-two pictures of the running application that the Phase 1 report leans on |
 
 ---
 
