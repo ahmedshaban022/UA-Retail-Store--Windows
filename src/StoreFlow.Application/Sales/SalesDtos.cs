@@ -203,7 +203,15 @@ public sealed record RefundReceipt(
 /// <summary>A cashier the register can be filtered by.</summary>
 /// <param name="Id">The user's id.</param>
 /// <param name="DisplayName">The name the register shows.</param>
-public sealed record SalesCashierOption(int Id, string DisplayName);
+public sealed record SalesCashierOption(int Id, string DisplayName)
+{
+    /// <summary>
+    /// Writes the name of the cashier. The select shows the text of the record, so it must not
+    /// show the record's generated <c>ToString</c>, which reads as
+    /// <c>SalesCashierOption { Id = 1, DisplayName = Owner }</c> instead of the name of the cashier.
+    /// </summary>
+    public override string ToString() => DisplayName;
+}
 
 /// <summary>Everything the detail screen shows about one return.</summary>
 /// <param name="Id">The return's id.</param>

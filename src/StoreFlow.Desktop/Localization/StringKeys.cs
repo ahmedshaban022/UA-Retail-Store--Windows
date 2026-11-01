@@ -518,6 +518,7 @@ public static class StringKeys
     public const string ErrorSalesReasonRequired = "Error.Sales.ReasonRequired";
     public const string ErrorSalesNothingToReturn = "Error.Sales.NothingToReturn";
     public const string ErrorSalesReversalNotAllowed = "Error.Sales.ReversalNotAllowed";
+    public const string ErrorSalesNothingToReverse = "Error.Sales.NothingToReverse";
     public const string ErrorSalesRefundTooLarge = "Error.Sales.RefundTooLarge";
     public const string ErrorSalesStockNotRestored = "Error.Sales.StockNotRestored";
 }

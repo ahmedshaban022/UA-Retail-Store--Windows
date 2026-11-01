@@ -52,6 +52,7 @@ public static class SalesErrorMessages
         SalesErrorCodes.ReasonRequired => StringKeys.ErrorSalesReasonRequired,
         SalesErrorCodes.NothingToReturn => StringKeys.ErrorSalesNothingToReturn,
         SalesErrorCodes.ReversalNotAllowed => StringKeys.ErrorSalesReversalNotAllowed,
+        SalesErrorCodes.NothingToReverse => StringKeys.ErrorSalesNothingToReverse,
         SalesErrorCodes.RefundTooLarge => StringKeys.ErrorSalesRefundTooLarge,
         SalesErrorCodes.StockNotRestored => StringKeys.ErrorSalesStockNotRestored,
         _ => StringKeys.ErrorUnexpected,

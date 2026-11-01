@@ -45,6 +45,12 @@ public static class SalesErrorCodes
     /// <summary>The reversal is not allowed because the invoice cannot be reversed.</summary>
     public const string ReversalNotAllowed = "sales.reversal_not_allowed";
 
+    /// <summary>
+    /// Everything on the invoice has already come back as a return, so there is nothing left for a
+    /// reversal to take back.
+    /// </summary>
+    public const string NothingToReverse = "sales.nothing_to_reverse";
+
     /// <summary>The refund cannot be larger than what the customer paid.</summary>
     public const string RefundTooLarge = "sales.refund_too_large";
 

@@ -344,6 +344,72 @@ public sealed class SalesTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_reversal_takes_back_only_what_a_return_has_not_already_taken_back()
+    {
+        int productId = await CreateProductAsync("REV-004", 100m);
+        await PostPurchaseAsync(productId, 10m, 50m);
+        int invoiceId = await PostSaleAsync(productId, 3m, 100m);
+        int lineId = await LineId(invoiceId);
+
+        // One of the three units comes back as a return.
+        await PostReturnAsync(invoiceId, [new ReturnLineInput(lineId, 1m, true)]);
+
+        Result<RefundReceipt> posted = await ReverseAsync(invoiceId);
+
+        posted.IsFailure.ShouldBeFalse(posted.Error.Message);
+
+        // Only the other two units are taken back, and only their money goes back.
+        posted.Value.RefundTotal.ShouldBe(new Money(200m));
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        SalesInvoice reversal = await context.SalesInvoices
+            .Include(candidate => candidate.Lines)
+            .SingleAsync(candidate => candidate.ReversesDocumentId == invoiceId);
+
+        reversal.Lines.Single().QuantityScaled.ShouldBe(2);
+        reversal.Total.ShouldBe(new Money(200m));
+        reversal.Subtotal.ShouldBe(new Money(200m));
+        reversal.Discount.ShouldBe(new Money(0m));
+        reversal.Tax.ShouldBe(new Money(0m));
+
+        // The gross less the discount plus the tax is the total, exactly.
+        (reversal.Subtotal - reversal.Discount + reversal.Tax).ShouldBe(reversal.Total);
+
+        Payment refund = await context.Payments.SingleAsync(payment => payment.IsRefund && payment.SalesInvoiceId == reversal.Id);
+        refund.Amount.ShouldBe(new Money(200m));
+
+        // The shelf has all three units back, and not one more.
+        StockBalance balance = await context.StockBalances.SingleAsync();
+        balance.QuantityOnHandScaled.ShouldBe(10);
+
+        StockMovement movement = await context.StockMovements
+            .SingleAsync(candidate => candidate.MovementType == StockMovementType.Reversal);
+
+        movement.QuantityDeltaScaled.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task An_invoice_that_has_been_returned_in_full_cannot_be_reversed()
+    {
+        int productId = await CreateProductAsync("REV-005", 100m);
+        await PostPurchaseAsync(productId, 10m, 50m);
+        int invoiceId = await PostSaleAsync(productId, 3m, 100m);
+        int lineId = await LineId(invoiceId);
+
+        await PostReturnAsync(invoiceId, [new ReturnLineInput(lineId, 3m, true)]);
+
+        Result<RefundReceipt> posted = await ReverseAsync(invoiceId);
+
+        posted.IsFailure.ShouldBeTrue();
+        posted.Error.Code.ShouldBe(SalesErrorCodes.NothingToReverse);
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        (await context.SalesInvoices.CountAsync(candidate => candidate.ReversesDocumentId != null)).ShouldBe(0);
+    }
+
+    [Fact]
     public async Task The_register_shows_the_sale_the_return_and_the_reversal()
     {
         int productId = await CreateProductAsync("REG-001", 100m);

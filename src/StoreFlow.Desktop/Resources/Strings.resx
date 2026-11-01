@@ -1559,6 +1559,10 @@
     <value>This invoice cannot be reversed.</value>
   </data>
 
+  <data name="Error.Sales.NothingToReverse" xml:space="preserve">
+    <value>Everything on this invoice has already been returned, so there is nothing left to reverse.</value>
+  </data>
+
   <data name="Error.Sales.RefundTooLarge" xml:space="preserve">
     <value>The refund cannot be larger than what was paid.</value>
   </data>

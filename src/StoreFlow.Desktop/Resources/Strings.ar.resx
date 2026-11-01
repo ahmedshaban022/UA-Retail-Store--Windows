@@ -1559,6 +1559,10 @@
     <value>لا يمكن عكس هذه الفاتورة.</value>
   </data>
 
+  <data name="Error.Sales.NothingToReverse" xml:space="preserve">
+    <value>كل ما في هذه الفاتورة قد عاد بالفعل، فلا يبقى ما يمكن عكسه.</value>
+  </data>
+
   <data name="Error.Sales.RefundTooLarge" xml:space="preserve">
     <value>لا يمكن أن يكون المبلغ المسترد أكبر من المدفوع.</value>
   </data>
