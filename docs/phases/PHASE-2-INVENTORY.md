@@ -228,6 +228,27 @@ and the ledger, takes a stock count of eighteen, approves it, posts it, posts a 
 and then reads the same screens in English. The pictures it takes are in
 [`docs/phases/phase2-screens/`](phase2-screens/).
 
+**The run that backs this report: 23 checks, 0 failures, 17 pictures.** The pictures are drawn by
+the application itself — the script asks the running application, over a capture pipe, to draw one
+of its own windows — so a right-to-left screen comes out the way the owner sees it rather than
+mirrored.
+
+### The pictures were wrong once, and the fix is in the application
+
+The first run of this phase reported 0 failures and produced 17 pictures, and seven of them were
+199 × 34 pixels of nothing. The script had been photographing the windows from outside the
+process with a window message, and a right-to-left window comes back mirrored from there; the fix
+that had been applied was to flip the picture back afterwards. Seven of the seventeen came out as
+a smudge, and a smudge that passes as a screenshot is worse than a missing one, because it says
+"this was checked" without saying what was seen.
+
+The application already knew how to draw itself — `ScreenCapture` exists and `--capture` has been
+using it since Phase 0 — but the script never asked it to. The application now opens a capture pipe
+when it is started with `--capture-pipe <name>`, and the script asks it for one window at a time.
+The pictures are therefore the interface as it is, with no mirror and no flip, and the same code
+path serves the shopkeeper who reports a problem and the harness that files a bug.
+
+
 ### What running it found
 
 The script is the part of the verification that earns its keep. Every one of the eight defects below
@@ -321,3 +342,64 @@ comma.
 - **A reconciliation job.** The ledger and the balance are reconciled by a test, not by a
   scheduled job that reports a drift to the operator. That is worth having and belongs with the
   reports.
+
+---
+
+## Known papercuts
+
+Nine things are rough, or missing, and are written down here so that they are found here rather
+than by a shopkeeper.
+
+1. **The pictures show the interface and not the window frame.** The application draws its own
+   windows, so the evidence is what the owner sees and not the frame around it. This is deliberate:
+   a picture taken from outside the process comes back mirrored for a right-to-left window, and a
+   mirrored picture of a till is worse than no picture at all. The pictures used to be taken that
+   way, and seven of the seventeen were a smudge rather than a screen; they are now drawn by the
+   application itself, and the script asks it to do so over a capture pipe.
+
+2. **The English screens are reached by starting the application again.** The language picker is a
+   combo box, and its list is a popup window of its own, which the automation cannot reach when the
+   desktop is locked. The script therefore writes the language into the theme and starts the
+   application again. The English screens are the real ones, but they are not the same session as
+   the Arabic ones.
+
+3. **The register opens on today.** The purchase register and the ledger both open on the business
+   date, so a receipt from last week is not on the first page until the date range is widened. The
+   filter is there; it is not the default a shopkeeper wants.
+
+4. **A stock count is one count of one product, in the open.** There is no blind count — the book
+   quantity is on the screen while the counter works — and there is no second sheet to compare
+   against. The segregation of duties here is an approval, not a second pair of eyes at the shelf.
+
+5. **An administrator may approve their own count and their own adjustment.** That is written down
+   as a decision above. It is the right answer for a one-account shop and the wrong answer for a
+   shop with staff.
+
+6. **The valuation is the only report.** Everything else the PRD asks for is Phase 5.
+
+7. **Nothing reconciles the ledger against the balance on a schedule.** A test does it; a job does
+   not. A shop that wants to be told that the two disagree has to ask for it.
+
+8. **A purchase is one supplier, one currency and one document.** There is no supplier statement to
+   reconcile against, and no foreign currency.
+
+9. **A wrong count and a correction are two documents.** A count that turns out to be wrong is
+   fixed by an adjustment, and the two carry different reasons. It is one job for the shopkeeper and
+   two documents on the record.
+
+---
+
+## The phase gate
+
+| Row | What it needs | Where it stands |
+|---|---|---|
+| UAT-03 | A posted receipt puts the goods on the shelf and writes exactly one movement | **Proved**, by the application and by the database |
+| UAT-14 | A count changes nothing until it is approved and posted | **Proved**, by the application and by the database |
+| UAT-19 | The shelf is worth the moving average, and the sale carries its cost | **Proved for the shelf**; the sale and its cost snapshot belong to Phase 3 and Phase 4 |
+| UAT-01, UAT-02, UAT-18 | The catalogue and the till | **Proved for the catalogue**; the till half belongs to Phase 3 |
+
+**The phase is complete, and the gate is partly open.** Everything the inventory is responsible for
+is built, proved by tests, and proved again by driving the real application. The rows that need a
+till cannot be run until Phase 3 exists, and saying otherwise would be a lie.
+
+The next phase is **Phase 3 — the point of sale**: the scanner, the cart, the money and the receipt.

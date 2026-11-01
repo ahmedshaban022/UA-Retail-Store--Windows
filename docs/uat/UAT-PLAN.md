@@ -442,6 +442,16 @@ The catalogue and the inventory are built, so these cases can be executed end to
 | UAT-03, UAT-14 | The purchase and inventory screens. Both are fully implementable now. |
 | UAT-19 | The purchase and the valuation are implementable now; **step 4 (the sale and its COGS snapshot) needs Phase 4**, so the case cannot be signed off before then. |
 
+Each phase says in its own report which of these rows it proved and which it could not reach, and
+this plan and that report must not disagree. The gate table in
+[`docs/phases/PHASE-2-INVENTORY.md`](../phases/PHASE-2-INVENTORY.md) is the Phase 2 answer: it
+proves UAT-03 and UAT-14, proves the shelf half of UAT-19, and says plainly that the till half of
+UAT-01 and UAT-18 waits for Phase 3.
+
+The `Status` column above stays `Not run` until a person executes the manual step, because rule 4
+of §2.3 requires both the automated counterpart to be green **and** the manual step to have been
+executed. A phase report is evidence that the automated half is green; it is not a sign-off.
+
 The point of sale, sales, returns, the reports, the backup and the users screens are not built yet, so
 the cases that depend on them cannot be executed. The rail entries for them are disabled rather than
 hidden, so the plan and the application agree on what exists.

@@ -92,6 +92,35 @@ Current state of the suite — **253 tests, all passing**:
 & '.\tools\generate-design-sidecar.ps1'
 ```
 
+### Driving the real application
+
+Two scripts drive the running desktop application through UI Automation and photograph it. They are
+the evidence behind the phase reports, and they are run against a throwaway data folder, so the
+shop's own data is never touched.
+
+```powershell
+# The catalogue screens
+& '.\tools\smoke-catalog.ps1'
+
+# The purchase and inventory screens
+& '.\tools\smoke-inventory.ps1'
+```
+
+Each script prints its checks, writes `failures: 0` or the first failure, and saves the pictures it
+took into `docs/phases/phaseN-screens/`.
+
+**The application takes its own pictures.** A script starts the application with
+`--capture-pipe <name>`, and then asks it — over that pipe — to draw one of its own windows. The
+application writes the PNG itself (`ScreenCapture`, a `RenderTargetBitmap` of its own visual tree).
+This is not a convenience: a picture taken from outside the process comes back mirrored for a
+right-to-left window, and a mirrored picture of an Arabic screen is a lie about the screen. The
+same switch is how a shopkeeper is asked for a picture of a problem.
+
+```powershell
+# Photograph the shell once, with the application started by hand
+& '.\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe' --capture 'D:\temp\shell.png'
+```
+
 ---
 
 ## Repository layout
