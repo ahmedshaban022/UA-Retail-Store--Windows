@@ -1,0 +1,620 @@
+<UserControl x:Class="StoreFlow.Desktop.Views.InventoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             TextOptions.TextFormattingMode="Display">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- The screen's own toolbar -->
+    <Border Grid.Row="0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,0,0,1"
+            Padding="0,10,0,10">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Content="{Binding AdjustmentText}"
+                  Command="{Binding AdjustStockCommand}"
+                  Style="{StaticResource Button.Ghost}"
+                  Margin="0,0,8,0"
+                  AutomationProperties.AutomationId="Inventory.Adjustment" />
+
+          <Button Content="{Binding OpeningStockText}"
+                  Command="{Binding RecordOpeningStockCommand}"
+                  Style="{StaticResource Button.Ghost}"
+                  Margin="0,0,8,0"
+                  AutomationProperties.AutomationId="Inventory.OpeningStock" />
+
+          <Button Content="{Binding NewCountText}"
+                  Command="{Binding NewCountCommand}"
+                  Style="{StaticResource Button.Primary}"
+                  AutomationProperties.AutomationId="Inventory.NewCount" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock Text="{Binding AsOfDateLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0" />
+          <TextBox Text="{Binding AsOfDateText, UpdateSourceTrigger=PropertyChanged}"
+                   Width="120"
+                   AutomationProperties.AutomationId="Inventory.AsOfDate" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- The valuation panel and the three ledgers -->
+    <Grid Grid.Row="1" Margin="0,12,0,0">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+
+      <!-- What the stock is worth -->
+      <Border Grid.Row="0"
+              Style="{StaticResource Surface.Card}"
+              Margin="0,0,0,12"
+              Padding="16,12">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <TextBlock Grid.Column="0"
+                     Text="{Binding ValuationText}"
+                     Style="{StaticResource Type.SectionLabel}"
+                     VerticalAlignment="Center" />
+
+          <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="24,0,0,0">
+            <TextBlock Text="{Binding ProductCountLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
+            <TextBlock Text="{Binding ValuationProductCount}" Style="{StaticResource Type.Numeric}" FontWeight="SemiBold" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="24,0,0,0">
+            <TextBlock Text="{Binding TotalQuantityLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
+            <TextBlock Text="{Binding ValuationTotalQuantity}" Style="{StaticResource Type.Numeric}" FontWeight="SemiBold" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="24,0,0,0">
+            <TextBlock Text="{Binding TotalValueLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
+            <TextBlock Text="{Binding ValuationTotalValue, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" FontWeight="SemiBold" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="4" VerticalAlignment="Center" Margin="24,0,0,0">
+            <TextBlock Text="{Binding LowStockCountLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
+            <TextBlock Text="{Binding ValuationLowStockCount}" Style="{StaticResource Type.Numeric}" FontWeight="SemiBold" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <TabControl Grid.Row="1">
+        <!-- What is on the shelf -->
+        <TabItem Header="{Binding StockOnHandText}">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+
+              <Grid Grid.Column="0" Width="260" VerticalAlignment="Center">
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         AutomationProperties.AutomationId="Inventory.Search" />
+                <TextBlock Text="{Binding SearchPlaceholder}"
+                           IsHitTestVisible="False"
+                           Margin="11,8"
+                           Foreground="{DynamicResource Text.Muted}"
+                           Visibility="{Binding HasNoSearchText, Converter={StaticResource BooleanToVisibility}}" />
+              </Grid>
+
+              <CheckBox Grid.Column="1"
+                        Content="{Binding OnlyLowStockText}"
+                        IsChecked="{Binding OnlyLowStock}"
+                        VerticalAlignment="Center"
+                        Margin="16,0,0,0"
+                        AutomationProperties.AutomationId="Inventory.OnlyLowStock" />
+            </Grid>
+
+            <Grid Grid.Row="1">
+              <DataGrid x:Name="BalancesGrid"
+                        AutomationProperties.AutomationId="Inventory.Balances"
+                        ItemsSource="{Binding Balances}"
+                        SelectedItem="{Binding SelectedBalance, Mode=TwoWay}"
+                        EnableColumnVirtualization="False">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Width="95">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding SkuHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="Sku" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="1.4*" MinWidth="120">
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Cell}">
+                        <Setter Property="ToolTip" Value="{Binding Name}" />
+                      </Style>
+                    </DataGridTextColumn.ElementStyle>
+
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding NameHeader}" Style="{StaticResource Type.SectionLabel}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="Name" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="1.2*" MinWidth="100">
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Cell}">
+                        <Setter Property="ToolTip" Value="{Binding NameAr}" />
+                      </Style>
+                    </DataGridTextColumn.ElementStyle>
+
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding NameArHeader}" Style="{StaticResource Type.SectionLabel}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="NameAr" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="90">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding UnitHeader}" Style="{StaticResource Type.SectionLabel}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="UnitName" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="85">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding OnHandHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="QuantityOnHand" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="80">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding DamagedHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="DamagedQuantity" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="115">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding AverageCostHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="AverageUnitCost" Converter="{StaticResource Money}" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="115">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding StockValueHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="StockValue" Converter="{StaticResource Money}" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="115">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding ReorderLevelHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="ReorderLevel" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTemplateColumn Width="100">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="{Binding StatusHeader}" Style="{StaticResource Type.SectionLabel}" />
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <Border Style="{StaticResource Badge.Status}"
+                                HorizontalAlignment="Left"
+                                Visibility="{Binding IsBelowReorderLevel, Converter={StaticResource BooleanToVisibility}}">
+                          <TextBlock Text="{Binding IsBelowReorderLevel, Converter={StaticResource InventoryLabel}}"
+                                     Foreground="{DynamicResource Text.Secondary}"
+                                     FontSize="{DynamicResource Font.Size.Small}"
+                                     FontWeight="SemiBold" />
+                        </Border>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+
+              <Border Style="{StaticResource Surface.Panel}"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center"
+                      Padding="32,24"
+                      Visibility="{Binding HasNoBalances, Converter={StaticResource BooleanToVisibility}}">
+                <TextBlock Text="{Binding EmptyText}"
+                           Style="{StaticResource Type.Body}"
+                           Foreground="{DynamicResource Text.Muted}"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxWidth="420" />
+              </Border>
+            </Grid>
+          </Grid>
+        </TabItem>
+
+        <!-- What moved -->
+        <TabItem Header="{Binding MovementsText}">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+
+              <ComboBox Grid.Column="0"
+                        ItemsSource="{Binding Products}"
+                        DisplayMemberPath="DisplayName"
+                        SelectedValuePath="Id"
+                        MinWidth="200"
+                        AutomationProperties.AutomationId="Inventory.MovementProduct">
+                  <ComboBox.SelectedValue>
+                      <Binding Path="MovementProductId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
+                  </ComboBox.SelectedValue>
+              </ComboBox>
+
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                <TextBlock Text="{Binding FromLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox Text="{Binding FromDateText, UpdateSourceTrigger=PropertyChanged}"
+                         Width="110"
+                         AutomationProperties.AutomationId="Inventory.MovementFrom" />
+
+                <TextBlock Text="{Binding ToLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="12,0,6,0" />
+                <TextBox Text="{Binding ToDateText, UpdateSourceTrigger=PropertyChanged}"
+                         Width="110"
+                         AutomationProperties.AutomationId="Inventory.MovementTo" />
+              </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1">
+              <DataGrid x:Name="MovementsGrid"
+                        AutomationProperties.AutomationId="Inventory.Movements"
+                        ItemsSource="{Binding Movements}"
+                        EnableColumnVirtualization="False">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Width="100">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding DateHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="BusinessDate" StringFormat="{}{0:yyyy-MM-dd}" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="95">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding SkuHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="Sku" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="1.4*" MinWidth="120">
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Cell}">
+                        <Setter Property="ToolTip" Value="{Binding ProductName}" />
+                      </Style>
+                    </DataGridTextColumn.ElementStyle>
+
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding NameHeader}" Style="{StaticResource Type.SectionLabel}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="ProductName" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="135">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding MovementTypeHeader}" Style="{StaticResource Type.SectionLabel}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="MovementType" Converter="{StaticResource InventoryLabel}" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="85">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding QuantityDeltaHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="QuantityDelta" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="115">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding AverageCostHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="UnitCost" Converter="{StaticResource Money}" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="85">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding RunningBalanceHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="RunningBalance" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="1.6*" MinWidth="125">
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Cell}">
+                        <Setter Property="ToolTip" Value="{Binding Reason}" />
+                      </Style>
+                    </DataGridTextColumn.ElementStyle>
+
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding ReasonHeader}" Style="{StaticResource Type.SectionLabel}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="Reason" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="150">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding PostedHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="PostedUtc" Converter="{StaticResource Timestamp}" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+
+              <Border Style="{StaticResource Surface.Panel}"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center"
+                      Padding="32,24"
+                      Visibility="{Binding HasNoMovements, Converter={StaticResource BooleanToVisibility}}">
+                <TextBlock Text="{Binding NoMovementsText}"
+                           Style="{StaticResource Type.Body}"
+                           Foreground="{DynamicResource Text.Muted}"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxWidth="420" />
+              </Border>
+            </Grid>
+          </Grid>
+        </TabItem>
+
+        <!-- The counts -->
+        <TabItem Header="{Binding CountsText}">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+              <Button Content="{Binding ApproveCountText}"
+                      Command="{Binding ApproveCountCommand}"
+                      IsEnabled="{Binding CanApproveCount}"
+                      Style="{StaticResource Button.Ghost}"
+                      Margin="0,0,8,0"
+                      AutomationProperties.AutomationId="Inventory.ApproveCount" />
+
+              <Button Content="{Binding PostCountText}"
+                      Command="{Binding PostCountCommand}"
+                      IsEnabled="{Binding CanPostCount}"
+                      Style="{StaticResource Button.Ghost}"
+                      Margin="0,0,8,0"
+                      AutomationProperties.AutomationId="Inventory.PostCount" />
+
+              <Button Content="{Binding CancelCountText}"
+                      Command="{Binding CancelCountCommand}"
+                      IsEnabled="{Binding CanCancelCount}"
+                      Style="{StaticResource Button.Ghost}"
+                      AutomationProperties.AutomationId="Inventory.CancelCount" />
+            </StackPanel>
+
+            <Grid Grid.Row="1">
+              <DataGrid x:Name="CountsGrid"
+                        AutomationProperties.AutomationId="Inventory.Counts"
+                        ItemsSource="{Binding Counts}"
+                        SelectedItem="{Binding SelectedCount, Mode=TwoWay}"
+                        EnableColumnVirtualization="False">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Width="130">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding CountNumberHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="Number" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="105">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding DateHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="BusinessDate" StringFormat="{}{0:yyyy-MM-dd}" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="125">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding CountLinesHeader}" Style="{StaticResource Type.SectionLabel}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="LineCount" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="95">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding CountDifferenceHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="DifferenceQuantity" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="125">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding CountDifferenceValueHeader}" Style="{StaticResource Type.ColumnValue}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="DifferenceValue" Converter="{StaticResource Money}" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTextColumn Width="2*" MinWidth="140">
+                    <DataGridTextColumn.ElementStyle>
+                      <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Cell}">
+                        <Setter Property="ToolTip" Value="{Binding Reason}" />
+                      </Style>
+                    </DataGridTextColumn.ElementStyle>
+
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Binding ReasonHeader}" Style="{StaticResource Type.SectionLabel}" />
+                    </DataGridTextColumn.Header>
+                    <DataGridTextColumn.Binding>
+                      <Binding Path="Reason" />
+                    </DataGridTextColumn.Binding>
+                  </DataGridTextColumn>
+
+                  <DataGridTemplateColumn Width="160">
+                    <DataGridTemplateColumn.Header>
+                      <TextBlock Text="{Binding StatusHeader}" Style="{StaticResource Type.SectionLabel}" />
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <Border Style="{StaticResource Badge.Status}" HorizontalAlignment="Left">
+                          <TextBlock Text="{Binding Status, Converter={StaticResource InventoryLabel}}"
+                                     Foreground="{DynamicResource Text.Secondary}"
+                                     FontSize="{DynamicResource Font.Size.Small}"
+                                     FontWeight="SemiBold" />
+                        </Border>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+
+              <Border Style="{StaticResource Surface.Panel}"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center"
+                      Padding="32,24"
+                      Visibility="{Binding HasNoCounts, Converter={StaticResource BooleanToVisibility}}">
+                <TextBlock Text="{Binding NoCountsText}"
+                           Style="{StaticResource Type.Body}"
+                           Foreground="{DynamicResource Text.Muted}"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxWidth="420" />
+              </Border>
+            </Grid>
+          </Grid>
+        </TabItem>
+      </TabControl>
+    </Grid>
+
+    <!-- The message the last action left behind -->
+    <TextBlock Grid.Row="2"
+               Text="{Binding StatusMessage}"
+               Style="{StaticResource Type.Caption}"
+               AutomationProperties.AutomationId="Inventory.Status"
+               Margin="0,10,0,0"
+               Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
+  </Grid>
+</UserControl>

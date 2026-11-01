@@ -87,8 +87,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             new("Categories", "▧", _strings[StringKeys.NavCategories]),
             new("Units", "◔", _strings[StringKeys.NavUnits]),
             new("Suppliers", "⇄", _strings[StringKeys.NavSuppliers]),
-            new("Purchases", "▥", _strings[StringKeys.NavPurchases], IsAvailable: false),
-            new("Inventory", "▣", _strings[StringKeys.NavInventory], IsAvailable: false),
+            new("Purchases", "▥", _strings[StringKeys.NavPurchases]),
+            new("Inventory", "▣", _strings[StringKeys.NavInventory]),
             new("Pos", "▶", _strings[StringKeys.NavPos], IsAvailable: false),
             new("Sales", "≡", _strings[StringKeys.NavSales], IsAvailable: false),
             new("Reports", "◫", _strings[StringKeys.NavReports], IsAvailable: false),
@@ -142,6 +142,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             "Units" => _services.GetService(typeof(UnitsViewModel)),
             "Suppliers" => _services.GetService(typeof(SuppliersViewModel)),
             "Audit" => _services.GetService(typeof(AuditViewModel)),
+            "Purchases" => _services.GetService(typeof(PurchasesViewModel)),
+            "Inventory" => _services.GetService(typeof(InventoryViewModel)),
             "Settings" => _services.GetService(typeof(SettingsViewModel)),
             _ => null,
         };
@@ -175,6 +177,12 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             case AuditViewModel audit:
                 audit.RefreshCommand.Execute(null);
                 break;
+            case PurchasesViewModel purchases:
+                purchases.RefreshCommand.Execute(null);
+                break;
+            case InventoryViewModel inventory:
+                inventory.RefreshCommand.Execute(null);
+                break;
         }
     }
 
@@ -187,6 +195,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         "Units" => _strings[StringKeys.UnitsTitle],
         "Suppliers" => _strings[StringKeys.SuppliersTitle],
         "Audit" => _strings[StringKeys.AuditTitle],
+        "Purchases" => _strings[StringKeys.PurchasesTitle],
+        "Inventory" => _strings[StringKeys.NavInventory],
         _ => _strings[StringKeys.NavSettings],
     };
 

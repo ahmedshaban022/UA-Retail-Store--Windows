@@ -66,6 +66,60 @@
   <data name="Dashboard.Welcome" xml:space="preserve">
     <value>مرحبًا بعودتك</value>
   </data>
+  <data name="Error.InventoryAlreadyPosted" xml:space="preserve">
+    <value>تم نشر جرد المخزون هذا بالفعل.</value>
+  </data>
+  <data name="Error.InventoryAlreadyReversed" xml:space="preserve">
+    <value>تم عكس فاتورة الشراء هذه بالفعل.</value>
+  </data>
+  <data name="Error.InventoryAlreadyStocked" xml:space="preserve">
+    <value>لهذا المنتج حركات مخزون بالفعل. استخدم تعديلًا بدلًا من ذلك.</value>
+  </data>
+  <data name="Error.InventoryAwaitingApproval" xml:space="preserve">
+    <value>جرد المخزون هذا ليس بانتظار الاعتماد.</value>
+  </data>
+  <data name="Error.InventoryDiscount" xml:space="preserve">
+    <value>لا يمكن أن يكون الخصم سالبًا أو أكبر من قيمة المستند.</value>
+  </data>
+  <data name="Error.InventoryDuplicateProduct" xml:space="preserve">
+    <value>لا يمكن تكرار نفس المنتج.</value>
+  </data>
+  <data name="Error.InventoryEmptyCount" xml:space="preserve">
+    <value>عدّ منتجًا واحدًا على الأقل أولًا.</value>
+  </data>
+  <data name="Error.InventoryNegativeDamaged" xml:space="preserve">
+    <value>لا يمكن أن تقل الكمية التالفة عن صفر.</value>
+  </data>
+  <data name="Error.InventoryNegativeStock" xml:space="preserve">
+    <value>لا يوجد مخزون كافٍ لهذه الحركة.</value>
+  </data>
+  <data name="Error.InventoryNoActor" xml:space="preserve">
+    <value>سجّل الدخول للمتابعة.</value>
+  </data>
+  <data name="Error.InventoryNoLines" xml:space="preserve">
+    <value>أضف بندًا واحدًا على الأقل.</value>
+  </data>
+  <data name="Error.InventoryNotApproved" xml:space="preserve">
+    <value>يمكن نشر جرد المخزون المعتمد فقط.</value>
+  </data>
+  <data name="Error.InventoryNotDraft" xml:space="preserve">
+    <value>لا يمكن تعديل هذا المستند بعد الآن.</value>
+  </data>
+  <data name="Error.InventoryNotPending" xml:space="preserve">
+    <value>تمت البت في هذا الطلب بالفعل.</value>
+  </data>
+  <data name="Error.InventoryNotPosted" xml:space="preserve">
+    <value>يمكن عكس فاتورة شراء منشورة فقط.</value>
+  </data>
+  <data name="Error.InventoryQuantity" xml:space="preserve">
+    <value>أدخل كمية صحيحة.</value>
+  </data>
+  <data name="Error.InventoryRequired" xml:space="preserve">
+    <value>هذا الحقل مطلوب.</value>
+  </data>
+  <data name="Error.InventorySelfApproval" xml:space="preserve">
+    <value>يجب أن يعتمد هذا شخص آخر.</value>
+  </data>
   <data name="Error.Unexpected" xml:space="preserve">
     <value>حدث خطأ ما. أغلق هذه الرسالة وحاول مرة أخرى.</value>
   </data>
@@ -116,6 +170,180 @@
   </data>
   <data name="FirstRun.Title" xml:space="preserve">
     <value>إعداد ستور فلو</value>
+  </data>
+  <data name="Inventory.Adjustment" xml:space="preserve">
+    <value>تعديل المخزون</value>
+  </data>
+  <data name="Inventory.ApproveCount" xml:space="preserve">
+    <value>اعتماد</value>
+  </data>
+  <data name="Inventory.AsOfDate" xml:space="preserve">
+    <value>حتى تاريخ</value>
+  </data>
+  <data name="Inventory.Date" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="Inventory.AverageCost" xml:space="preserve">
+    <value>متوسط التكلفة</value>
+  </data>
+  <data name="Inventory.BelowReorder" xml:space="preserve">
+    <value>منخفض</value>
+  </data>
+  <data name="Inventory.CancelCount" xml:space="preserve">
+    <value>إلغاء الجرد</value>
+  </data>
+  <data name="Inventory.CountApproved" xml:space="preserve">
+    <value>تم اعتماد جرد المخزون {0}</value>
+  </data>
+  <data name="Inventory.CountCancelled" xml:space="preserve">
+    <value>تم إلغاء جرد المخزون {0}</value>
+  </data>
+  <data name="Inventory.CountDifference" xml:space="preserve">
+    <value>الفرق</value>
+  </data>
+  <data name="Inventory.CountDifferenceValue" xml:space="preserve">
+    <value>قيمة الفرق</value>
+  </data>
+  <data name="Inventory.CountLines" xml:space="preserve">
+    <value>المنتجات المعدودة</value>
+  </data>
+  <data name="Inventory.CountNumber" xml:space="preserve">
+    <value>الرقم</value>
+  </data>
+  <data name="Inventory.CountPosted" xml:space="preserve">
+    <value>تم نشر جرد المخزون {0}</value>
+  </data>
+  <data name="Inventory.CountSubmitted" xml:space="preserve">
+    <value>تم إرسال جرد المخزون {0} للاعتماد</value>
+  </data>
+  <data name="Inventory.Counts" xml:space="preserve">
+    <value>الجرد</value>
+  </data>
+  <data name="Inventory.Damaged" xml:space="preserve">
+    <value>تالف</value>
+  </data>
+  <data name="Inventory.Empty" xml:space="preserve">
+    <value>لا توجد سجلات مخزون بعد</value>
+  </data>
+  <data name="Inventory.LowStockCount" xml:space="preserve">
+    <value>مخزون منخفض</value>
+  </data>
+  <data name="Inventory.Movement.Adjustment" xml:space="preserve">
+    <value>تعديل</value>
+  </data>
+  <data name="Inventory.Movement.CountCorrection" xml:space="preserve">
+    <value>تصحيح جرد</value>
+  </data>
+  <data name="Inventory.Movement.Opening" xml:space="preserve">
+    <value>افتتاحي</value>
+  </data>
+  <data name="Inventory.Movement.PurchaseReceipt" xml:space="preserve">
+    <value>استلام مشتريات</value>
+  </data>
+  <data name="Inventory.Movement.ReturnDamaged" xml:space="preserve">
+    <value>مرتجع تالف</value>
+  </data>
+  <data name="Inventory.Movement.ReturnRestock" xml:space="preserve">
+    <value>مرتجع قابل للبيع</value>
+  </data>
+  <data name="Inventory.Movement.Reversal" xml:space="preserve">
+    <value>عكس</value>
+  </data>
+  <data name="Inventory.Movement.Sale" xml:space="preserve">
+    <value>بيع</value>
+  </data>
+  <data name="Inventory.MovementType" xml:space="preserve">
+    <value>النوع</value>
+  </data>
+  <data name="Inventory.Movements" xml:space="preserve">
+    <value>الحركات</value>
+  </data>
+  <data name="Inventory.Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Inventory.NameAr" xml:space="preserve">
+    <value>الاسم (عربي)</value>
+  </data>
+  <data name="Inventory.NewCount" xml:space="preserve">
+    <value>جرد مخزون جديد</value>
+  </data>
+  <data name="Inventory.NoCounts" xml:space="preserve">
+    <value>لا توجد عمليات جرد بعد</value>
+  </data>
+  <data name="Inventory.NoMovements" xml:space="preserve">
+    <value>لا توجد حركات مخزون بعد</value>
+  </data>
+  <data name="Inventory.OnHand" xml:space="preserve">
+    <value>المتاح</value>
+  </data>
+  <data name="Inventory.OnlyLowStock" xml:space="preserve">
+    <value>مخزون منخفض فقط</value>
+  </data>
+  <data name="Inventory.OpeningStock" xml:space="preserve">
+    <value>الرصيد الافتتاحي</value>
+  </data>
+  <data name="Inventory.PostCount" xml:space="preserve">
+    <value>نشر الجرد</value>
+  </data>
+  <data name="Inventory.Posted" xml:space="preserve">
+    <value>وقت النشر</value>
+  </data>
+  <data name="Inventory.ProductCount" xml:space="preserve">
+    <value>المنتجات</value>
+  </data>
+  <data name="Inventory.QuantityDelta" xml:space="preserve">
+    <value>التغيير</value>
+  </data>
+  <data name="Inventory.Reason" xml:space="preserve">
+    <value>السبب</value>
+  </data>
+  <data name="Inventory.ReorderLevel" xml:space="preserve">
+    <value>حد إعادة الطلب</value>
+  </data>
+  <data name="Inventory.RunningBalance" xml:space="preserve">
+    <value>الرصيد</value>
+  </data>
+  <data name="Inventory.Search" xml:space="preserve">
+    <value>ابحث عن منتج</value>
+  </data>
+  <data name="Inventory.Sku" xml:space="preserve">
+    <value>رمز المنتج</value>
+  </data>
+  <data name="Inventory.Status.Approved" xml:space="preserve">
+    <value>معتمد</value>
+  </data>
+  <data name="Inventory.Status.AwaitingApproval" xml:space="preserve">
+    <value>بانتظار الاعتماد</value>
+  </data>
+  <data name="Inventory.Status.Cancelled" xml:space="preserve">
+    <value>ملغى</value>
+  </data>
+  <data name="Inventory.Status.Draft" xml:space="preserve">
+    <value>مسودة</value>
+  </data>
+  <data name="Inventory.Status.Posted" xml:space="preserve">
+    <value>منشور</value>
+  </data>
+  <data name="Inventory.Status.Reversed" xml:space="preserve">
+    <value>معكوس</value>
+  </data>
+  <data name="Inventory.StockOnHand" xml:space="preserve">
+    <value>المخزون المتاح</value>
+  </data>
+  <data name="Inventory.StockValue" xml:space="preserve">
+    <value>قيمة المخزون</value>
+  </data>
+  <data name="Inventory.TotalQuantity" xml:space="preserve">
+    <value>إجمالي الكمية</value>
+  </data>
+  <data name="Inventory.TotalValue" xml:space="preserve">
+    <value>القيمة الإجمالية</value>
+  </data>
+  <data name="Inventory.Unit" xml:space="preserve">
+    <value>الوحدة</value>
+  </data>
+  <data name="Inventory.Valuation" xml:space="preserve">
+    <value>التقييم</value>
   </data>
   <data name="Login.Disabled" xml:space="preserve">
     <value>هذا الحساب معطّل. اطلب من المالك إعادة تفعيله.</value>
@@ -170,6 +398,168 @@
   </data>
   <data name="Nav.Users" xml:space="preserve">
     <value>المستخدمون والأدوار</value>
+  </data>
+  <data name="OpeningStock.AddLine" xml:space="preserve">
+    <value>إضافة منتج</value>
+  </data>
+  <data name="OpeningStock.Date" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="OpeningStock.Notes" xml:space="preserve">
+    <value>ملاحظات</value>
+  </data>
+  <data name="OpeningStock.Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="OpeningStock.Quantity" xml:space="preserve">
+    <value>الكمية</value>
+  </data>
+  <data name="OpeningStock.Submit" xml:space="preserve">
+    <value>تسجيل الرصيد الافتتاحي</value>
+  </data>
+  <data name="OpeningStock.Title" xml:space="preserve">
+    <value>الرصيد الافتتاحي</value>
+  </data>
+  <data name="OpeningStock.UnitCost" xml:space="preserve">
+    <value>تكلفة الوحدة</value>
+  </data>
+  <data name="PurchaseEditor.AddLine" xml:space="preserve">
+    <value>إضافة بند</value>
+  </data>
+  <data name="PurchaseEditor.Date" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="PurchaseEditor.Discount" xml:space="preserve">
+    <value>الخصم</value>
+  </data>
+  <data name="PurchaseEditor.LineTotal" xml:space="preserve">
+    <value>إجمالي البند</value>
+  </data>
+  <data name="PurchaseEditor.NoLines" xml:space="preserve">
+    <value>أضف بندًا واحدًا على الأقل.</value>
+  </data>
+  <data name="PurchaseEditor.Notes" xml:space="preserve">
+    <value>ملاحظات</value>
+  </data>
+  <data name="PurchaseEditor.Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="PurchaseEditor.Quantity" xml:space="preserve">
+    <value>الكمية</value>
+  </data>
+  <data name="PurchaseEditor.RemoveLine" xml:space="preserve">
+    <value>إزالة</value>
+  </data>
+  <data name="PurchaseEditor.Reverse" xml:space="preserve">
+    <value>عكس</value>
+  </data>
+  <data name="PurchaseEditor.ReverseReason" xml:space="preserve">
+    <value>سبب العكس</value>
+  </data>
+  <data name="PurchaseEditor.ReverseTitle" xml:space="preserve">
+    <value>عكس فاتورة الشراء</value>
+  </data>
+  <data name="PurchaseEditor.SaveAndPost" xml:space="preserve">
+    <value>حفظ ونشر</value>
+  </data>
+  <data name="PurchaseEditor.SaveDraft" xml:space="preserve">
+    <value>حفظ المسودة</value>
+  </data>
+  <data name="PurchaseEditor.Subtotal" xml:space="preserve">
+    <value>المجموع الفرعي</value>
+  </data>
+  <data name="PurchaseEditor.Supplier" xml:space="preserve">
+    <value>المورد</value>
+  </data>
+  <data name="PurchaseEditor.Tax" xml:space="preserve">
+    <value>الضريبة</value>
+  </data>
+  <data name="PurchaseEditor.TitleEdit" xml:space="preserve">
+    <value>تعديل فاتورة الشراء</value>
+  </data>
+  <data name="PurchaseEditor.TitleNew" xml:space="preserve">
+    <value>فاتورة شراء جديدة</value>
+  </data>
+  <data name="PurchaseEditor.Total" xml:space="preserve">
+    <value>الإجمالي</value>
+  </data>
+  <data name="PurchaseEditor.UnitCost" xml:space="preserve">
+    <value>تكلفة الوحدة</value>
+  </data>
+  <data name="Purchases.AllSuppliers" xml:space="preserve">
+    <value>كل الموردين</value>
+  </data>
+  <data name="Purchases.Date" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="Purchases.Discount" xml:space="preserve">
+    <value>الخصم</value>
+  </data>
+  <data name="Purchases.Empty" xml:space="preserve">
+    <value>لا توجد مشتريات بعد</value>
+  </data>
+  <data name="Purchases.Exported" xml:space="preserve">
+    <value>تم تصدير {0} من فواتير الشراء</value>
+  </data>
+  <data name="Purchases.From" xml:space="preserve">
+    <value>من</value>
+  </data>
+  <data name="Purchases.Lines" xml:space="preserve">
+    <value>البنود</value>
+  </data>
+  <data name="Purchases.New" xml:space="preserve">
+    <value>فاتورة شراء جديدة</value>
+  </data>
+  <data name="Purchases.NoMatches" xml:space="preserve">
+    <value>لا توجد مشتريات مطابقة لهذا البحث</value>
+  </data>
+  <data name="Purchases.NoSupplier" xml:space="preserve">
+    <value>بدون مورد</value>
+  </data>
+  <data name="Purchases.Number" xml:space="preserve">
+    <value>الرقم</value>
+  </data>
+  <data name="Purchases.Post" xml:space="preserve">
+    <value>نشر</value>
+  </data>
+  <data name="Purchases.Posted" xml:space="preserve">
+    <value>تم نشر فاتورة الشراء {0}</value>
+  </data>
+  <data name="Purchases.Quantity" xml:space="preserve">
+    <value>إجمالي الكمية</value>
+  </data>
+  <data name="Purchases.Reverse" xml:space="preserve">
+    <value>عكس</value>
+  </data>
+  <data name="Purchases.Reversed" xml:space="preserve">
+    <value>تم عكس فاتورة الشراء {0}</value>
+  </data>
+  <data name="Purchases.Reverses" xml:space="preserve">
+    <value>يعكس</value>
+  </data>
+  <data name="Purchases.Search" xml:space="preserve">
+    <value>ابحث برقم المستند أو المورد</value>
+  </data>
+  <data name="Purchases.Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Purchases.Subtotal" xml:space="preserve">
+    <value>المجموع الفرعي</value>
+  </data>
+  <data name="Purchases.Supplier" xml:space="preserve">
+    <value>المورد</value>
+  </data>
+  <data name="Purchases.Tax" xml:space="preserve">
+    <value>الضريبة</value>
+  </data>
+  <data name="Purchases.Title" xml:space="preserve">
+    <value>المشتريات</value>
+  </data>
+  <data name="Purchases.To" xml:space="preserve">
+    <value>إلى</value>
+  </data>
+  <data name="Purchases.Total" xml:space="preserve">
+    <value>الإجمالي</value>
   </data>
   <data name="Session.Lock" xml:space="preserve">
     <value>قفل</value>
@@ -509,6 +899,72 @@
   </data>
   <data name="Products.Unit" xml:space="preserve">
     <value>الوحدة</value>
+  </data>
+  <data name="StockAdjustment.Damaged" xml:space="preserve">
+    <value>تالف</value>
+  </data>
+  <data name="StockAdjustment.Disposition" xml:space="preserve">
+    <value>حاوية المخزون</value>
+  </data>
+  <data name="StockAdjustment.Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="StockAdjustment.Quantity" xml:space="preserve">
+    <value>تغيير الكمية</value>
+  </data>
+  <data name="StockAdjustment.Reason" xml:space="preserve">
+    <value>السبب</value>
+  </data>
+  <data name="StockAdjustment.RequiresApproval" xml:space="preserve">
+    <value>هذا التعديل كبير، ولذلك يلزم اعتماد من شخص ثانٍ.</value>
+  </data>
+  <data name="StockAdjustment.Sellable" xml:space="preserve">
+    <value>قابل للبيع</value>
+  </data>
+  <data name="StockAdjustment.Title" xml:space="preserve">
+    <value>تعديل المخزون</value>
+  </data>
+  <data name="StockAdjustment.UnitCost" xml:space="preserve">
+    <value>تكلفة الوحدة</value>
+  </data>
+  <data name="StockCount.AddLine" xml:space="preserve">
+    <value>إضافة منتج</value>
+  </data>
+  <data name="StockCount.ApproveReason" xml:space="preserve">
+    <value>سبب التعديل</value>
+  </data>
+  <data name="StockCount.ApproveTitle" xml:space="preserve">
+    <value>اعتماد جرد المخزون</value>
+  </data>
+  <data name="StockCount.Counted" xml:space="preserve">
+    <value>الكمية المعدودة</value>
+  </data>
+  <data name="StockCount.Date" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="StockCount.Difference" xml:space="preserve">
+    <value>الفرق</value>
+  </data>
+  <data name="StockCount.Empty" xml:space="preserve">
+    <value>عدّ منتجًا واحدًا على الأقل.</value>
+  </data>
+  <data name="StockCount.Expected" xml:space="preserve">
+    <value>الكمية الدفترية</value>
+  </data>
+  <data name="StockCount.Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="StockCount.Save" xml:space="preserve">
+    <value>حفظ الجرد</value>
+  </data>
+  <data name="StockCount.Submit" xml:space="preserve">
+    <value>إرسال للاعتماد</value>
+  </data>
+  <data name="StockCount.Title" xml:space="preserve">
+    <value>جرد المخزون</value>
+  </data>
+  <data name="StockCount.Value" xml:space="preserve">
+    <value>القيمة</value>
   </data>
   <data name="Suppliers.Empty" xml:space="preserve">
     <value>لا يوجد موردون بعد. أضف موردًا لتسجل ما تشتريه.</value>

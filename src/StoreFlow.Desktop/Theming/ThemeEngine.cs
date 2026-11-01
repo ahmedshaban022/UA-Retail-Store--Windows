@@ -113,6 +113,10 @@ public static class ThemeEngine
 
             ["Size.RowHeight"] = theme.Density.RowHeight,
             ["Size.ControlHeight"] = theme.Density.ControlHeight,
+            // A row that holds an editor - a box or a picker the clerk types into - has to be taller
+            // than a row that only holds text, otherwise the control is squeezed and the digits in
+            // it are cut off at the bottom. The extra room is the control plus a little air.
+            ["Size.EditorRowHeight"] = theme.Density.ControlHeight + 12d,
             ["Size.SpacingUnit"] = theme.Density.SpacingUnit,
             ["Size.PosHitTarget"] = theme.Density.PosHitTarget,
 

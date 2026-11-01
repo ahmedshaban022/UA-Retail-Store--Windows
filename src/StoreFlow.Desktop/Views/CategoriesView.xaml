@@ -52,41 +52,50 @@
     </Border>
 
     <Grid Grid.Row="1">
-      <DataGrid AutomationProperties.AutomationId="Categories.Grid" EnableColumnVirtualization="False"
+      <DataGrid x:Name="CategoriesGrid" AutomationProperties.AutomationId="Categories.Grid" EnableColumnVirtualization="False"
                 ItemsSource="{Binding Categories}"
                 SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
                 Margin="0,12,0,0">
         <DataGrid.Columns>
-          <DataGridTextColumn
-                              Binding="{Binding Name}"
-                              Width="2*" MinWidth="160" >
+          <DataGridTextColumn Width="2*" MinWidth="160"
+                              Binding="{Binding Name}" >
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Cell}">
+                <Setter Property="ToolTip" Value="{Binding Name}" />
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.NameHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding NameHeader}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn
-                              Binding="{Binding NameAr}"
-                              Width="2*" MinWidth="160" >
+          <DataGridTextColumn Width="2*" MinWidth="160"
+                              Binding="{Binding NameAr}" >
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Cell}">
+                <Setter Property="ToolTip" Value="{Binding NameAr}" />
+              </Style>
+            </DataGridTextColumn.ElementStyle>
+
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.NameArHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding NameArHeader}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn
-                              Binding="{Binding ProductCount}"
-                              Width="120">
+          <DataGridTextColumn Width="120"
+                              Binding="{Binding ProductCount}">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.ProductsHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
+              <TextBlock Text="{Binding ProductsHeader}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
             <DataGridTextColumn.ElementStyle>
               <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
 
-          <DataGridTemplateColumn Width="110">
+          <DataGridTemplateColumn Width="95">
             <DataGridTemplateColumn.Header>
-              <TextBlock Text="{Binding DataContext.StatusHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding StatusHeader}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTemplateColumn.Header>
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>

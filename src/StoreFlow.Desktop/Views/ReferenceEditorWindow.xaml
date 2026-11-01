@@ -32,10 +32,13 @@
 
     <DataTemplate x:Key="EditorChoiceField">
       <ComboBox ItemsSource="{Binding Options}"
-                SelectedValue="{Binding Value, Mode=TwoWay}"
                 DisplayMemberPath="DisplayName"
                 SelectedValuePath="Id"
-                AutomationProperties.AutomationId="{Binding AutomationId}" />
+                AutomationProperties.AutomationId="{Binding AutomationId}">
+          <ComboBox.SelectedValue>
+              <Binding Path="Value" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
+          </ComboBox.SelectedValue>
+      </ComboBox>
     </DataTemplate>
 
     <controls:EditorFieldTemplateSelector x:Key="EditorFieldSelector"

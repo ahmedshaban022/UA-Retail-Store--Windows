@@ -1,0 +1,276 @@
+<Window x:Class="StoreFlow.Desktop.Views.PurchaseEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}"
+        Width="960"
+        Height="640"
+        MinWidth="820"
+        MinHeight="520"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        AutomationProperties.AutomationId="PurchaseEditorWindow"
+        Background="{DynamicResource Surface.Canvas}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- Heading -->
+    <Border Grid.Row="0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,0,0,1"
+            Padding="24,16">
+      <TextBlock Text="{Binding Title}" Style="{StaticResource Type.Title}" />
+    </Border>
+
+    <!-- What the document is about -->
+    <Border Grid.Row="1"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,0,0,1"
+            Padding="24,14">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+          <TextBlock Text="{Binding SupplierLabel}" Style="{StaticResource Type.FieldLabel}" />
+          <ComboBox ItemsSource="{Binding Suppliers}"
+                    DisplayMemberPath="DisplayName"
+                    SelectedValuePath="Id"
+                    MinWidth="200"
+                    AutomationProperties.AutomationId="PurchaseEditor.Supplier">
+              <ComboBox.SelectedValue>
+                  <Binding Path="SupplierId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
+              </ComboBox.SelectedValue>
+          </ComboBox>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+          <TextBlock Text="{Binding DateLabel}" Style="{StaticResource Type.FieldLabel}" />
+          <TextBox Text="{Binding BusinessDateText, UpdateSourceTrigger=PropertyChanged}"
+                   Width="140"
+                   FlowDirection="LeftToRight"
+                   TextAlignment="Left"
+                   AutomationProperties.AutomationId="PurchaseEditor.Date" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="16,0,0,0">
+          <TextBlock Text="{Binding DiscountLabel}" Style="{StaticResource Type.FieldLabel}" />
+          <TextBox Text="{Binding DiscountText, UpdateSourceTrigger=PropertyChanged}"
+                   Width="120"
+                   FlowDirection="LeftToRight"
+                   TextAlignment="Left"
+                   AutomationProperties.AutomationId="PurchaseEditor.Discount" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="16,0,0,0">
+          <TextBlock Text="{Binding NotesLabel}" Style="{StaticResource Type.FieldLabel}" />
+          <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
+                   Width="220"
+                   AutomationProperties.AutomationId="PurchaseEditor.Notes" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- The lines -->
+    <Grid Grid.Row="2" Margin="24,12,24,0">
+      <DataGrid x:Name="LinesGrid"
+                AutomationProperties.AutomationId="PurchaseEditor.Lines"
+                ItemsSource="{Binding Lines}"
+                CanUserAddRows="False"
+                CanUserDeleteRows="False"
+                EnableColumnVirtualization="False"
+                RowHeight="{DynamicResource Size.EditorRowHeight}"
+                IsEnabled="{Binding IsReadOnly, Converter={StaticResource InverseBoolean}}">
+        <DataGrid.Columns>
+          <DataGridTemplateColumn Width="2*">
+            <DataGridTemplateColumn.Header>
+              <TextBlock Text="{Binding ProductLabel}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <ComboBox ItemsSource="{Binding DataContext.Products, Source={x:Reference LinesGrid}}"
+                          DisplayMemberPath="DisplayName"
+                          SelectedValuePath="Id"
+                          AutomationProperties.AutomationId="PurchaseEditor.Line.Product">
+                    <ComboBox.SelectedValue>
+                        <Binding Path="ProductId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
+                    </ComboBox.SelectedValue>
+                </ComboBox>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Width="110">
+            <DataGridTemplateColumn.Header>
+              <TextBlock Text="{Binding QuantityLabel}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
+                         AutomationProperties.AutomationId="PurchaseEditor.Line.Quantity" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Width="120">
+            <DataGridTemplateColumn.Header>
+              <TextBlock Text="{Binding UnitCostLabel}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBox Text="{Binding UnitCost, UpdateSourceTrigger=PropertyChanged}"
+                         AutomationProperties.AutomationId="PurchaseEditor.Line.UnitCost" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTemplateColumn Width="110">
+            <DataGridTemplateColumn.Header>
+              <TextBlock Text="{Binding TaxLabel}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBox Text="{Binding Tax, UpdateSourceTrigger=PropertyChanged}"
+                         AutomationProperties.AutomationId="PurchaseEditor.Line.Tax" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+          <DataGridTextColumn Width="130" IsReadOnly="True">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding LineTotalLabel}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+            <DataGridTextColumn.ElementStyle>
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Numeric}" />
+            </DataGridTextColumn.ElementStyle>
+            <DataGridTextColumn.Binding>
+              <Binding Path="LineTotal" Converter="{StaticResource Money}" />
+            </DataGridTextColumn.Binding>
+          </DataGridTextColumn>
+
+          <DataGridTemplateColumn Width="90">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <Button Content="{Binding DataContext.RemoveLineText, Source={x:Reference LinesGrid}}"
+                        Command="{Binding DataContext.RemoveLineCommand, Source={x:Reference LinesGrid}}"
+                        CommandParameter="{Binding}"
+                        Style="{StaticResource Button.Ghost}"
+                        Padding="8,0"
+                        MinWidth="0"
+                        AutomationProperties.AutomationId="PurchaseEditor.RemoveLine" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <!-- The document carries no lines yet -->
+      <Border Style="{StaticResource Surface.Panel}"
+              VerticalAlignment="Center"
+              HorizontalAlignment="Center"
+              Padding="32,24"
+              Visibility="{Binding HasNoLines, Converter={StaticResource BooleanToVisibility}}">
+        <TextBlock Text="{Binding NoLinesText}"
+                   Style="{StaticResource Type.Body}"
+                   Foreground="{DynamicResource Text.Muted}"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   MaxWidth="360" />
+      </Border>
+    </Grid>
+
+    <!-- Totals and the add-line command -->
+    <Border Grid.Row="3"
+            Margin="24,12,24,0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="1"
+            Padding="12,10">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Button Grid.Column="0"
+                Content="{Binding AddLineText}"
+                Command="{Binding AddLineCommand}"
+                Style="{StaticResource Button.Ghost}"
+                VerticalAlignment="Center"
+                AutomationProperties.AutomationId="PurchaseEditor.AddLine" />
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0">
+          <TextBlock Text="{Binding SubtotalLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
+          <TextBlock Text="{Binding SubtotalAmount, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock Text="{Binding TotalLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
+          <TextBlock Text="{Binding TotalAmount, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" FontWeight="SemiBold" VerticalAlignment="Center" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Footer -->
+    <Border Grid.Row="4"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,1,0,0"
+            Padding="24,12"
+            Margin="0,16,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0"
+                   Text="{Binding StatusMessage}"
+                   Style="{StaticResource Type.Error}"
+                   AutomationProperties.AutomationId="PurchaseEditor.Status"
+                   VerticalAlignment="Center"
+                   Margin="0,0,12,0"
+                   Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
+
+        <Button Grid.Column="1"
+                Content="{Binding CancelText}"
+                Command="{Binding CancelCommand}"
+                Style="{StaticResource Button.Ghost}"
+                Margin="0,0,8,0"
+                AutomationProperties.AutomationId="PurchaseEditor.Cancel" />
+
+        <Button Grid.Column="2"
+                Content="{Binding SaveText}"
+                Command="{Binding SaveCommand}"
+                Style="{StaticResource Button.Ghost}"
+                Margin="0,0,8,0"
+                AutomationProperties.AutomationId="PurchaseEditor.Save" />
+
+        <Button Grid.Column="3"
+                Content="{Binding SaveAndPostText}"
+                Command="{Binding SaveAndPostCommand}"
+                Style="{StaticResource Button.Primary}"
+                AutomationProperties.AutomationId="PurchaseEditor.SaveAndPost" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

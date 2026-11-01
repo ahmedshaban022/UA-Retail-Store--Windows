@@ -30,7 +30,7 @@
                      IsHitTestVisible="False"
                      Margin="11,8"
                      Foreground="{DynamicResource Text.Muted}"
-                     Visibility="{Binding HasNoSearchText, Converter={StaticResource BooleanToVisibility}, ConverterParameter=Invert}" />
+                     Visibility="{Binding HasNoSearchText, Converter={StaticResource BooleanToVisibility}}" />
         </Grid>
 
         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
@@ -48,15 +48,14 @@
     </Border>
 
     <Grid Grid.Row="1">
-      <DataGrid AutomationProperties.AutomationId="Audit.Grid" EnableColumnVirtualization="False"
+      <DataGrid x:Name="AuditGrid" AutomationProperties.AutomationId="Audit.Grid" EnableColumnVirtualization="False"
                 ItemsSource="{Binding Entries}"
                 Margin="0,12,0,0">
         <DataGrid.Columns>
-          <DataGridTextColumn
-                              Binding="{Binding TimestampUtc, Converter={StaticResource Timestamp}}"
-                              Width="180">
+          <DataGridTextColumn Width="180"
+                              Binding="{Binding TimestampUtc, Converter={StaticResource Timestamp}}">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.WhenHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
+              <TextBlock Text="{Binding WhenHeader}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
           
             <DataGridTextColumn.ElementStyle>
@@ -64,43 +63,43 @@
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
 
-          <DataGridTextColumn
-                              Binding="{Binding Actor}"
-                              Width="160" >
+          <DataGridTextColumn Width="160"
+                              Binding="{Binding Actor}" >
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.WhoHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding WhoHeader}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn
-                              Binding="{Binding Action}"
-                              Width="200">
+          <DataGridTextColumn Width="200"
+                              Binding="{Binding Action}">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.ActionHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
+              <TextBlock Text="{Binding ActionHeader}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
           
             <DataGridTextColumn.ElementStyle>
-              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" >
+                <Setter Property="ToolTip" Value="{Binding Action}" />
+              </Style>
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
 
-          <DataGridTextColumn
-                              Binding="{Binding EntityType}"
-                              Width="140" >
+          <DataGridTextColumn Width="140"
+                              Binding="{Binding EntityType}" >
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.EntityHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding EntityHeader}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 
-          <DataGridTextColumn
-                              Binding="{Binding Summary}"
-                              Width="2*" MinWidth="200" >
+          <DataGridTextColumn Width="2*" MinWidth="200"
+                              Binding="{Binding Summary}" >
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DataContext.SummaryHeader, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Style="{StaticResource Type.ColumnValue}" />
+              <TextBlock Text="{Binding SummaryHeader}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
           
             <DataGridTextColumn.ElementStyle>
-              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" />
+              <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}" >
+                <Setter Property="ToolTip" Value="{Binding Summary}" />
+              </Style>
             </DataGridTextColumn.ElementStyle>
           </DataGridTextColumn>
         </DataGrid.Columns>

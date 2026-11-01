@@ -22,6 +22,7 @@
       <controls:InverseBooleanConverter x:Key="InverseBoolean" />
       <controls:MoneyValueConverter x:Key="Money" />
       <controls:CatalogStatusConverter x:Key="CatalogStatus" />
+      <controls:InventoryLabelConverter x:Key="InventoryLabel" />
       <controls:ProductImageConverter x:Key="ProductImage" />
       <controls:TimestampValueConverter x:Key="Timestamp" />
 
@@ -53,6 +54,14 @@
 
       <DataTemplate DataType="{x:Type viewModels:AuditViewModel}">
         <views:AuditView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:PurchasesViewModel}">
+        <views:PurchasesView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:InventoryViewModel}">
+        <views:InventoryView />
       </DataTemplate>
     </ResourceDictionary>
   </Application.Resources>

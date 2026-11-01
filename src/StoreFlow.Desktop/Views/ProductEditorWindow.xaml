@@ -77,24 +77,33 @@
 
           <TextBlock Text="{Binding CategoryLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
           <ComboBox ItemsSource="{Binding Categories}"
-                    SelectedValue="{Binding CategoryId, Mode=TwoWay}"
                     DisplayMemberPath="DisplayName"
                     SelectedValuePath="Id"
-                    AutomationProperties.AutomationId="ProductEditor.Category" />
+                    AutomationProperties.AutomationId="ProductEditor.Category">
+              <ComboBox.SelectedValue>
+                  <Binding Path="CategoryId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
+              </ComboBox.SelectedValue>
+          </ComboBox>
 
           <TextBlock Text="{Binding UnitLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
           <ComboBox ItemsSource="{Binding Units}"
-                    SelectedValue="{Binding UnitId, Mode=TwoWay}"
                     DisplayMemberPath="DisplayName"
                     SelectedValuePath="Id"
-                    AutomationProperties.AutomationId="ProductEditor.Unit" />
+                    AutomationProperties.AutomationId="ProductEditor.Unit">
+              <ComboBox.SelectedValue>
+                  <Binding Path="UnitId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
+              </ComboBox.SelectedValue>
+          </ComboBox>
 
           <TextBlock Text="{Binding TaxCategoryLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
           <ComboBox ItemsSource="{Binding TaxCategories}"
-                    SelectedValue="{Binding TaxCategoryId, Mode=TwoWay}"
                     DisplayMemberPath="DisplayName"
                     SelectedValuePath="Id"
-                    AutomationProperties.AutomationId="ProductEditor.TaxCategory" />
+                    AutomationProperties.AutomationId="ProductEditor.TaxCategory">
+              <ComboBox.SelectedValue>
+                  <Binding Path="TaxCategoryId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
+              </ComboBox.SelectedValue>
+          </ComboBox>
         </StackPanel>
 
         <!-- Right column: what it costs and how it is found -->

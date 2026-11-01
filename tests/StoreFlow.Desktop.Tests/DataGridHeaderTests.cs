@@ -31,6 +31,8 @@ public sealed class DataGridHeaderTests
         "SuppliersView.xaml",
         "AuditView.xaml",
         "CsvImportWindow.xaml",
+        "InventoryView.xaml",
+        "PurchasesView.xaml",
     ];
 
     private sealed class Labels
@@ -173,17 +175,30 @@ public sealed class DataGridHeaderTests
 
             // A binding written straight on the column finds nothing to read: the column is not in
             // the visual tree and inherits no data context.
-            Match straight = Regex.Match(text, @"Header\s*=\s*""\{Binding");
+            Match straight = Regex.Match(text, @"<DataGrid\w*Column[^>]*\sHeader\s*=\s*""\{Binding");
             straight.Success.ShouldBeFalse(
                 $"{name} binds a heading straight on the column, which reads nothing: {straight.Value}");
 
-            // A heading that is a label has to say where it reads from, because the heading of a
-            // column does not inherit the data context of the grid either.
+            // A heading that is a label has to read its words from the table's own context. A
+            // column is not part of the visual tree, so the heading cannot reach the page the way
+            // the rest of the screen does, and WPF hands it a context of its own.
             foreach (Match heading in Regex.Matches(text, @"<DataGrid\w*Column\.Header>.*?</DataGrid\w*Column\.Header>", RegexOptions.Singleline))
             {
-                heading.Value.ShouldContain(
-                    "RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}",
-                    customMessage: $"{name} has a heading that does not say which grid it reads from.");
+                heading.Value.ShouldNotContain(
+                    "DataContext.",
+                    customMessage: $"{name} has a heading that reads the page instead of the table.");
+
+                heading.Value.ShouldNotContain(
+                    "x:Reference",
+                    customMessage: $"{name} has a heading that names the table by reference, which the markup loader cannot resolve without a cycle.");
+
+                heading.Value.ShouldNotContain(
+                    "ElementName=",
+                    customMessage: $"{name} has a heading that names the table by element name, which finds nothing on a tab that is opened later.");
+
+                heading.Value.ShouldNotContain(
+                    "RelativeSource",
+                    customMessage: $"{name} has a heading that walks up to the table, which finds nothing on a tab that is opened later.");
             }
         }
     }

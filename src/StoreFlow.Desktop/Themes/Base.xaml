@@ -11,10 +11,21 @@
 
   <!-- Typography -->
 
+  <!--
+    Text that does not fit the space it is given is shortened with an ellipsis rather than sliced
+    through the middle of a letter. A table cell is the usual case: the column is a fixed width and
+    the value beside it is not, so without this the value would be cut by the next column and the
+    reader would be left guessing what the missing letters were.
+
+    The rule applies to the base style on purpose, so every label, heading and figure in the
+    application behaves the same way. Styles that wrap their text - the caption and everything
+    built on it - are exempt, because a wrapped line is never cut.
+  -->
   <Style x:Key="Type.Body" TargetType="{x:Type TextBlock}">
     <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Ui}" />
     <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
     <Setter Property="Foreground" Value="{DynamicResource Text.Primary}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
     <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
   </Style>
@@ -29,9 +40,16 @@
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
+  <!--
+    Small print. It wraps rather than being cut, because a caption in a table cell or a message
+    under a form is often longer than the room it has, and a half-word is worse than a second
+    line. A heading that wraps takes its column down with it, which is why the heading of a column
+    is allowed to grow to two lines.
+  -->
   <Style x:Key="Type.Caption" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Body}">
     <Setter Property="FontSize" Value="{DynamicResource Font.Size.Small}" />
     <Setter Property="Foreground" Value="{DynamicResource Text.Muted}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
 
   <Style x:Key="Type.SectionLabel" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.Caption}">
@@ -59,10 +77,28 @@
     sits in, so the label of a button on the dark accent is light while a label on the page is ink.
     A style that set the colour here would win over that inheritance and paint every label in the
     application the same shade, whatever it was sitting on.
+
+    The same care is taken over the trimming: text that does not fit is shortened with an ellipsis
+    instead of being sliced, so a value in a table is never cut through by its neighbour.
   -->
   <Style TargetType="{x:Type TextBlock}">
     <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Ui}" />
     <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+    <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+  </Style>
+
+  <!--
+    The text of a table cell. It is the implicit style without a colour of its own, so the cell it
+    sits in still decides how it looks - which matters for a selected row, where the row's own
+    colour has to win. A cell that holds free text adds a tool tip, so the whole value can be read
+    by resting the pointer on it even when the column is too narrow to show it all.
+  -->
+  <Style x:Key="Type.Cell" TargetType="{x:Type TextBlock}">
+    <Setter Property="FontFamily" Value="{DynamicResource Font.Family.Ui}" />
+    <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
     <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
   </Style>

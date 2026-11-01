@@ -7,6 +7,7 @@ using StoreFlow.Application.Authorization;
 using StoreFlow.Application.Catalog;
 using StoreFlow.Application.Common;
 using StoreFlow.Application.Identity;
+using StoreFlow.Application.Inventory;
 using StoreFlow.Application.Reporting;
 using StoreFlow.Application.Scanning;
 using StoreFlow.Application.Security;
@@ -18,6 +19,7 @@ using StoreFlow.Infrastructure;
 using StoreFlow.Infrastructure.Catalog;
 using StoreFlow.Infrastructure.Export;
 using StoreFlow.Infrastructure.Identity;
+using StoreFlow.Infrastructure.Inventory;
 using StoreFlow.Infrastructure.Persistence;
 using StoreFlow.Infrastructure.Reporting;
 using StoreFlow.Infrastructure.Security;
@@ -102,6 +104,31 @@ public static class ServiceRegistration
         services.AddSingleton<IQueryHandler<ListAuditEntriesQuery, Result<IReadOnlyList<AuditEntryView>>>, ListAuditEntriesQueryHandler>();
         services.AddSingleton<IQueryHandler<GetProductAuditQuery, Result<IReadOnlyList<AuditEntryView>>>, GetProductAuditQueryHandler>();
 
+        // The inventory and purchase screens. Authorisation is enforced inside these handlers, so
+        // the interface never decides who may do what (PRD §3).
+        services.AddSingleton<ICommandHandler<SavePurchaseCommand, Result<int>>, SavePurchaseCommandHandler>();
+        services.AddSingleton<ICommandHandler<PostPurchaseCommand, Result<int>>, PostPurchaseCommandHandler>();
+        services.AddSingleton<ICommandHandler<ReversePurchaseCommand, Result<int>>, ReversePurchaseCommandHandler>();
+        services.AddSingleton<ICommandHandler<ExportPurchasesCommand, Result<int>>, ExportPurchasesCommandHandler>();
+        services.AddSingleton<ICommandHandler<RecordOpeningStockCommand, Result<int>>, RecordOpeningStockCommandHandler>();
+        services.AddSingleton<ICommandHandler<PostStockAdjustmentCommand, Result<StockAdjustmentOutcome>>, PostStockAdjustmentCommandHandler>();
+        services.AddSingleton<ICommandHandler<ApproveStockAdjustmentCommand, Result<int>>, ApproveStockAdjustmentCommandHandler>();
+        services.AddSingleton<ICommandHandler<SaveStockCountCommand, Result<int>>, SaveStockCountCommandHandler>();
+        services.AddSingleton<ICommandHandler<SubmitStockCountCommand, Result>, SubmitStockCountCommandHandler>();
+        services.AddSingleton<ICommandHandler<ApproveStockCountCommand, Result>, ApproveStockCountCommandHandler>();
+        services.AddSingleton<ICommandHandler<PostStockCountCommand, Result<int>>, PostStockCountCommandHandler>();
+        services.AddSingleton<ICommandHandler<CancelStockCountCommand, Result>, CancelStockCountCommandHandler>();
+
+        services.AddSingleton<IQueryHandler<ListPurchasesQuery, Result<IReadOnlyList<PurchaseSummary>>>, ListPurchasesQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetPurchaseQuery, Result<PurchaseDetails>>, GetPurchaseQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListStockBalancesQuery, Result<IReadOnlyList<StockBalanceSummary>>>, ListStockBalancesQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListStockMovementsQuery, Result<IReadOnlyList<StockMovementSummary>>>, ListStockMovementsQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListLowStockQuery, Result<IReadOnlyList<LowStockItem>>>, ListLowStockQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetInventoryValuationQuery, Result<InventoryValuation>>, GetInventoryValuationQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListStockCountsQuery, Result<IReadOnlyList<StockCountSummary>>>, ListStockCountsQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetStockCountQuery, Result<StockCountDetails>>, GetStockCountQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetInventoryReferenceDataQuery, Result<InventoryReferenceData>>, GetInventoryReferenceDataQueryHandler>();
+
         services.AddLogging(logging =>
         {
             logging.ClearProviders();
@@ -139,6 +166,15 @@ public static class ServiceRegistration
         services.AddTransient<AuditViewModel>();
         services.AddTransient<ProductEditorViewModel>();
         services.AddTransient<CsvImportViewModel>();
+
+        // The purchase and inventory screens, and the dialogs they open.
+        services.AddSingleton<IInventoryDialogs, InventoryDialogs>();
+        services.AddTransient<PurchasesViewModel>();
+        services.AddTransient<InventoryViewModel>();
+        services.AddTransient<PurchaseEditorViewModel>();
+        services.AddTransient<StockAdjustmentViewModel>();
+        services.AddTransient<OpeningStockViewModel>();
+        services.AddTransient<StockCountViewModel>();
 
         return services;
     }

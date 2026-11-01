@@ -66,6 +66,60 @@
   <data name="Dashboard.Welcome" xml:space="preserve">
     <value>Welcome back</value>
   </data>
+  <data name="Error.InventoryAlreadyPosted" xml:space="preserve">
+    <value>This stock count has already been posted.</value>
+  </data>
+  <data name="Error.InventoryAlreadyReversed" xml:space="preserve">
+    <value>This purchase has already been reversed.</value>
+  </data>
+  <data name="Error.InventoryAlreadyStocked" xml:space="preserve">
+    <value>This product already has stock movements. Use an adjustment instead.</value>
+  </data>
+  <data name="Error.InventoryAwaitingApproval" xml:space="preserve">
+    <value>This stock count is not waiting for approval.</value>
+  </data>
+  <data name="Error.InventoryDiscount" xml:space="preserve">
+    <value>The discount cannot be negative or larger than the document.</value>
+  </data>
+  <data name="Error.InventoryDuplicateProduct" xml:space="preserve">
+    <value>The same product cannot appear twice.</value>
+  </data>
+  <data name="Error.InventoryEmptyCount" xml:space="preserve">
+    <value>Count at least one product first.</value>
+  </data>
+  <data name="Error.InventoryNegativeDamaged" xml:space="preserve">
+    <value>The damaged quantity cannot go below zero.</value>
+  </data>
+  <data name="Error.InventoryNegativeStock" xml:space="preserve">
+    <value>There is not enough stock for this movement.</value>
+  </data>
+  <data name="Error.InventoryNoActor" xml:space="preserve">
+    <value>Sign in to continue.</value>
+  </data>
+  <data name="Error.InventoryNoLines" xml:space="preserve">
+    <value>Add at least one line.</value>
+  </data>
+  <data name="Error.InventoryNotApproved" xml:space="preserve">
+    <value>Only an approved stock count can be posted.</value>
+  </data>
+  <data name="Error.InventoryNotDraft" xml:space="preserve">
+    <value>This document can no longer be edited.</value>
+  </data>
+  <data name="Error.InventoryNotPending" xml:space="preserve">
+    <value>This request has already been decided.</value>
+  </data>
+  <data name="Error.InventoryNotPosted" xml:space="preserve">
+    <value>Only a posted purchase can be reversed.</value>
+  </data>
+  <data name="Error.InventoryQuantity" xml:space="preserve">
+    <value>Enter a valid quantity.</value>
+  </data>
+  <data name="Error.InventoryRequired" xml:space="preserve">
+    <value>This value is required.</value>
+  </data>
+  <data name="Error.InventorySelfApproval" xml:space="preserve">
+    <value>This has to be approved by somebody else.</value>
+  </data>
   <data name="Error.Unexpected" xml:space="preserve">
     <value>Something went wrong. Close this message and try again.</value>
   </data>
@@ -116,6 +170,180 @@
   </data>
   <data name="FirstRun.Title" xml:space="preserve">
     <value>Set up StoreFlow</value>
+  </data>
+  <data name="Inventory.Adjustment" xml:space="preserve">
+    <value>Stock adjustment</value>
+  </data>
+  <data name="Inventory.ApproveCount" xml:space="preserve">
+    <value>Approve</value>
+  </data>
+  <data name="Inventory.AsOfDate" xml:space="preserve">
+    <value>As of date</value>
+  </data>
+  <data name="Inventory.Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Inventory.AverageCost" xml:space="preserve">
+    <value>Average cost</value>
+  </data>
+  <data name="Inventory.BelowReorder" xml:space="preserve">
+    <value>Low</value>
+  </data>
+  <data name="Inventory.CancelCount" xml:space="preserve">
+    <value>Cancel count</value>
+  </data>
+  <data name="Inventory.CountApproved" xml:space="preserve">
+    <value>Stock count {0} approved</value>
+  </data>
+  <data name="Inventory.CountCancelled" xml:space="preserve">
+    <value>Stock count {0} cancelled</value>
+  </data>
+  <data name="Inventory.CountDifference" xml:space="preserve">
+    <value>Difference</value>
+  </data>
+  <data name="Inventory.CountDifferenceValue" xml:space="preserve">
+    <value>Difference value</value>
+  </data>
+  <data name="Inventory.CountLines" xml:space="preserve">
+    <value>Products counted</value>
+  </data>
+  <data name="Inventory.CountNumber" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="Inventory.CountPosted" xml:space="preserve">
+    <value>Stock count {0} posted</value>
+  </data>
+  <data name="Inventory.CountSubmitted" xml:space="preserve">
+    <value>Stock count {0} submitted for approval</value>
+  </data>
+  <data name="Inventory.Counts" xml:space="preserve">
+    <value>Counts</value>
+  </data>
+  <data name="Inventory.Damaged" xml:space="preserve">
+    <value>Damaged</value>
+  </data>
+  <data name="Inventory.Empty" xml:space="preserve">
+    <value>No stock records yet</value>
+  </data>
+  <data name="Inventory.LowStockCount" xml:space="preserve">
+    <value>Low stock</value>
+  </data>
+  <data name="Inventory.Movement.Adjustment" xml:space="preserve">
+    <value>Adjustment</value>
+  </data>
+  <data name="Inventory.Movement.CountCorrection" xml:space="preserve">
+    <value>Count correction</value>
+  </data>
+  <data name="Inventory.Movement.Opening" xml:space="preserve">
+    <value>Opening</value>
+  </data>
+  <data name="Inventory.Movement.PurchaseReceipt" xml:space="preserve">
+    <value>Purchase receipt</value>
+  </data>
+  <data name="Inventory.Movement.ReturnDamaged" xml:space="preserve">
+    <value>Return (damaged)</value>
+  </data>
+  <data name="Inventory.Movement.ReturnRestock" xml:space="preserve">
+    <value>Return (sellable)</value>
+  </data>
+  <data name="Inventory.Movement.Reversal" xml:space="preserve">
+    <value>Reversal</value>
+  </data>
+  <data name="Inventory.Movement.Sale" xml:space="preserve">
+    <value>Sale</value>
+  </data>
+  <data name="Inventory.MovementType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Inventory.Movements" xml:space="preserve">
+    <value>Movements</value>
+  </data>
+  <data name="Inventory.Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Inventory.NameAr" xml:space="preserve">
+    <value>Name (Arabic)</value>
+  </data>
+  <data name="Inventory.NewCount" xml:space="preserve">
+    <value>New stock count</value>
+  </data>
+  <data name="Inventory.NoCounts" xml:space="preserve">
+    <value>No stock counts yet</value>
+  </data>
+  <data name="Inventory.NoMovements" xml:space="preserve">
+    <value>No stock movements yet</value>
+  </data>
+  <data name="Inventory.OnHand" xml:space="preserve">
+    <value>On hand</value>
+  </data>
+  <data name="Inventory.OnlyLowStock" xml:space="preserve">
+    <value>Low stock only</value>
+  </data>
+  <data name="Inventory.OpeningStock" xml:space="preserve">
+    <value>Opening stock</value>
+  </data>
+  <data name="Inventory.PostCount" xml:space="preserve">
+    <value>Post count</value>
+  </data>
+  <data name="Inventory.Posted" xml:space="preserve">
+    <value>Posted</value>
+  </data>
+  <data name="Inventory.ProductCount" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Inventory.QuantityDelta" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="Inventory.Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="Inventory.ReorderLevel" xml:space="preserve">
+    <value>Reorder level</value>
+  </data>
+  <data name="Inventory.RunningBalance" xml:space="preserve">
+    <value>Balance</value>
+  </data>
+  <data name="Inventory.Search" xml:space="preserve">
+    <value>Search product</value>
+  </data>
+  <data name="Inventory.Sku" xml:space="preserve">
+    <value>SKU</value>
+  </data>
+  <data name="Inventory.Status.Approved" xml:space="preserve">
+    <value>Approved</value>
+  </data>
+  <data name="Inventory.Status.AwaitingApproval" xml:space="preserve">
+    <value>Awaiting approval</value>
+  </data>
+  <data name="Inventory.Status.Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Inventory.Status.Draft" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="Inventory.Status.Posted" xml:space="preserve">
+    <value>Posted</value>
+  </data>
+  <data name="Inventory.Status.Reversed" xml:space="preserve">
+    <value>Reversed</value>
+  </data>
+  <data name="Inventory.StockOnHand" xml:space="preserve">
+    <value>Stock on hand</value>
+  </data>
+  <data name="Inventory.StockValue" xml:space="preserve">
+    <value>Stock value</value>
+  </data>
+  <data name="Inventory.TotalQuantity" xml:space="preserve">
+    <value>Total quantity</value>
+  </data>
+  <data name="Inventory.TotalValue" xml:space="preserve">
+    <value>Total value</value>
+  </data>
+  <data name="Inventory.Unit" xml:space="preserve">
+    <value>Unit</value>
+  </data>
+  <data name="Inventory.Valuation" xml:space="preserve">
+    <value>Valuation</value>
   </data>
   <data name="Login.Disabled" xml:space="preserve">
     <value>This account has been deactivated. Ask the owner to reactivate it.</value>
@@ -170,6 +398,168 @@
   </data>
   <data name="Nav.Users" xml:space="preserve">
     <value>Users and roles</value>
+  </data>
+  <data name="OpeningStock.AddLine" xml:space="preserve">
+    <value>Add product</value>
+  </data>
+  <data name="OpeningStock.Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="OpeningStock.Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="OpeningStock.Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="OpeningStock.Quantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="OpeningStock.Submit" xml:space="preserve">
+    <value>Record opening stock</value>
+  </data>
+  <data name="OpeningStock.Title" xml:space="preserve">
+    <value>Opening stock</value>
+  </data>
+  <data name="OpeningStock.UnitCost" xml:space="preserve">
+    <value>Unit cost</value>
+  </data>
+  <data name="PurchaseEditor.AddLine" xml:space="preserve">
+    <value>Add line</value>
+  </data>
+  <data name="PurchaseEditor.Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="PurchaseEditor.Discount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="PurchaseEditor.LineTotal" xml:space="preserve">
+    <value>Line total</value>
+  </data>
+  <data name="PurchaseEditor.NoLines" xml:space="preserve">
+    <value>Add at least one line.</value>
+  </data>
+  <data name="PurchaseEditor.Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="PurchaseEditor.Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="PurchaseEditor.Quantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="PurchaseEditor.RemoveLine" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="PurchaseEditor.Reverse" xml:space="preserve">
+    <value>Reverse</value>
+  </data>
+  <data name="PurchaseEditor.ReverseReason" xml:space="preserve">
+    <value>Reason for the reversal</value>
+  </data>
+  <data name="PurchaseEditor.ReverseTitle" xml:space="preserve">
+    <value>Reverse purchase</value>
+  </data>
+  <data name="PurchaseEditor.SaveAndPost" xml:space="preserve">
+    <value>Save and post</value>
+  </data>
+  <data name="PurchaseEditor.SaveDraft" xml:space="preserve">
+    <value>Save draft</value>
+  </data>
+  <data name="PurchaseEditor.Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="PurchaseEditor.Supplier" xml:space="preserve">
+    <value>Supplier</value>
+  </data>
+  <data name="PurchaseEditor.Tax" xml:space="preserve">
+    <value>Tax</value>
+  </data>
+  <data name="PurchaseEditor.TitleEdit" xml:space="preserve">
+    <value>Edit purchase</value>
+  </data>
+  <data name="PurchaseEditor.TitleNew" xml:space="preserve">
+    <value>New purchase</value>
+  </data>
+  <data name="PurchaseEditor.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="PurchaseEditor.UnitCost" xml:space="preserve">
+    <value>Unit cost</value>
+  </data>
+  <data name="Purchases.AllSuppliers" xml:space="preserve">
+    <value>All suppliers</value>
+  </data>
+  <data name="Purchases.Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Purchases.Discount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Purchases.Empty" xml:space="preserve">
+    <value>No purchases yet</value>
+  </data>
+  <data name="Purchases.Exported" xml:space="preserve">
+    <value>Exported {0} purchase documents</value>
+  </data>
+  <data name="Purchases.From" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="Purchases.Lines" xml:space="preserve">
+    <value>Lines</value>
+  </data>
+  <data name="Purchases.New" xml:space="preserve">
+    <value>New purchase</value>
+  </data>
+  <data name="Purchases.NoMatches" xml:space="preserve">
+    <value>No purchases match this search</value>
+  </data>
+  <data name="Purchases.NoSupplier" xml:space="preserve">
+    <value>Without supplier</value>
+  </data>
+  <data name="Purchases.Number" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="Purchases.Post" xml:space="preserve">
+    <value>Post</value>
+  </data>
+  <data name="Purchases.Posted" xml:space="preserve">
+    <value>Purchase {0} posted</value>
+  </data>
+  <data name="Purchases.Quantity" xml:space="preserve">
+    <value>Total quantity</value>
+  </data>
+  <data name="Purchases.Reverse" xml:space="preserve">
+    <value>Reverse</value>
+  </data>
+  <data name="Purchases.Reversed" xml:space="preserve">
+    <value>Purchase {0} reversed</value>
+  </data>
+  <data name="Purchases.Reverses" xml:space="preserve">
+    <value>Reverses</value>
+  </data>
+  <data name="Purchases.Search" xml:space="preserve">
+    <value>Search number or supplier</value>
+  </data>
+  <data name="Purchases.Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Purchases.Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Purchases.Supplier" xml:space="preserve">
+    <value>Supplier</value>
+  </data>
+  <data name="Purchases.Tax" xml:space="preserve">
+    <value>Tax</value>
+  </data>
+  <data name="Purchases.Title" xml:space="preserve">
+    <value>Purchases</value>
+  </data>
+  <data name="Purchases.To" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="Purchases.Total" xml:space="preserve">
+    <value>Total</value>
   </data>
   <data name="Session.Lock" xml:space="preserve">
     <value>Lock</value>
@@ -509,6 +899,72 @@
   </data>
   <data name="Products.Unit" xml:space="preserve">
     <value>Unit</value>
+  </data>
+  <data name="StockAdjustment.Damaged" xml:space="preserve">
+    <value>Damaged</value>
+  </data>
+  <data name="StockAdjustment.Disposition" xml:space="preserve">
+    <value>Stock bucket</value>
+  </data>
+  <data name="StockAdjustment.Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="StockAdjustment.Quantity" xml:space="preserve">
+    <value>Quantity change</value>
+  </data>
+  <data name="StockAdjustment.Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="StockAdjustment.RequiresApproval" xml:space="preserve">
+    <value>This adjustment is large, so a second approver has to sign it off.</value>
+  </data>
+  <data name="StockAdjustment.Sellable" xml:space="preserve">
+    <value>Sellable</value>
+  </data>
+  <data name="StockAdjustment.Title" xml:space="preserve">
+    <value>Stock adjustment</value>
+  </data>
+  <data name="StockAdjustment.UnitCost" xml:space="preserve">
+    <value>Unit cost</value>
+  </data>
+  <data name="StockCount.AddLine" xml:space="preserve">
+    <value>Add product</value>
+  </data>
+  <data name="StockCount.ApproveReason" xml:space="preserve">
+    <value>Reason for the adjustment</value>
+  </data>
+  <data name="StockCount.ApproveTitle" xml:space="preserve">
+    <value>Approve stock count</value>
+  </data>
+  <data name="StockCount.Counted" xml:space="preserve">
+    <value>Counted</value>
+  </data>
+  <data name="StockCount.Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="StockCount.Difference" xml:space="preserve">
+    <value>Difference</value>
+  </data>
+  <data name="StockCount.Empty" xml:space="preserve">
+    <value>Count at least one product.</value>
+  </data>
+  <data name="StockCount.Expected" xml:space="preserve">
+    <value>Book quantity</value>
+  </data>
+  <data name="StockCount.Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="StockCount.Save" xml:space="preserve">
+    <value>Save count</value>
+  </data>
+  <data name="StockCount.Submit" xml:space="preserve">
+    <value>Submit for approval</value>
+  </data>
+  <data name="StockCount.Title" xml:space="preserve">
+    <value>Stock count</value>
+  </data>
+  <data name="StockCount.Value" xml:space="preserve">
+    <value>Value</value>
   </data>
   <data name="Suppliers.Empty" xml:space="preserve">
     <value>No suppliers yet. Add one to record what you buy.</value>

@@ -1,0 +1,113 @@
+<Window x:Class="StoreFlow.Desktop.Views.StockAdjustmentWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}"
+        Width="560"
+        Height="500"
+        MinWidth="500"
+        MinHeight="440"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        AutomationProperties.AutomationId="StockAdjustmentWindow"
+        Background="{DynamicResource Surface.Canvas}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,0,0,1"
+            Padding="24,16">
+      <TextBlock Text="{Binding Title}" Style="{StaticResource Type.Title}" />
+    </Border>
+
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,18,24,0">
+      <StackPanel>
+        <TextBlock Text="{Binding ProductLabel}" Style="{StaticResource Type.FieldLabel}" />
+        <ComboBox ItemsSource="{Binding Products}"
+                  DisplayMemberPath="DisplayName"
+                  SelectedValuePath="Id"
+                  AutomationProperties.AutomationId="StockAdjustment.Product">
+            <ComboBox.SelectedValue>
+                <Binding Path="ProductId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
+            </ComboBox.SelectedValue>
+        </ComboBox>
+
+        <TextBlock Text="{Binding QuantityLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,16,0,0" />
+        <TextBox Text="{Binding QuantityText, UpdateSourceTrigger=PropertyChanged}"
+                 FlowDirection="LeftToRight"
+                 TextAlignment="Left"
+                 AutomationProperties.AutomationId="StockAdjustment.Quantity" />
+
+        <TextBlock Text="{Binding UnitCostLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,16,0,0" />
+        <TextBox Text="{Binding UnitCostText, UpdateSourceTrigger=PropertyChanged}"
+                 FlowDirection="LeftToRight"
+                 TextAlignment="Left"
+                 AutomationProperties.AutomationId="StockAdjustment.UnitCost" />
+
+        <TextBlock Text="{Binding DispositionLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,16,0,0" />
+        <StackPanel Orientation="Horizontal">
+          <RadioButton Content="{Binding SellableText}"
+                       IsChecked="{Binding Damaged, Converter={StaticResource InverseBoolean}, Mode=TwoWay}"
+                       AutomationProperties.AutomationId="StockAdjustment.Sellable" />
+          <RadioButton Content="{Binding DamagedText}"
+                       IsChecked="{Binding Damaged, Mode=TwoWay}"
+                       Margin="16,0,0,0"
+                       AutomationProperties.AutomationId="StockAdjustment.Damaged" />
+        </StackPanel>
+
+        <TextBlock Text="{Binding ReasonLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,16,0,0" />
+        <TextBox Text="{Binding Reason, UpdateSourceTrigger=PropertyChanged}"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 Height="72"
+                 VerticalScrollBarVisibility="Auto"
+                 AutomationProperties.AutomationId="StockAdjustment.Reason" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,1,0,0"
+            Padding="24,12"
+            Margin="0,16,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0"
+                   Text="{Binding StatusMessage}"
+                   Style="{StaticResource Type.Error}"
+                   AutomationProperties.AutomationId="StockAdjustment.Status"
+                   VerticalAlignment="Center"
+                   Margin="0,0,12,0"
+                   TextWrapping="Wrap"
+                   Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
+
+        <Button Grid.Column="1"
+                Content="{Binding CancelText}"
+                Command="{Binding CancelCommand}"
+                Style="{StaticResource Button.Ghost}"
+                Margin="0,0,8,0"
+                AutomationProperties.AutomationId="StockAdjustment.Cancel" />
+
+        <Button Grid.Column="2"
+                Content="{Binding SubmitText}"
+                Command="{Binding SubmitCommand}"
+                Style="{StaticResource Button.Primary}"
+                AutomationProperties.AutomationId="StockAdjustment.Submit" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>
