@@ -96,10 +96,15 @@
 
     <!-- The register beside the detail of what is picked -->
     <Grid Grid.Row="1">
+      <!--
+        The register carries eight columns, and a document number that is cut through is a number
+        the owner cannot read back. The register therefore takes the larger share of the screen,
+        and the detail beside it takes what it needs to show the money and the lines.
+      -->
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="1.15*" MinWidth="420" />
+        <ColumnDefinition Width="2*" MinWidth="560" />
         <ColumnDefinition Width="Auto" />
-        <ColumnDefinition Width="1*" MinWidth="380" />
+        <ColumnDefinition Width="1*" MinWidth="320" />
       </Grid.ColumnDefinitions>
 
       <DataGrid x:Name="SalesRegister"
@@ -108,9 +113,11 @@
                 ItemsSource="{Binding Documents}"
                 SelectedItem="{Binding SelectedDocument, Mode=TwoWay}"
                 EnableColumnVirtualization="False"
+                CellStyle="{StaticResource DataGrid.Cell.Tight}"
+                ColumnHeaderStyle="{StaticResource DataGrid.Header.Tight}"
                 Margin="0,12,12,0">
         <DataGrid.Columns>
-          <DataGridTextColumn Width="135">
+          <DataGridTextColumn Width="104">
             <DataGridTextColumn.Header>
               <TextBlock Text="{Binding NumberHeader}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
@@ -122,7 +129,7 @@
             </DataGridTextColumn.Binding>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Width="95">
+          <DataGridTextColumn Width="68">
             <DataGridTextColumn.Header>
               <TextBlock Text="{Binding KindHeader}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTextColumn.Header>
@@ -134,7 +141,7 @@
             </DataGridTextColumn.Binding>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Width="105">
+          <DataGridTextColumn Width="80">
             <DataGridTextColumn.Header>
               <TextBlock Text="{Binding DateHeader}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
@@ -146,7 +153,7 @@
             </DataGridTextColumn.Binding>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Width="1.4*" MinWidth="120">
+          <DataGridTextColumn Width="1*" MinWidth="70">
             <DataGridTextColumn.Header>
               <TextBlock Text="{Binding CashierHeader}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTextColumn.Header>
@@ -158,7 +165,7 @@
             </DataGridTextColumn.Binding>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Width="70">
+          <DataGridTextColumn Width="60">
             <DataGridTextColumn.Header>
               <TextBlock Text="{Binding LinesHeader}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTextColumn.Header>
@@ -170,7 +177,7 @@
             </DataGridTextColumn.Binding>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Width="125">
+          <DataGridTextColumn Width="90">
             <DataGridTextColumn.Header>
               <TextBlock Text="{Binding TotalHeader}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
@@ -182,7 +189,7 @@
             </DataGridTextColumn.Binding>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Width="125">
+          <DataGridTextColumn Width="90">
             <DataGridTextColumn.Header>
               <TextBlock Text="{Binding ReturnedHeader}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
@@ -194,7 +201,7 @@
             </DataGridTextColumn.Binding>
           </DataGridTextColumn>
 
-          <DataGridTextColumn Width="135">
+          <DataGridTextColumn Width="100">
             <DataGridTextColumn.Header>
               <TextBlock Text="{Binding RelatedHeader}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTextColumn.Header>
@@ -242,13 +249,11 @@
       <Border Grid.Column="2"
               Style="{StaticResource Surface.Panel}"
               Margin="12,12,0,0"
-              Padding="18,16"
-              AutomationProperties.AutomationId="SalesDetail">
+              Padding="18,16">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
 
           <!-- The document itself -->
@@ -257,7 +262,9 @@
 
             <!-- An invoice or a reversal -->
             <StackPanel Visibility="{Binding HasInvoice, Converter={StaticResource BooleanToVisibility}}" Margin="0,10,0,0">
-              <TextBlock Style="{StaticResource Type.Title}" Text="{Binding SelectedInvoice.Number}" />
+              <TextBlock Style="{StaticResource Type.Title}"
+                         Text="{Binding SelectedInvoice.Number}"
+                         AutomationProperties.AutomationId="SalesDetailInvoiceNumber" />
               <TextBlock Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}">
                 <Run Text="{Binding DetailDateLabel, Mode=OneWay}" />
                 <Run Text=" " />
@@ -279,7 +286,9 @@
 
             <!-- A return -->
             <StackPanel Visibility="{Binding HasReturn, Converter={StaticResource BooleanToVisibility}}" Margin="0,10,0,0">
-              <TextBlock Style="{StaticResource Type.Title}" Text="{Binding SelectedReturn.Number}" />
+              <TextBlock Style="{StaticResource Type.Title}"
+                         Text="{Binding SelectedReturn.Number}"
+                         AutomationProperties.AutomationId="SalesDetailReturnNumber" />
               <TextBlock Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}">
                 <Run Text="{Binding DetailDateLabel, Mode=OneWay}" />
                 <Run Text=" " />
@@ -303,74 +312,88 @@
             </StackPanel>
           </StackPanel>
 
-          <!-- The money of the invoice -->
-          <Grid Grid.Row="1" Margin="0,14,0,0">
-            <StackPanel Visibility="{Binding HasInvoice, Converter={StaticResource BooleanToVisibility}}">
-              <TextBlock Text="{Binding DetailSubtotalLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
-              <TextBlock Text="{Binding SelectedInvoice.Subtotal, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+          <!--
+            The money and the lines of the document scroll inside the panel, so that a short
+            window never cuts the document off.
+          -->
+          <ScrollViewer Grid.Row="1"
+                        Margin="0,14,0,0"
+                        VerticalScrollBarVisibility="Auto"
+                        HorizontalScrollBarVisibility="Disabled"
+                        AutomationProperties.AutomationId="SalesDetail">
+            <StackPanel>
+              <!-- The money of the invoice -->
+              <Grid>
+                <StackPanel Visibility="{Binding HasInvoice, Converter={StaticResource BooleanToVisibility}}">
+                  <TextBlock Text="{Binding DetailSubtotalLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
+                  <TextBlock Text="{Binding SelectedInvoice.Subtotal, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
 
-              <TextBlock Text="{Binding DetailDiscountLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
-              <TextBlock Text="{Binding SelectedInvoice.Discount, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+                  <TextBlock Text="{Binding DetailDiscountLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
+                  <TextBlock Text="{Binding SelectedInvoice.Discount, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
 
-              <TextBlock Text="{Binding DetailTaxLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
-              <TextBlock Text="{Binding SelectedInvoice.Tax, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+                  <TextBlock Text="{Binding DetailTaxLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
+                  <TextBlock Text="{Binding SelectedInvoice.Tax, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
 
-              <TextBlock Text="{Binding DetailTotalLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
-              <TextBlock Text="{Binding SelectedInvoice.Total, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+                  <TextBlock Text="{Binding DetailTotalLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
+                  <TextBlock Text="{Binding SelectedInvoice.Total, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
 
-              <TextBlock Text="{Binding DetailPaidLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
-              <TextBlock Text="{Binding SelectedInvoice.Paid, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+                  <TextBlock Text="{Binding DetailPaidLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
+                  <TextBlock Text="{Binding SelectedInvoice.Paid, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
 
-              <TextBlock Text="{Binding DetailReturnedLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
-              <TextBlock Text="{Binding SelectedInvoice.ReturnedAmount, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+                  <TextBlock Text="{Binding DetailReturnedLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" Margin="0,8,0,0" />
+                  <TextBlock Text="{Binding SelectedInvoice.ReturnedAmount, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+                </StackPanel>
+
+                <StackPanel Visibility="{Binding HasReturn, Converter={StaticResource BooleanToVisibility}}">
+                  <TextBlock Text="{Binding DetailTotalLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
+                  <TextBlock Text="{Binding SelectedReturn.RefundTotal, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+                </StackPanel>
+              </Grid>
+
+              <!-- The lines of the document -->
+              <StackPanel Margin="0,14,0,0">
+                <TextBlock Text="{Binding DetailLinesLabel}" Style="{StaticResource Type.SectionLabel}" />
+                <DataGrid ItemsSource="{Binding DetailLines}"
+                          EnableColumnVirtualization="False"
+                          IsReadOnly="True"
+                          CellStyle="{StaticResource DataGrid.Cell.Tight}"
+                          ColumnHeaderStyle="{StaticResource DataGrid.Header.Tight}"
+                          MaxHeight="220">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Width="1.6*" Binding="{Binding Product}" />
+                    <DataGridTextColumn Width="60" Binding="{Binding Quantity}" ElementStyle="{StaticResource Type.Numeric}" />
+                    <DataGridTextColumn Width="100" Binding="{Binding Total, Converter={StaticResource Money}}" ElementStyle="{StaticResource Type.Numeric}" />
+                  </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- The returns recorded against the invoice -->
+                <StackPanel Visibility="{Binding HasInvoice, Converter={StaticResource BooleanToVisibility}}" Margin="0,12,0,0">
+                  <TextBlock Text="{Binding DetailReturnsLabel}" Style="{StaticResource Type.SectionLabel}" />
+                  <ItemsControl ItemsSource="{Binding DetailReturns}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid Margin="0,2,0,2">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="135" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="Auto" />
+                          </Grid.ColumnDefinitions>
+
+                          <TextBlock Grid.Column="0" Text="{Binding Number}" Style="{StaticResource Type.LeftToRight}" />
+                          <TextBlock Grid.Column="1" Text="{Binding Reason}" Style="{StaticResource Type.Cell}" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="2" Text="{Binding Refund, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </StackPanel>
             </StackPanel>
-
-            <StackPanel Visibility="{Binding HasReturn, Converter={StaticResource BooleanToVisibility}}">
-              <TextBlock Text="{Binding DetailTotalLabel}" Style="{StaticResource Type.Caption}" Foreground="{DynamicResource Text.Muted}" />
-              <TextBlock Text="{Binding SelectedReturn.RefundTotal, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
-            </StackPanel>
-          </Grid>
-
-          <!-- The lines of the document -->
-          <StackPanel Grid.Row="2" Margin="0,14,0,0">
-            <TextBlock Text="{Binding DetailLinesLabel}" Style="{StaticResource Type.SectionLabel}" />
-            <DataGrid ItemsSource="{Binding DetailLines}"
-                      EnableColumnVirtualization="False"
-                      IsReadOnly="True"
-                      MaxHeight="220">
-              <DataGrid.Columns>
-                <DataGridTextColumn Width="1.6*" Binding="{Binding Product}" />
-                <DataGridTextColumn Width="80" Binding="{Binding Quantity}" ElementStyle="{StaticResource Type.Numeric}" />
-                <DataGridTextColumn Width="120" Binding="{Binding Total, Converter={StaticResource Money}}" ElementStyle="{StaticResource Type.Numeric}" />
-              </DataGrid.Columns>
-            </DataGrid>
-
-            <!-- The returns recorded against the invoice -->
-            <StackPanel Visibility="{Binding HasInvoice, Converter={StaticResource BooleanToVisibility}}" Margin="0,12,0,0">
-              <TextBlock Text="{Binding DetailReturnsLabel}" Style="{StaticResource Type.SectionLabel}" />
-              <ItemsControl ItemsSource="{Binding DetailReturns}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <Grid Margin="0,2,0,2">
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="135" />
-                        <ColumnDefinition Width="1*" />
-                        <ColumnDefinition Width="Auto" />
-                      </Grid.ColumnDefinitions>
-
-                      <TextBlock Grid.Column="0" Text="{Binding Number}" Style="{StaticResource Type.LeftToRight}" />
-                      <TextBlock Grid.Column="1" Text="{Binding Reason}" Style="{StaticResource Type.Cell}" TextTrimming="CharacterEllipsis" />
-                      <TextBlock Grid.Column="2" Text="{Binding Refund, Converter={StaticResource Money}}" Style="{StaticResource Type.Numeric}" />
-                    </Grid>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </StackPanel>
-          </StackPanel>
+          </ScrollViewer>
 
           <!-- Nothing has been picked -->
           <TextBlock Grid.Row="0"
-                     Grid.RowSpan="3"
+                     Grid.RowSpan="2"
                      Text="{Binding SelectDocumentText}"
                      Style="{StaticResource Type.Body}"
                      Foreground="{DynamicResource Text.Muted}"

@@ -232,7 +232,15 @@ public sealed partial class ReturnDialogViewModel : ObservableObject
 /// <summary>One way the money can go back.</summary>
 /// <param name="Method">The way it goes back.</param>
 /// <param name="DisplayName">The name of the way, in the running language.</param>
-public sealed record PaymentMethodOption(PaymentMethod Method, string DisplayName);
+public sealed record PaymentMethodOption(PaymentMethod Method, string DisplayName)
+{
+    /// <summary>
+    /// Writes the name of the way. The select shows the text of the record, so it must not show
+    /// the record's generated <c>ToString</c>, which reads as
+    /// <c>PaymentMethodOption { Method = Cash, DisplayName = ... }</c> instead of the name.
+    /// </summary>
+    public override string ToString() => DisplayName;
+}
 
 /// <summary>
 /// One line of the invoice, as the operator changes it: how many are coming back and whether they

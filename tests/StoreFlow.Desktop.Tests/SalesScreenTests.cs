@@ -33,6 +33,7 @@ public sealed class SalesScreenTests
             SalesErrorCodes.ReasonRequired,
             SalesErrorCodes.NothingToReturn,
             SalesErrorCodes.ReversalNotAllowed,
+            SalesErrorCodes.NothingToReverse,
             SalesErrorCodes.RefundTooLarge,
             SalesErrorCodes.StockNotRestored,
         ];
@@ -130,7 +131,8 @@ public sealed class SalesScreenTests
         foreach (string id in new[]
         {
             "SalesView", "SalesSearch", "SalesFrom", "SalesTo", "SalesCashier", "SalesRefresh",
-            "SalesRegister", "SalesDetail", "SalesStatus", "SalesReturn", "SalesReverse",
+            "SalesRegister", "SalesDetail", "SalesDetailInvoiceNumber", "SalesDetailReturnNumber",
+            "SalesStatus", "SalesReturn", "SalesReverse",
         })
         {
             view.ShouldContain($"AutomationProperties.AutomationId=\"{id}\"");

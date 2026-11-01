@@ -44,6 +44,19 @@ public sealed class TableLayoutTests
     }
 
     [Fact]
+    public void A_table_that_carries_a_lot_of_columns_keeps_its_margin()
+    {
+        // The register carries eight columns, and it needs a narrower margin to fit them. The
+        // margin is still there, and the heading still stands over the values it names.
+        Style cell = NamedStyle("DataGrid.Cell.Tight");
+        Style heading = NamedStyle("DataGrid.Header.Tight");
+
+        PaddingOf(cell).Left.ShouldBeGreaterThan(0d);
+        PaddingOf(cell).Right.ShouldBeGreaterThan(0d);
+        PaddingOf(cell).Left.ShouldBe(PaddingOf(heading).Left);
+    }
+
+    [Fact]
     public void Text_that_does_not_fit_is_shortened_rather_than_cut()
     {
         bool shortens = SetterValue(NamedStyle("Type.Body"), TextBlock.TextTrimmingProperty)
@@ -130,7 +143,17 @@ public sealed class TableLayoutTests
 
     private static Thickness PaddingOf(Style style)
     {
-        return SetterValue(style, Control.PaddingProperty) is Thickness thickness ? thickness : default;
+        // A style may take its padding from the style it is built on, so the chain is followed
+        // until the padding is found.
+        for (Style? current = style; current is not null; current = current.BasedOn)
+        {
+            if (SetterValue(current, Control.PaddingProperty) is Thickness thickness)
+            {
+                return thickness;
+            }
+        }
+
+        return default;
     }
 
     private static Thickness BorderOf(Style style)
