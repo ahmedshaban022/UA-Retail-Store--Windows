@@ -50,6 +50,11 @@ public partial class PosView : UserControl
     /// Handles a key in the scan field. Enter finishes the scan; everything else is left to the
     /// text box, because a barcode scanner types the code and then presses Enter.
     /// </summary>
+    /// <remarks>
+    /// The scan is handed to the till whatever the till is busy with. A scanner that fires again
+    /// while the previous code is still being looked up has to be answered, and the till queues the
+    /// codes so that none of them is lost.
+    /// </remarks>
     private void OnScanKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter)
@@ -59,7 +64,7 @@ public partial class PosView : UserControl
 
         e.Handled = true;
 
-        if (DataContext is PosViewModel viewModel && viewModel.ScanCommand.CanExecute(null))
+        if (DataContext is PosViewModel viewModel)
         {
             viewModel.ScanCommand.Execute(null);
         }

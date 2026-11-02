@@ -353,21 +353,120 @@ public sealed class PosScreenTests
     }
 
     /// <summary>
+    /// A scan that arrives while another one is still being looked up must not be thrown away.
+    /// </summary>
+    /// <remarks>
+    /// A scanner fires again as soon as the next item passes the reader, and a lookup takes as long
+    /// as the database takes. If the till drops the second scan, the customer's item is missing
+    /// from the bill and nobody is told.
+    /// </remarks>
+    [Fact]
+    public void A_scan_that_arrives_while_another_is_being_looked_up_is_not_lost()
+    {
+        var gate = new TaskCompletionSource();
+
+        PosProductFacts product = Product();
+
+        RunTill(
+            till =>
+            {
+                PosViewModel viewModel = till.ViewModel;
+
+                // The first scan goes in and the till goes off to look it up.
+                viewModel.ScanText = "6221000000017";
+                viewModel.ScanCommand.Execute(null);
+
+                // The till is still looking the first scan up. The screen asks the command whether
+                // it may run before it runs it, and a command that says no here is a scan the
+                // cashier's scanner has fired and the till has thrown away.
+                viewModel.ScanCommand.CanExecute(null).ShouldBeTrue();
+
+                // The second scan arrives while the first one is still being looked up.
+                viewModel.ScanText = "6221000000017";
+                viewModel.ScanCommand.Execute(null);
+
+                gate.SetResult();
+
+                WaitForCart(viewModel, 2);
+
+                // Both scans reached the cart, and the cart holds two of the product.
+                viewModel.Lines.ShouldHaveSingleItem();
+                viewModel.Lines[0].Quantity.ShouldBe(2m);
+            },
+            product,
+            lookupGate: gate.Task);
+    }
+
+    /// <summary>
+    /// The scan field is emptied the moment the code is taken, not when the lookup is finished.
+    /// </summary>
+    /// <remarks>
+    /// A keyboard-wedge scanner types the next code into the field as soon as the item passes the
+    /// reader. If the field still held the previous code, the two codes would arrive joined
+    /// together and the till would not recognise either of them.
+    /// </remarks>
+    [Fact]
+    public void The_scan_field_is_emptied_the_moment_the_code_is_taken()
+    {
+        var gate = new TaskCompletionSource();
+
+        PosProductFacts product = Product();
+
+        RunTill(
+            till =>
+            {
+                PosViewModel viewModel = till.ViewModel;
+
+                viewModel.ScanText = "6221000000017";
+                viewModel.ScanCommand.Execute(null);
+
+                // The lookup has not finished yet, and the field is already empty.
+                viewModel.ScanText.ShouldBe(string.Empty);
+
+                gate.SetResult();
+            },
+            product,
+            lookupGate: gate.Task);
+    }
+
+    /// <summary>Waits for the cart to hold the number of units the till expects.</summary>
+    /// <param name="viewModel">The till.</param>
+    /// <param name="units">How many units the cart should hold.</param>
+    private static void WaitForCart(PosViewModel viewModel, decimal units)
+    {
+        DateTimeOffset deadline = DateTimeOffset.UtcNow.AddSeconds(10);
+
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            if (viewModel.Lines.Sum(line => line.Quantity) >= units)
+            {
+                return;
+            }
+
+            Thread.Sleep(20);
+        }
+
+        viewModel.Lines.ShouldNotBeEmpty();
+    }
+
+    /// <summary>
     /// Runs a scenario on a till, on a thread WPF is happy with and in the language of the screen.
     /// </summary>
     /// <param name="scenario">What the cashier does at the till.</param>
     /// <param name="product">The product the catalogue knows, when the scenario needs one.</param>
     /// <param name="postedSale">The sale the till posts, when the scenario confirms one.</param>
     /// <param name="culture">The culture of the screen, when it is not the usual one.</param>
+    /// <param name="lookupGate">The gate the product reader waits at, when the scenario needs one.</param>
     private static void RunTill(
         Action<TestTill> scenario,
         PosProductFacts? product = null,
         SaleReceipt? postedSale = null,
-        CultureInfo? culture = null)
+        CultureInfo? culture = null,
+        Task? lookupGate = null)
     {
         TestHost.RunOnStaThread(() =>
         {
-            var till = new TestTill(product, postedSale);
+            var till = new TestTill(product, postedSale, lookupGate);
 
             // The application runs in Arabic, whose decimal separator is not a dot, so the test
             // pins the language of the screen it means to be in.
@@ -553,7 +652,7 @@ public sealed class PosScreenTests
     /// <summary>A till, with the fakes behind it.</summary>
     private sealed class TestTill
     {
-        public TestTill(PosProductFacts? product, SaleReceipt? postedSale)
+        public TestTill(PosProductFacts? product, SaleReceipt? postedSale, Task? lookupGate = null)
         {
             Language = new LanguageService();
             Language.SetLanguage("en");
@@ -566,7 +665,7 @@ public sealed class PosScreenTests
                 : new[] { product };
 
             ViewModel = new PosViewModel(
-                new FakeLookupHandler(product),
+                lookupGate is null ? new FakeLookupHandler(product) : new GatedLookupHandler(product, lookupGate),
                 new FakeSearchHandler(products),
                 new FakeHeldCartsHandler(),
                 PostSale,
@@ -601,6 +700,27 @@ public sealed class PosScreenTests
                     PosErrorCodes.ProductNotFound,
                     "That product is not in the catalogue.")
                 : Result<PosProductFacts>.Success(product));
+    }
+
+    /// <summary>
+    /// A product reader that waits at a gate before it answers, so that a scan can be made to
+    /// arrive while another one is still being looked up.
+    /// </summary>
+    private sealed class GatedLookupHandler(PosProductFacts? product, Task gate)
+        : IQueryHandler<LookupProductByBarcodeQuery, Result<PosProductFacts>>
+    {
+        public async Task<Result<PosProductFacts>> HandleAsync(
+            LookupProductByBarcodeQuery query,
+            CancellationToken cancellationToken)
+        {
+            await gate;
+
+            return product is null
+                ? Result<PosProductFacts>.Failure(
+                    PosErrorCodes.ProductNotFound,
+                    "That product is not in the catalogue.")
+                : Result<PosProductFacts>.Success(product);
+        }
     }
 
     /// <summary>The products a search finds.</summary>

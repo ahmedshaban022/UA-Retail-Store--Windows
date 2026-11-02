@@ -224,6 +224,69 @@ public sealed class ApprovalTests : IAsyncLifetime
         second.Value.Id.ShouldBe(first.Value.Id);
     }
 
+    [Fact]
+    public async Task The_manager_sees_the_requests_that_are_waiting_for_a_decision()
+    {
+        // The manager opens the approvals screen and it must not fall over. Listing the requests is
+        // a query the database has to answer, and a query the database cannot answer takes the
+        // application down with it — so the list is read against a real database here, not mocked.
+        int productId = await CreateProductAsync("APP-007", 100m);
+        await PostPurchaseAsync(productId, 10m, 50m);
+
+        IReadOnlyList<SaleLineInput> lines = [new SaleLineInput(productId, 3m, new Money(100m), DiscountSpec.None)];
+
+        Result<ApprovalRequestSummary> asked = await RequestApprovalAsync(lines, DiscountSpec.Percentage(25m));
+
+        asked.IsFailure.ShouldBeFalse(asked.Error.Message);
+
+        Result<IReadOnlyList<ApprovalRequestSummary>> listed = await ListAsync(ApprovalStatus.Pending);
+
+        listed.IsFailure.ShouldBeFalse(listed.Error.Message);
+        listed.Value.Count.ShouldBe(1);
+        listed.Value[0].Id.ShouldBe(asked.Value.Id);
+        listed.Value[0].RequestedByUserId.ShouldBe(_cashierSession.UserId);
+
+        // The list of the decided requests holds nothing, because the request is still waiting.
+        Result<IReadOnlyList<ApprovalRequestSummary>> decided = await ListAsync(ApprovalStatus.Approved);
+
+        decided.IsFailure.ShouldBeFalse(decided.Error.Message);
+        decided.Value.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task The_requests_are_listed_newest_first()
+    {
+        // Two requests, and the one that was asked for last is the one that is read first.
+        int productId = await CreateProductAsync("APP-008", 100m);
+        await PostPurchaseAsync(productId, 10m, 50m);
+
+        IReadOnlyList<SaleLineInput> lines = [new SaleLineInput(productId, 3m, new Money(100m), DiscountSpec.None)];
+
+        Result<ApprovalRequestSummary> first = await RequestApprovalAsync(lines, DiscountSpec.Percentage(25m));
+
+        // A different cart, so that the second request is a second request and not the same one.
+        Result<ApprovalRequestSummary> second = await RequestApprovalAsync(
+            [new SaleLineInput(productId, 2m, new Money(100m), DiscountSpec.None)], DiscountSpec.Percentage(30m));
+
+        first.IsFailure.ShouldBeFalse(first.Error.Message);
+        second.IsFailure.ShouldBeFalse(second.Error.Message);
+
+        Result<IReadOnlyList<ApprovalRequestSummary>> listed = await ListAsync(ApprovalStatus.Pending);
+
+        listed.IsFailure.ShouldBeFalse(listed.Error.Message);
+        listed.Value.Count.ShouldBe(2);
+        listed.Value[0].Id.ShouldBe(second.Value.Id);
+        listed.Value[1].Id.ShouldBe(first.Value.Id);
+    }
+
+    /// <summary>Lists the requests, as the manager.</summary>
+    /// <param name="status">The status to narrow the list to.</param>
+    private async Task<Result<IReadOnlyList<ApprovalRequestSummary>>> ListAsync(ApprovalStatus? status) =>
+        await new ListApprovalRequestsQueryHandler(
+            _fixture.Factory,
+            _managerAuthorization)
+            .HandleAsync(new ListApprovalRequestsQuery(status), CancellationToken.None);
+
     /// <summary>Asks for the discount to be approved.</summary>
     /// <param name="lines">The lines of the cart.</param>
     /// <param name="invoiceDiscount">The discount on the whole sale.</param>

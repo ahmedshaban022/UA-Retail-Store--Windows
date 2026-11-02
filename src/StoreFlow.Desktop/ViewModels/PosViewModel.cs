@@ -52,6 +52,21 @@ public sealed partial class PosViewModel : ObservableObject
     private bool _issueOnScreen;
 
     /// <summary>
+    /// The codes that have been scanned and are still waiting to be looked up, in the order they
+    /// were scanned.
+    /// </summary>
+    /// <remarks>
+    /// A scanner fires again as soon as the next item passes the reader, and a lookup takes as long
+    /// as the database takes. The codes are therefore queued rather than looked up one at a time
+    /// with the rest thrown away: a scan that arrives while another one is being looked up has to
+    /// reach the cart, and it has to reach it in the order it was scanned.
+    /// </remarks>
+    private readonly Queue<string> _pendingScans = new();
+
+    /// <summary>True while a scan is being looked up.</summary>
+    private bool _scanInFlight;
+
+    /// <summary>
     /// The log the till writes to. The time a scan takes is written there, because a shopkeeper
     /// wants to know that the till keeps up, and the number has to come from the till itself.
     /// </summary>
@@ -325,8 +340,14 @@ public sealed partial class PosViewModel : ObservableObject
     /// Handles the scan field being finished with. A code that names a product is a scan; anything
     /// else is a search.
     /// </summary>
+    /// <remarks>
+    /// The command takes the code and clears the field straight away, and the lookup happens
+    /// afterwards. The code is taken at the moment the scanner finished, and the field is emptied
+    /// at that same moment, because a scanner that fires again while the first code is still being
+    /// looked up has to find its own code waiting in the field rather than an empty one.
+    /// </remarks>
     [RelayCommand]
-    private async Task ScanAsync()
+    private void Scan()
     {
         string text = ScanText.Trim();
 
@@ -335,6 +356,53 @@ public sealed partial class PosViewModel : ObservableObject
             return;
         }
 
+        ScanText = string.Empty;
+
+        _pendingScans.Enqueue(text);
+
+        if (!_scanInFlight)
+        {
+            _ = ProcessScansAsync();
+        }
+    }
+
+    /// <summary>Looks up the scans that are waiting, one after the other.</summary>
+    /// <remarks>
+    /// The codes are taken off the queue one at a time and looked up in the order they were
+    /// scanned. A code that arrives while the queue is being worked through waits its turn.
+    /// </remarks>
+    private async Task ProcessScansAsync()
+    {
+        _scanInFlight = true;
+
+        try
+        {
+            while (_pendingScans.Count > 0)
+            {
+                string text = _pendingScans.Dequeue();
+
+                await AnswerScanAsync(text);
+            }
+        }
+#pragma warning disable CA1031 // The exception is caught so that the till stays open; the message goes to the screen.
+        catch (Exception exception)
+        {
+            // A scan that cannot be answered must not take the till down with it: the cashier has
+            // customers waiting, and a message on the screen is worth more than a closed window.
+            StatusMessage = exception.Message;
+        }
+#pragma warning restore CA1031
+        finally
+        {
+            _scanInFlight = false;
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>Looks one scanned code up and puts the product on the cart.</summary>
+    /// <param name="text">The code that was scanned.</param>
+    private async Task AnswerScanAsync(string text)
+    {
         IsBusy = true;
         var watch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -346,7 +414,6 @@ public sealed partial class PosViewModel : ObservableObject
             if (lookup.IsSuccess)
             {
                 AddProduct(lookup.Value);
-                ScanText = string.Empty;
                 SearchResults.Clear();
                 OnPropertyChanged(nameof(HasNoResults));
                 OnPropertyChanged(nameof(HasSearchResults));

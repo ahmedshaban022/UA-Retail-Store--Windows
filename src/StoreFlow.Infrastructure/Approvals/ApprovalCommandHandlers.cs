@@ -262,8 +262,10 @@ public sealed class ListApprovalRequestsQueryHandler(
         }
 
         List<ApprovalRequest> rows = await requests
-            .OrderByDescending(request => request.CreatedUtc)
-            .ThenByDescending(request => request.Id)
+            // The requests are written in the order they were asked for, and the identifier is that
+            // order. SQLite cannot sort by a date-and-time column, and sorting by the identifier
+            // gives the same order without asking the database to do something it cannot.
+            .OrderByDescending(request => request.Id)
             .Take(Math.Clamp(query.Limit, 1, 1000))
             .ToListAsync(cancellationToken);
 
