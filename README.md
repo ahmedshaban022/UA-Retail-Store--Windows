@@ -76,14 +76,14 @@ On a machine with a normal .NET 10 installation, plain `dotnet` works and nothin
 & 'D:\dotnet\dotnet.exe' run --project 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\StoreFlow.Desktop.csproj'
 ```
 
-Current state of the suite — **299 tests, all passing**:
+Current state of the suite — **376 tests, all passing**:
 
-| Project | Tests | Covers |
-|---|---|---|
-| `StoreFlow.Domain.Tests` | 25 | money maths and rounding, moving weighted average, tax inclusive/exclusive, discounts, unit quantities |
-| `StoreFlow.Application.Tests` | 102 | password hashing (Argon2id + PBKDF2), permission matrix, scan buffer, CSV reading and writing, WCAG theme contrast validation, the catalogue's validation rules and its spreadsheet mapper, the inventory's validation rules and its approval thresholds, and **the till's pricing core**: the tax on a price that carries it and on one that does not, the whole-sale discount spread across the lines, a quantity the selling unit cannot express |
-| `StoreFlow.Infrastructure.Tests` | 71 | real SQLite file: migrations, pragmas, immutability triggers, negative-stock trigger, integrity check, theme store round-trip, the catalogue handlers and their barcode triggers, the purchase and inventory handlers, the ledger reconciling to the balance, and **the sale handler**: one transaction, one sale for one key, the stock off the shelf exactly once, the change the invoice and the payment row agree on, and a cart that is put aside reserving nothing |
-| `StoreFlow.Desktop.Tests` | 101 | AR/EN resource parity, theme engine resource generation, value converters, the shell's contrast and the tables' headings, the localised messages of the import preview, how a code is laid out in an Arabic cell, the inventory screens' error messages and number reading, the editor flows against a real database, the column heading finding its words, the rules that keep a table readable — a cell's margin, the trimming of text that does not fit, a heading that wraps, a box with room for the line it holds, and **every column measured against the value it has to hold** — and **the till**: the money on the screen is the money the cart priced, the change from the cash that was typed, every error code having a message of its own, and the receipt carrying the same numbers as the screen |
+| Project | Tests | Before | Covers |
+|---|---|---|---|
+| `StoreFlow.Domain.Tests` | 25 | 25 | money maths and rounding, moving weighted average, tax inclusive/exclusive, discounts, unit quantities |
+| `StoreFlow.Application.Tests` | 120 | 110 | password hashing (Argon2id + PBKDF2), permission matrix, scan buffer, CSV reading and writing, WCAG theme contrast validation, the catalogue's validation rules and its spreadsheet mapper, the inventory's validation rules and its approval thresholds, **the till's pricing core**: the tax on a price that carries it and on one that does not, the whole-sale discount spread across the lines, a quantity the selling unit cannot express, and **the reports' money**: the net sales without the tax, the cost of the goods, what a return takes off the profit, and the CSV file that opens in Excel and reads back without a doubled byte-order mark |
+| `StoreFlow.Infrastructure.Tests` | 118 | 88 | real SQLite file: migrations, pragmas, immutability triggers, negative-stock trigger, integrity check, theme store round-trip, the catalogue handlers and their barcode triggers, the purchase and inventory handlers, the ledger reconciling to the balance, **the sale handler**: one transaction, one sale for one key, the stock off the shelf exactly once, the change the invoice and the payment row agree on, and a cart that is put aside reserving nothing, and **the reports**: every figure worked out by hand against real documents, the shelf valued at the moving average on a day before a receipt, the dashboard agreeing with the daily sales report, the returns report and the cashier's reconciliation, **the approvals**: a discount over the limit held for a manager with no invoice written, the sale going through only once the request is given, nobody approving their own request, and the request list the manager opens, and **the users**: the last administrator that cannot be deactivated |
+| `StoreFlow.Desktop.Tests` | 113 | 110 | AR/EN resource parity, theme engine resource generation, value converters, the shell's contrast and the tables' headings, the localised messages of the import preview, how a code is laid out in an Arabic cell, the inventory screens' error messages and number reading, the editor flows against a real database, the column heading finding its words, the rules that keep a table readable — a cell's margin, the trimming of text that does not fit, a heading that wraps, a box with room for the line it holds, and **every column measured against the value it has to hold** — and **the till**: the money on the screen is the money the cart priced, the change from the cash that was typed, a scan that arrives during a lookup is not lost, every error code having a message of its own, and the receipt carrying the same numbers as the screen |
 
 ### Useful commands
 
@@ -98,7 +98,7 @@ Current state of the suite — **299 tests, all passing**:
 
 ### Driving the real application
 
-Five harnesses drive the running desktop application through UI Automation. Four of them photograph
+Six harnesses drive the running desktop application through UI Automation. Five of them photograph
 it; they are the evidence behind the phase reports, and they are run against a throwaway data
 folder, so the shop's own data is never touched.
 
@@ -114,6 +114,9 @@ folder, so the shop's own data is never touched.
 
 # The sales register, the return and the reversal
 & '.\tools\smoke-sales.ps1'
+
+# The reports, the dashboard, the approvals and the users
+& '.\tools\smoke-reports.ps1'
 
 # How long the till takes to answer a scan (twenty scans, with the numbers)
 & '.\tools\scan-latency.ps1' 20
@@ -351,7 +354,7 @@ boundary** for an explicit go-ahead.
 | 2 — Inventory ✅ | Purchase draft → post → receive, opening stock, stock ledger and balances, low-stock, stock count with approval, adjustments, valuation report | UAT-03/14/19; ledger reconciles to zero |
 | 3 — POS ✅ | Scan buffer, cart, discounts, tax, payments, idempotent checkout, receipts and preview, hold cart, shortcuts | UAT-04/05/06/07/08; the till answers a scan in a median of 4 ms |
 | 4 — Sales & Returns ✅ | Invoice history and detail, partial and full returns, resellable vs damaged, refund recording, reversal policy | UAT-10/11/12/20 |
-| 5 — Reports & Admin | All 11 reports with filters and CSV export, dashboard, users and roles UI, audit browser | UAT-13/15; figures match hand-computed values |
+| 5 — Reports & Admin ✅ | All 11 PRD reports with filters and CSV export, plus the valuation, the cashier's takings and the audit trail as a report, dashboard, users and roles UI, audit browser | UAT-13/15; figures match hand-computed values |
 | 6 — Backup & Cloud | `.sfb` engine, local and cloud targets, scheduler with retention, restore wizard, per-entity export/import, recovery wizard | UAT-16; restore into a different profile verified |
 | 7 — Hardening & Release | Performance harness, crash recovery, fault injection on every write point, MSI installer, user guide, recovery runbook, accessibility pass, final design review | Definition of Done fully met |
 
@@ -379,6 +382,8 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [`docs/phases/phase3-screens/`](docs/phases/phase3-screens/) | The ten pictures of the running till that the Phase 3 report leans on |
 | [`docs/phases/PHASE-4-SALES-AND-RETURNS.md`](docs/phases/PHASE-4-SALES-AND-RETURNS.md) | The Phase 4 report: the sales register, the return that puts the goods back, the reversal that undoes an invoice, and what running it found |
 | [`docs/phases/phase4-screens/`](docs/phases/phase4-screens/) | The pictures of the running sales register that the Phase 4 report leans on |
+| [`docs/phases/PHASE-5-REPORTS-AND-ADMIN.md`](docs/phases/PHASE-5-REPORTS-AND-ADMIN.md) | The Phase 5 report: the eleven reports, the money rules behind them, the discount that waits for a manager, the users and the roles, and what running it found |
+| [`docs/phases/phase5-screens/`](docs/phases/phase5-screens/) | The pictures of the running reports screen that the Phase 5 report leans on |
 
 ---
 
