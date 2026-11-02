@@ -73,7 +73,7 @@ public sealed class ReportingTests : IAsyncLifetime
         await PostSaleAsync(productId, 3m, 100m, day);
 
         IReadOnlyList<DailySalesRow> rows = await Reader().ReadDailySalesAsync(
-            new ReportFilter { From = day, To = day });
+            new ReportFilter { From = day, To = day }, CancellationToken.None);
 
         DailySalesRow row = rows.Single(candidate => candidate.Date == day);
 
@@ -137,7 +137,7 @@ public sealed class ReportingTests : IAsyncLifetime
         await PostSaleAsync(productId, 3m, 100m, day);
 
         IReadOnlyList<SalesByProductRow> rows = await Reader().ReadSalesByProductAsync(
-            new ReportFilter { From = day, To = day });
+            new ReportFilter { From = day, To = day }, CancellationToken.None);
 
         SalesByProductRow row = rows.Single(candidate => candidate.ProductId == productId);
 
@@ -175,7 +175,7 @@ public sealed class ReportingTests : IAsyncLifetime
             day);
 
         IReadOnlyList<SalesByProductRow> rows = await Reader().ReadSalesByProductAsync(
-            new ReportFilter { From = day, To = day });
+            new ReportFilter { From = day, To = day }, CancellationToken.None);
 
         SalesByProductRow row = rows.Single(candidate => candidate.ProductId == productId);
 
@@ -303,7 +303,7 @@ public sealed class ReportingTests : IAsyncLifetime
         await PostSaleAsync(productId, 3m, 100m, day);
 
         ProfitAndLossReport report = await Reader().ReadProfitAndLossAsync(
-            new ReportFilter { From = day, To = day });
+            new ReportFilter { From = day, To = day }, CancellationToken.None);
 
         report.AmountOf("net_sales").ShouldBe(new Money(300m));
         report.AmountOf("cost_of_goods_sold").ShouldBe(new Money(150m));
@@ -327,7 +327,7 @@ public sealed class ReportingTests : IAsyncLifetime
         await PostSaleAsync(productId, 3m, 100m, day);
 
         IReadOnlyList<CashierPerformanceRow> rows = await Reader().ReadCashierPerformanceAsync(
-            new ReportFilter { From = day, To = day });
+            new ReportFilter { From = day, To = day }, CancellationToken.None);
 
         CashierPerformanceRow row = rows.Single(candidate => candidate.UserId == _session.UserId);
 
@@ -376,7 +376,7 @@ public sealed class ReportingTests : IAsyncLifetime
         await PostSaleAsync(productId, 3m, 100m, day);
 
         IReadOnlyList<DailySalesRow> rows = await Reader().ReadDailySalesAsync(
-            new ReportFilter { From = day, To = day });
+            new ReportFilter { From = day, To = day }, CancellationToken.None);
 
         DailySalesRow row = rows.Single(candidate => candidate.Date == day);
 
@@ -389,9 +389,71 @@ public sealed class ReportingTests : IAsyncLifetime
         snapshot.GrossProfit.ShouldBe(new Money(150m));
     }
 
+    [Fact]
+    public async Task The_returns_report_says_what_came_back()
+    {
+        // Three units sold at a hundred and one of them comes back: one return, one unit, a
+        // hundred refunded.
+        DateOnly day = new(2026, 3, 15);
+
+        int productId = await CreateProductAsync("REP-014", 100m);
+        await PostPurchaseAsync(productId, 10m, 50m, day);
+
+        int invoiceId = await PostSaleAsync(productId, 3m, 100m, day);
+
+        await PostReturnAsync(
+            invoiceId,
+            [new ReturnLineInput(await LineId(invoiceId), 1m, true)],
+            day);
+
+        IReadOnlyList<ReturnsRow> rows = await Reader().ReadReturnsAsync(
+            new ReportFilter { From = day, To = day }, CancellationToken.None);
+
+        ReturnsRow row = rows.Single(candidate => candidate.ProductId == productId);
+
+        row.Count.ShouldBe(1);
+        row.Quantity.ShouldBe(1m);
+        row.Amount.ShouldBe(new Money(100m));
+        row.Reasons.ShouldContain("Changed mind");
+    }
+
+    [Fact]
+    public async Task The_cashier_reconciliation_says_what_should_be_in_the_drawer()
+    {
+        // Three units sold at a hundred, paid in cash: the drawer took three hundred. The drawer
+        // was counted to hold fifty when the day began, and to hold three hundred and fifty at the
+        // end of it, so the day adds up and the variance is nothing.
+        DateOnly day = new(2026, 3, 16);
+
+        int productId = await CreateProductAsync("REP-015", 100m);
+        await PostPurchaseAsync(productId, 10m, 50m, day);
+        await PostSaleAsync(productId, 3m, 100m, day);
+
+        await new RecordDrawerCashCommandHandler(
+            _fixture.Factory,
+            _authorization,
+            new TestClock(),
+            _auditWriter,
+            _session)
+            .HandleAsync(
+                new RecordDrawerCashCommand(day, _session.UserId, new Money(50m), new Money(350m)),
+                CancellationToken.None);
+
+        IReadOnlyList<CashierShiftRow> rows = await Reader().ReadCashierShiftsAsync(
+            new ReportFilter { From = day, To = day }, CancellationToken.None);
+
+        CashierShiftRow row = rows.Single(candidate => candidate.Date == day);
+
+        row.CashOpening.ShouldBe(new Money(50m));
+        row.CashTaken.ShouldBe(new Money(300m));
+        row.CashRefunded.ShouldBe(new Money(0m));
+        row.CashClosing.ShouldBe(new Money(350m));
+        row.CountedCash.ShouldBe(new Money(350m));
+        row.Variance.ShouldBe(new Money(0m));
+    }
+
     /// <summary>The report reader under test.</summary>
     private EfReportReader Reader() => new(_fixture.Factory, new TestClock());
-
     /// <summary>Creates a user, so that the audit trail and the cashier report name an actor.</summary>
     private async Task<int> CreateUserAsync(string username, string displayName)
     {
@@ -433,6 +495,51 @@ public sealed class ReportingTests : IAsyncLifetime
         await context.SaveChangesAsync();
 
         return supplier.Id;
+    }
+
+    [Fact]
+    public async Task A_price_that_changes_after_the_sale_does_not_reach_the_report()
+    {
+        // Three units bought at fifty and sold at a hundred, and then the shop changes the price.
+        //
+        //   the sale as it was made   revenue 300.00   cost 150.00   profit 150.00
+        //   the price becomes 500.00
+        //   the report still reads    revenue 300.00   cost 150.00   profit 150.00
+        //
+        // The report reads what the invoice was written down at, not what the catalogue says
+        // today. A price that changes tomorrow must not rewrite yesterday's margin (PRD §6.1).
+        DateOnly day = new(2026, 3, 20);
+
+        int productId = await CreateProductAsync("REP-016", 100m);
+        await PostPurchaseAsync(productId, 10m, 50m, day);
+        await PostSaleAsync(productId, 3m, 100m, day);
+
+        await ChangeThePriceAsync(productId, 500m);
+
+        IReadOnlyList<SalesByProductRow> rows = await Reader().ReadSalesByProductAsync(
+            new ReportFilter { From = day, To = day }, CancellationToken.None);
+
+        SalesByProductRow row = rows.Single(candidate => candidate.ProductId == productId);
+
+        row.Quantity.ShouldBe(3m);
+        row.NetRevenue.ShouldBe(new Money(300m));
+        row.CostOfGoodsSold.ShouldBe(new Money(150m));
+        row.GrossProfit.ShouldBe(new Money(150m));
+    }
+
+    /// <summary>Changes the price of a product in the catalogue, the way the shop would.</summary>
+    /// <param name="productId">The product.</param>
+    /// <param name="salePrice">The price it is sold at from now on.</param>
+    private async Task ChangeThePriceAsync(int productId, decimal salePrice)
+    {
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        Product product = await context.Products.SingleAsync(candidate => candidate.Id == productId);
+
+        product.SalePrice = new Money(salePrice);
+        product.UpdatedUtc = new DateTimeOffset(2026, 4, 1, 0, 0, 0, TimeSpan.Zero);
+
+        await context.SaveChangesAsync();
     }
 
     /// <summary>Creates a product that sells for a hundred and cost fifty.</summary>

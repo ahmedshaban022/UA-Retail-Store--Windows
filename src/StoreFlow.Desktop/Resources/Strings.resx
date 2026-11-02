@@ -1874,4 +1874,43 @@
   <data name="Audit.Actor" xml:space="preserve">
     <value>Who</value>
   </data>
+  <data name="Reports.Cashier" xml:space="preserve">
+    <value>Cashier</value>
+  </data>
+  <data name="Reports.DrawerOpening" xml:space="preserve">
+    <value>Cash in the drawer at the start of the day</value>
+  </data>
+  <data name="Reports.DrawerCounted" xml:space="preserve">
+    <value>Cash counted in the drawer at the end of the day</value>
+  </data>
+  <data name="Reports.RecordDrawer" xml:space="preserve">
+    <value>Record the count</value>
+  </data>
+  <data name="Reports.NoCashier" xml:space="preserve">
+    <value>Choose a cashier first.</value>
+  </data>
+  <data name="Reports.InvalidAmount" xml:space="preserve">
+    <value>The amount is not an amount the shop understands.</value>
+  </data>
+  <data name="Reports.DrawerRecorded" xml:space="preserve">
+    <value>What was counted in the drawer was written down.</value>
+  </data>
+  <data name="Reports.Name.LowOrOutOfStock" xml:space="preserve">
+    <value>Low or out of stock</value>
+  </data>
+  <data name="Reports.Name.Returns" xml:space="preserve">
+    <value>Returns</value>
+  </data>
+  <data name="Reports.Name.CashierShift" xml:space="preserve">
+    <value>Cashier reconciliation</value>
+  </data>
+  <data name="Reports.Column.DrawerOpening" xml:space="preserve">
+    <value>Cash at the start</value>
+  </data>
+  <data name="Reports.Column.DrawerCounted" xml:space="preserve">
+    <value>Cash counted</value>
+  </data>
+  <data name="Reports.Column.Variance" xml:space="preserve">
+    <value>Variance</value>
+  </data>
 </root>

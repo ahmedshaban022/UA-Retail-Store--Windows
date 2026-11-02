@@ -7,7 +7,9 @@ using StoreFlow.Application.Abstractions;
 using StoreFlow.Application.Catalog;
 using StoreFlow.Application.Common;
 using StoreFlow.Application.Reporting;
+using StoreFlow.Application.Sales;
 using StoreFlow.Desktop.Localization;
+using StoreFlow.Domain.Money;
 
 namespace StoreFlow.Desktop.ViewModels;
 
@@ -54,6 +56,8 @@ public sealed partial class ReportsViewModel : ObservableObject
 {
     private readonly IReportReader _reader;
     private readonly IQueryHandler<ListAuditEntriesQuery, Result<IReadOnlyList<AuditEntryView>>> _auditQuery;
+    private readonly IQueryHandler<ListSalesCashiersQuery, Result<IReadOnlyList<SalesCashierOption>>> _cashiersQuery;
+    private readonly ICommandHandler<RecordDrawerCashCommand, Result> _recordDrawerCash;
     private readonly IExportService _exportService;
     private readonly IStrings _strings;
     private readonly LanguageService _languageService;
@@ -64,10 +68,19 @@ public sealed partial class ReportsViewModel : ObservableObject
     private ReportKindOption? _selectedKind;
 
     [ObservableProperty]
+    private SalesCashierOption? _selectedCashier;
+
+    [ObservableProperty]
     private string _fromText = string.Empty;
 
     [ObservableProperty]
     private string _toText = string.Empty;
+
+    [ObservableProperty]
+    private string _drawerOpeningText = string.Empty;
+
+    [ObservableProperty]
+    private string _drawerCountedText = string.Empty;
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
@@ -77,19 +90,25 @@ public sealed partial class ReportsViewModel : ObservableObject
 
     /// <summary>Creates the screen.</summary>
     /// <param name="reader">Reads the reports.</param>
-    /// <param name="auditQuery">Reads the audit trail, which is the eleventh report.</param>
+    /// <param name="auditQuery">Reads the audit trail, which is one of the reports.</param>
+    /// <param name="cashiersQuery">Reads the cashiers, for the filter and for the drawer count.</param>
+    /// <param name="recordDrawerCash">Records what was counted in the drawer.</param>
     /// <param name="exportService">Writes the exported file.</param>
     /// <param name="strings">The application's strings.</param>
     /// <param name="languageService">The application's language.</param>
     public ReportsViewModel(
         IReportReader reader,
         IQueryHandler<ListAuditEntriesQuery, Result<IReadOnlyList<AuditEntryView>>> auditQuery,
+        IQueryHandler<ListSalesCashiersQuery, Result<IReadOnlyList<SalesCashierOption>>> cashiersQuery,
+        ICommandHandler<RecordDrawerCashCommand, Result> recordDrawerCash,
         IExportService exportService,
         IStrings strings,
         LanguageService languageService)
     {
         _reader = reader;
         _auditQuery = auditQuery;
+        _cashiersQuery = cashiersQuery;
+        _recordDrawerCash = recordDrawerCash;
         _exportService = exportService;
         _strings = strings;
         _languageService = languageService;
@@ -108,6 +127,9 @@ public sealed partial class ReportsViewModel : ObservableObject
 
     /// <summary>The reports the screen can show.</summary>
     public ObservableCollection<ReportKindOption> Kinds { get; } = [];
+
+    /// <summary>The cashiers the reports can be narrowed to.</summary>
+    public ObservableCollection<SalesCashierOption> Cashiers { get; } = [];
 
     /// <summary>The columns of the report on screen.</summary>
     public ObservableCollection<ReportColumnView> Columns { get; } = [];
@@ -132,6 +154,18 @@ public sealed partial class ReportsViewModel : ObservableObject
 
     /// <summary>The label of the button that writes the file.</summary>
     public string ExportLabel => _strings[StringKeys.ReportsExport];
+
+    /// <summary>The label of the cashier filter.</summary>
+    public string CashierLabel => _strings[StringKeys.ReportsCashier];
+
+    /// <summary>The label of the field for the cash the drawer held at the start of the day.</summary>
+    public string DrawerOpeningLabel => _strings[StringKeys.ReportsDrawerOpening];
+
+    /// <summary>The label of the field for the cash the drawer was counted to hold.</summary>
+    public string DrawerCountedLabel => _strings[StringKeys.ReportsDrawerCounted];
+
+    /// <summary>The label of the button that records what was counted in the drawer.</summary>
+    public string RecordDrawerLabel => _strings[StringKeys.ReportsRecordDrawer];
 
     /// <summary>The text shown when the report has nothing to say.</summary>
     public string EmptyText => _strings[StringKeys.ReportsEmpty];
@@ -158,7 +192,14 @@ public sealed partial class ReportsViewModel : ObservableObject
 
         try
         {
-            ReportFilter filter = new() { From = from, To = to };
+            await LoadCashiersAsync(cancellationToken);
+
+            ReportFilter filter = new()
+            {
+                From = from,
+                To = to,
+                CashierUserId = SelectedCashier?.Id,
+            };
 
             if (kind.Kind == ReportKind.AuditTrail)
             {
@@ -256,6 +297,13 @@ public sealed partial class ReportsViewModel : ObservableObject
                 SetRows(onHand, StockOnHandColumns());
                 break;
 
+            case ReportKind.LowOrOutOfStock:
+                IReadOnlyList<StockOnHandRow> low = await _reader.ReadStockOnHandAsync(
+                    filter with { StockStatus = StockStatusFilter.BelowReorder },
+                    cancellationToken);
+                SetRows(low, StockOnHandColumns());
+                break;
+
             case ReportKind.StockValuation:
                 IReadOnlyList<StockValuationRow> valuation = await _reader.ReadStockValuationAsync(filter, cancellationToken);
                 SetRows(valuation, StockValuationColumns());
@@ -280,8 +328,103 @@ public sealed partial class ReportsViewModel : ObservableObject
                 IReadOnlyList<CashierPerformanceRow> cashiers = await _reader.ReadCashierPerformanceAsync(filter, cancellationToken);
                 SetRows(cashiers, CashierColumns());
                 break;
+
+            case ReportKind.Returns:
+                IReadOnlyList<ReturnsRow> returns = await _reader.ReadReturnsAsync(filter, cancellationToken);
+                SetRows(returns, ReturnsColumns());
+                break;
+
+            case ReportKind.CashierShift:
+                IReadOnlyList<CashierShiftRow> shifts = await _reader.ReadCashierShiftsAsync(filter, cancellationToken);
+                SetRows(shifts, CashierShiftColumns());
+                break;
         }
     }
+
+    /// <summary>Loads the cashiers the reports can be narrowed to.</summary>
+    private async Task LoadCashiersAsync(CancellationToken cancellationToken)
+    {
+        Result<IReadOnlyList<SalesCashierOption>> result = await _cashiersQuery.HandleAsync(
+            new ListSalesCashiersQuery(),
+            cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return;
+        }
+
+        Cashiers.Clear();
+
+        foreach (SalesCashierOption cashier in result.Value)
+        {
+            Cashiers.Add(cashier);
+        }
+    }
+
+    /// <summary>
+    /// Records what was counted in the cash drawer, so that the day's cash can be reconciled.
+    /// </summary>
+    [RelayCommand]
+    private async Task RecordDrawerAsync(CancellationToken cancellationToken)
+    {
+        int cashierUserId = SelectedCashier?.Id ?? 0;
+
+        if (cashierUserId == 0)
+        {
+            StatusMessage = _strings[StringKeys.ReportsNoCashier];
+            return;
+        }
+
+        if (!TryReadAmount(DrawerOpeningText, out Money? opening) ||
+            !TryReadAmount(DrawerCountedText, out Money? counted))
+        {
+            StatusMessage = _strings[StringKeys.ReportsInvalidAmount];
+            return;
+        }
+
+        Result recorded = await _recordDrawerCash.HandleAsync(
+            new RecordDrawerCashCommand(
+                ReadDate(FromText) ?? DateOnly.FromDateTime(DateTime.Now),
+                cashierUserId,
+                opening,
+                counted),
+            cancellationToken);
+
+        StatusMessage = recorded.IsFailure
+            ? recorded.Error.Message
+            : _strings[StringKeys.ReportsDrawerRecorded];
+
+        if (recorded.IsSuccess && SelectedKind?.Kind == ReportKind.CashierShift)
+        {
+            await RunAsync(cancellationToken);
+        }
+    }
+
+    /// <summary>Reads an amount out of a field.</summary>
+    private static bool TryReadAmount(string text, out Money? amount)
+    {
+        amount = null;
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return true;
+        }
+
+        if (!decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal value))
+        {
+            return false;
+        }
+
+        amount = new Money(value);
+
+        return true;
+    }
+
+    /// <summary>Reads a day out of a field.</summary>
+    private static DateOnly? ReadDate(string text) =>
+        DateOnly.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly day)
+            ? day
+            : null;
 
     /// <summary>Runs the audit trail, which is read from the trail itself.</summary>
     private async Task RunAuditAsync(ReportFilter filter, CancellationToken cancellationToken)
@@ -362,11 +505,14 @@ public sealed partial class ReportsViewModel : ObservableObject
         Kinds.Add(new ReportKindOption(ReportKind.SalesByProduct, _strings[StringKeys.ReportsNameSalesByProduct]));
         Kinds.Add(new ReportKindOption(ReportKind.BestSellers, _strings[StringKeys.ReportsNameBestSellers]));
         Kinds.Add(new ReportKindOption(ReportKind.StockOnHand, _strings[StringKeys.ReportsNameStockOnHand]));
+        Kinds.Add(new ReportKindOption(ReportKind.LowOrOutOfStock, _strings[StringKeys.ReportsNameLowOrOutOfStock]));
         Kinds.Add(new ReportKindOption(ReportKind.StockValuation, _strings[StringKeys.ReportsNameStockValuation]));
         Kinds.Add(new ReportKindOption(ReportKind.StockMovements, _strings[StringKeys.ReportsNameStockMovements]));
         Kinds.Add(new ReportKindOption(ReportKind.PurchasesBySupplier, _strings[StringKeys.ReportsNamePurchasesBySupplier]));
         Kinds.Add(new ReportKindOption(ReportKind.ProfitAndLoss, _strings[StringKeys.ReportsNameProfitAndLoss]));
+        Kinds.Add(new ReportKindOption(ReportKind.Returns, _strings[StringKeys.ReportsNameReturns]));
         Kinds.Add(new ReportKindOption(ReportKind.CashierPerformance, _strings[StringKeys.ReportsNameCashierPerformance]));
+        Kinds.Add(new ReportKindOption(ReportKind.CashierShift, _strings[StringKeys.ReportsNameCashierShift]));
         Kinds.Add(new ReportKindOption(ReportKind.AuditTrail, _strings[StringKeys.ReportsNameAuditTrail]));
     }
 
@@ -457,6 +603,28 @@ public sealed partial class ReportsViewModel : ObservableObject
         Column(nameof(CashierPerformanceRow.AverageInvoice), StringKeys.ReportsColumnAverageInvoice),
     ];
 
+    private IReadOnlyList<ReportColumnView> ReturnsColumns() =>
+    [
+        Column(nameof(ReturnsRow.Sku), StringKeys.ReportsColumnSku),
+        Column(nameof(ReturnsRow.Name), StringKeys.ReportsColumnProduct),
+        Column(nameof(ReturnsRow.Count), StringKeys.ReportsColumnInvoices),
+        Column(nameof(ReturnsRow.Quantity), StringKeys.ReportsColumnQuantity),
+        Column(nameof(ReturnsRow.Amount), StringKeys.ReportsColumnReturns),
+        Column(nameof(ReturnsRow.Reasons), StringKeys.ReportsColumnReason),
+    ];
+
+    private IReadOnlyList<ReportColumnView> CashierShiftColumns() =>
+    [
+        Column(nameof(CashierShiftRow.Date), StringKeys.ReportsColumnDate),
+        Column(nameof(CashierShiftRow.Cashier), StringKeys.ReportsColumnCashier),
+        Column(nameof(CashierShiftRow.CashOpening), StringKeys.ReportsColumnDrawerOpening),
+        Column(nameof(CashierShiftRow.CashTaken), StringKeys.ReportsColumnGrossSales),
+        Column(nameof(CashierShiftRow.CashRefunded), StringKeys.ReportsColumnReturns),
+        Column(nameof(CashierShiftRow.CashClosing), StringKeys.ReportsColumnTotal),
+        Column(nameof(CashierShiftRow.CountedCash), StringKeys.ReportsColumnDrawerCounted),
+        Column(nameof(CashierShiftRow.Variance), StringKeys.ReportsColumnVariance),
+    ];
+
     private IReadOnlyList<ReportColumnView> AuditColumns() =>
     [
         Column(nameof(AuditEntryView.TimestampUtc), StringKeys.ReportsColumnDate),
@@ -517,6 +685,13 @@ public sealed partial class ReportsViewModel : ObservableObject
         nameof(ProfitAndLossLine.Amount),
         nameof(CashierPerformanceRow.NetSales),
         nameof(CashierPerformanceRow.AverageInvoice),
+        nameof(ReturnsRow.Amount),
+        nameof(CashierShiftRow.CashOpening),
+        nameof(CashierShiftRow.CashTaken),
+        nameof(CashierShiftRow.CashRefunded),
+        nameof(CashierShiftRow.CashClosing),
+        nameof(CashierShiftRow.CountedCash),
+        nameof(CashierShiftRow.Variance),
     };
 
     private void OnLanguageChanged(object? sender, EventArgs e)

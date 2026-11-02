@@ -1874,4 +1874,43 @@
   <data name="Audit.Actor" xml:space="preserve">
     <value>من</value>
   </data>
+  <data name="Reports.Cashier" xml:space="preserve">
+    <value>الكاشير</value>
+  </data>
+  <data name="Reports.DrawerOpening" xml:space="preserve">
+    <value>النقد في الدرج في بداية اليوم</value>
+  </data>
+  <data name="Reports.DrawerCounted" xml:space="preserve">
+    <value>النقد المعد في الدرج في نهاية اليوم</value>
+  </data>
+  <data name="Reports.RecordDrawer" xml:space="preserve">
+    <value>تسجيل العدد</value>
+  </data>
+  <data name="Reports.NoCashier" xml:space="preserve">
+    <value>اختر الكاشير أولًا.</value>
+  </data>
+  <data name="Reports.InvalidAmount" xml:space="preserve">
+    <value>المبلغ ليس مبلغًا يفهمه المحل.</value>
+  </data>
+  <data name="Reports.DrawerRecorded" xml:space="preserve">
+    <value>تم تسجيل ما عُد في الدرج.</value>
+  </data>
+  <data name="Reports.Name.LowOrOutOfStock" xml:space="preserve">
+    <value>قارب على النفاد أو نفد</value>
+  </data>
+  <data name="Reports.Name.Returns" xml:space="preserve">
+    <value>المرتجعات</value>
+  </data>
+  <data name="Reports.Name.CashierShift" xml:space="preserve">
+    <value>مطابقة درج الكاشير</value>
+  </data>
+  <data name="Reports.Column.DrawerOpening" xml:space="preserve">
+    <value>نقد البداية</value>
+  </data>
+  <data name="Reports.Column.DrawerCounted" xml:space="preserve">
+    <value>النقد المعد</value>
+  </data>
+  <data name="Reports.Column.Variance" xml:space="preserve">
+    <value>الفرق</value>
+  </data>
 </root>

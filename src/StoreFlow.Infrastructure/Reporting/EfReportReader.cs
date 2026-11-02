@@ -568,6 +568,187 @@ public sealed class EfReportReader(
             .ToList();
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ReturnsRow>> ReadReturnsAsync(
+        ReportFilter filter,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+
+        await using StoreFlowDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        List<ReturnLineAmountRow> lines = await ReadReturnLinesAsync(context, filter, cancellationToken);
+
+        var products = new Dictionary<int, ReturnsAccumulator>();
+
+        foreach (ReturnLineAmountRow line in lines)
+        {
+            if (!products.TryGetValue(line.ProductId, out ReturnsAccumulator? product))
+            {
+                product = new ReturnsAccumulator(line.ProductId, line.Sku, line.Name);
+                products[line.ProductId] = product;
+            }
+
+            product.Count += 1;
+            product.Quantity += ReportRules.Quantity(line.QuantityScaled, line.QuantityScale);
+            product.Amount += line.NetRefund;
+
+            if (!string.IsNullOrWhiteSpace(line.Reason) &&
+                !product.Reasons.Contains(line.Reason, StringComparison.Ordinal))
+            {
+                product.Reasons = product.Reasons.Length == 0
+                    ? line.Reason
+                    : $"{product.Reasons}, {line.Reason}";
+            }
+        }
+
+        return products.Values
+            .Select(product => new ReturnsRow(
+                product.ProductId,
+                product.Sku,
+                product.Name,
+                product.Count,
+                product.Quantity,
+                product.Amount,
+                product.Reasons))
+            .OrderByDescending(row => row.Amount.Amount)
+            .ThenBy(row => row.Sku, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<CashierShiftRow>> ReadCashierShiftsAsync(
+        ReportFilter filter,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+
+        await using StoreFlowDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        DateOnly from = filter.From;
+        DateOnly to = filter.To;
+
+        List<CashMovementRow> taken = await ReadCashRowsAsync(context, from, to, isRefund: false, cancellationToken);
+        List<CashMovementRow> refunded = await ReadCashRowsAsync(context, from, to, isRefund: true, cancellationToken);
+
+        var shifts = new Dictionary<(DateOnly Date, int UserId), ShiftAccumulator>();
+
+        foreach (CashMovementRow row in taken.Concat(refunded))
+        {
+            if (filter.CashierUserId is int cashierUserId && row.UserId != cashierUserId)
+            {
+                continue;
+            }
+
+            (DateOnly Date, int UserId) key = (row.Date, row.UserId);
+
+            if (!shifts.TryGetValue(key, out ShiftAccumulator? shift))
+            {
+                shift = new ShiftAccumulator(row.Date, row.UserId, row.CashierName);
+                shifts[key] = shift;
+            }
+
+            if (row.IsRefund)
+            {
+                shift.CashRefunded += row.Amount;
+            }
+            else
+            {
+                shift.CashTaken += row.Amount;
+            }
+        }
+
+        var rows = new List<CashierShiftRow>(shifts.Count);
+
+        foreach (ShiftAccumulator shift in shifts.Values)
+        {
+            DrawerCashSummary drawer = await DrawerCashStore.ReadAsync(
+                context, shift.Date, shift.UserId, cancellationToken);
+
+            Money closing = drawer.Opening + shift.CashTaken - shift.CashRefunded;
+
+            bool counted = drawer.Counted != Money.Zero;
+
+            rows.Add(new CashierShiftRow(
+                shift.Date,
+                shift.UserId,
+                shift.CashierName,
+                drawer.Opening,
+                shift.CashTaken,
+                shift.CashRefunded,
+                closing,
+                counted ? drawer.Counted : null,
+                counted ? drawer.Counted - closing : null));
+        }
+
+        return rows
+            .OrderByDescending(row => row.Date)
+            .ThenBy(row => row.Cashier, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    /// <summary>Reads the cash that went into or came out of the drawer on a day.</summary>
+    private static async Task<List<CashMovementRow>> ReadCashRowsAsync(
+        StoreFlowDbContext context,
+        DateOnly from,
+        DateOnly to,
+        bool isRefund,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<Payment> payments = context.Payments
+            .AsNoTracking()
+            .Where(payment => payment.Method == PaymentMethod.Cash && payment.IsRefund == isRefund);
+
+        if (isRefund)
+        {
+            payments = payments.Where(payment => payment.SalesReturn != null);
+
+            if (from != DateOnly.MinValue)
+            {
+                payments = payments.Where(payment => payment.SalesReturn!.BusinessDate >= from);
+            }
+
+            if (to != DateOnly.MaxValue)
+            {
+                payments = payments.Where(payment => payment.SalesReturn!.BusinessDate <= to);
+            }
+
+            return await payments
+                .Select(payment => new CashMovementRow
+                {
+                    Date = payment.SalesReturn!.BusinessDate,
+                    UserId = payment.SalesReturn.UserId,
+                    CashierName = payment.SalesReturn.User == null ? string.Empty : payment.SalesReturn.User.DisplayName,
+                    Amount = payment.Amount,
+                    IsRefund = true,
+                })
+                .ToListAsync(cancellationToken);
+        }
+
+        payments = payments.Where(payment => payment.SalesInvoice != null);
+
+        if (from != DateOnly.MinValue)
+        {
+            payments = payments.Where(payment => payment.SalesInvoice!.BusinessDate >= from);
+        }
+
+        if (to != DateOnly.MaxValue)
+        {
+            payments = payments.Where(payment => payment.SalesInvoice!.BusinessDate <= to);
+        }
+
+        return await payments
+            .Select(payment => new CashMovementRow
+            {
+                Date = payment.SalesInvoice!.BusinessDate,
+                UserId = payment.SalesInvoice.UserId,
+                CashierName = payment.SalesInvoice.User == null ? string.Empty : payment.SalesInvoice.User.DisplayName,
+                Amount = payment.Amount,
+                IsRefund = false,
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     /// <summary>Reads the money of every sale in the period.</summary>
     private static async Task<List<SaleAmountRow>> ReadSaleAmountsAsync(
         StoreFlowDbContext context,
@@ -704,6 +885,17 @@ public sealed class EfReportReader(
         return rows;
     }
 
+    /// <summary>
+    /// The reason a line came back for.
+    /// </summary>
+    /// <remarks>
+    /// A line may carry its own reason; when it does not, the reason of the return it belongs to
+    /// applies to it. The report would otherwise say nothing about why goods came back, when the
+    /// cashier told the customer why.
+    /// </remarks>
+    private static string? ReasonOf(SalesReturnLine line, SalesReturn salesReturn) =>
+        string.IsNullOrWhiteSpace(line.Reason) ? salesReturn.Reason : line.Reason;
+
     /// <summary>Reads every line of every return in the period.</summary>
     private static async Task<List<ReturnLineAmountRow>> ReadReturnLinesAsync(
         StoreFlowDbContext context,
@@ -760,6 +952,7 @@ public sealed class EfReportReader(
                     OriginalUnitCost = line.OriginalUnitCost,
                     QuantityScaled = line.QuantityScaled,
                     QuantityScale = line.QuantityScale,
+                    Reason = ReasonOf(line, salesReturn),
                 });
 
                 index++;
@@ -928,6 +1121,8 @@ public sealed class EfReportReader(
         public long QuantityScaled { get; set; }
 
         public int QuantityScale { get; set; }
+
+        public string? Reason { get; set; }
     }
 
     /// <summary>One purchase document, as the reports read it.</summary>
@@ -1043,9 +1238,68 @@ public sealed class EfReportReader(
         public Money Total { get; set; }
     }
 
-    /// <summary>What one cashier took.</summary>
-    private sealed class CashierAccumulator
+    /// <summary>What came back, product by product.</summary>
+    private sealed class ReturnsAccumulator
     {
+        public ReturnsAccumulator(int productId, string sku, string name)
+        {
+            ProductId = productId;
+            Sku = sku;
+            Name = name;
+        }
+
+        public int ProductId { get; }
+
+        public string Sku { get; }
+
+        public string Name { get; }
+
+        public int Count { get; set; }
+
+        public decimal Quantity { get; set; }
+
+        public Money Amount { get; set; }
+
+        public string Reasons { get; set; } = string.Empty;
+    }
+
+    /// <summary>One movement of cash in or out of the drawer.</summary>
+    private sealed class CashMovementRow
+    {
+        public DateOnly Date { get; set; }
+
+        public int UserId { get; set; }
+
+        public string CashierName { get; set; } = string.Empty;
+
+        public Money Amount { get; set; }
+
+        public bool IsRefund { get; set; }
+    }
+
+    /// <summary>What one cashier's day of cash added up to.</summary>
+    private sealed class ShiftAccumulator
+    {
+        public ShiftAccumulator(DateOnly date, int userId, string cashierName)
+        {
+            Date = date;
+            UserId = userId;
+            CashierName = cashierName;
+        }
+
+        public DateOnly Date { get; }
+
+        public int UserId { get; }
+
+        public string CashierName { get; }
+
+        public Money CashTaken { get; set; }
+
+        public Money CashRefunded { get; set; }
+    }
+
+    /// <summary>What one cashier took.</summary>
+    private sealed class CashierAccumulator    {
         public CashierAccumulator(int userId, string displayName)
         {
             UserId = userId;

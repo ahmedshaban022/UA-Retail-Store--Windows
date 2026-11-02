@@ -38,7 +38,7 @@
                      Style="{StaticResource Type.FieldLabel}"
                      VerticalAlignment="Center"
                      Margin="16,0,6,0" />
-          <TextBox Width="110"
+          <TextBox Width="120"
                    Text="{Binding FromText, UpdateSourceTrigger=PropertyChanged}"
                    VerticalAlignment="Center"
                    AutomationProperties.AutomationId="Reports.From" />
@@ -47,10 +47,21 @@
                      Style="{StaticResource Type.FieldLabel}"
                      VerticalAlignment="Center"
                      Margin="12,0,6,0" />
-          <TextBox Width="110"
+          <TextBox Width="120"
                    Text="{Binding ToText, UpdateSourceTrigger=PropertyChanged}"
                    VerticalAlignment="Center"
                    AutomationProperties.AutomationId="Reports.To" />
+
+          <TextBlock Text="{Binding CashierLabel}"
+                     Style="{StaticResource Type.FieldLabel}"
+                     VerticalAlignment="Center"
+                     Margin="12,0,6,0" />
+          <ComboBox Width="160"
+                    ItemsSource="{Binding Cashiers}"
+                    SelectedItem="{Binding SelectedCashier}"
+                    DisplayMemberPath="DisplayName"
+                    VerticalAlignment="Center"
+                    AutomationProperties.AutomationId="Reports.Cashier" />
         </StackPanel>
 
         <!-- The commands -->
@@ -94,11 +105,38 @@
       </Border>
     </Grid>
 
-    <TextBlock Grid.Row="2"
-               Text="{Binding StatusMessage}"
-               Style="{StaticResource Type.Caption}"
-               AutomationProperties.AutomationId="Reports.Status"
-               Margin="0,10,0,0"
-               Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
+    <StackPanel Grid.Row="2" Margin="0,10,0,0">
+      <TextBlock Text="{Binding StatusMessage}"
+                 Style="{StaticResource Type.Caption}"
+                 AutomationProperties.AutomationId="Reports.Status"
+                 Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
+
+      <!-- What was counted in the drawer, so that the day's cash can be reconciled -->
+      <StackPanel Orientation="Horizontal" Margin="0,10,0,0" VerticalAlignment="Center">
+        <TextBlock Text="{Binding DrawerOpeningLabel}"
+                   Style="{StaticResource Type.Caption}"
+                   VerticalAlignment="Center"
+                   Margin="0,0,6,0" />
+        <TextBox Width="110"
+                 Text="{Binding DrawerOpeningText, UpdateSourceTrigger=PropertyChanged}"
+                 VerticalAlignment="Center"
+                 AutomationProperties.AutomationId="Reports.DrawerOpening" />
+
+        <TextBlock Text="{Binding DrawerCountedLabel}"
+                   Style="{StaticResource Type.Caption}"
+                   VerticalAlignment="Center"
+                   Margin="12,0,6,0" />
+        <TextBox Width="110"
+                 Text="{Binding DrawerCountedText, UpdateSourceTrigger=PropertyChanged}"
+                 VerticalAlignment="Center"
+                 AutomationProperties.AutomationId="Reports.DrawerCounted" />
+
+        <Button Content="{Binding RecordDrawerLabel}"
+                Command="{Binding RecordDrawerCommand}"
+                Style="{StaticResource Button.Ghost}"
+                Margin="12,0,0,0"
+                AutomationProperties.AutomationId="Reports.RecordDrawer" />
+      </StackPanel>
+    </StackPanel>
   </Grid>
 </UserControl>

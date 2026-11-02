@@ -17,23 +17,32 @@ public enum ReportKind
     /// <summary>REP-04 — what is on the shelf.</summary>
     StockOnHand = 3,
 
-    /// <summary>REP-05 — what the shelf is worth.</summary>
-    StockValuation = 4,
+    /// <summary>REP-05 — the products that have reached their reorder level.</summary>
+    LowOrOutOfStock = 4,
+
+    /// <summary>What the shelf is worth, on the day the report is dated.</summary>
+    StockValuation = 5,
 
     /// <summary>REP-06 — what came in and what went out.</summary>
-    StockMovements = 5,
+    StockMovements = 6,
 
     /// <summary>REP-07 — what was bought, and from whom.</summary>
-    PurchasesBySupplier = 6,
+    PurchasesBySupplier = 7,
 
     /// <summary>REP-08 — what the shop earned.</summary>
-    ProfitAndLoss = 7,
+    ProfitAndLoss = 8,
 
-    /// <summary>REP-09 — what each cashier took.</summary>
-    CashierPerformance = 8,
+    /// <summary>REP-09 — what came back.</summary>
+    Returns = 9,
 
-    /// <summary>REP-11 — what the application recorded.</summary>
-    AuditTrail = 9,
+    /// <summary>What each cashier took.</summary>
+    CashierPerformance = 10,
+
+    /// <summary>REP-11 — what each cashier took, and what should be in the drawer.</summary>
+    CashierShift = 11,
+
+    /// <summary>The audit trail, read as a report.</summary>
+    AuditTrail = 12,
 }
 
 /// <summary>Which products a stock report shows.</summary>
@@ -165,7 +174,11 @@ public sealed record StockOnHandRow(
     Money Value,
     bool IsBelowReorder);
 
-/// <summary>REP-05 — one product's worth on the shelf.</summary>
+/// <summary>One product's worth on the shelf, at the average cost of that day.</summary>
+/// <remarks>
+/// The PRD does not number this report separately: REP-04 asks for the stock value beside the
+/// quantity, and this is the same reading with the average cost spelled out.
+/// </remarks>
 /// <param name="ProductId">The product.</param>
 /// <param name="Sku">Its stock-keeping unit code.</param>
 /// <param name="Name">Its name.</param>
@@ -250,7 +263,11 @@ public sealed record ProfitAndLossReport(DateOnly From, DateOnly To, IReadOnlyLi
     }
 }
 
-/// <summary>REP-09 — what one cashier took.</summary>
+/// <summary>What one cashier took over a period.</summary>
+/// <remarks>
+/// The PRD does not number this report; it is the per-cashier reading of REP-01, and the cashier
+/// filter of REP-01 is what narrows it to one person.
+/// </remarks>
 /// <param name="UserId">The cashier.</param>
 /// <param name="DisplayName">The cashier's name.</param>
 /// <param name="InvoiceCount">How many sales they posted.</param>
@@ -262,6 +279,44 @@ public sealed record CashierPerformanceRow(
     int InvoiceCount,
     Money NetSales,
     Money AverageInvoice);
+
+/// <summary>REP-09 — what came back, product by product.</summary>
+/// <param name="ProductId">The product.</param>
+/// <param name="Sku">Its stock-keeping unit code.</param>
+/// <param name="Name">Its name.</param>
+/// <param name="Count">How many times the product came back.</param>
+/// <param name="Quantity">How many units came back.</param>
+/// <param name="Amount">What was refunded, without the tax.</param>
+/// <param name="Reasons">The reasons that were written down.</param>
+public sealed record ReturnsRow(
+    int ProductId,
+    string Sku,
+    string Name,
+    int Count,
+    decimal Quantity,
+    Money Amount,
+    string Reasons);
+
+/// <summary>REP-11 — one cashier's day of cash.</summary>
+/// <param name="Date">The day.</param>
+/// <param name="UserId">The cashier.</param>
+/// <param name="Cashier">The cashier's name.</param>
+/// <param name="CashOpening">What the drawer was counted to hold when the day began.</param>
+/// <param name="CashTaken">The cash the sales brought in.</param>
+/// <param name="CashRefunded">The cash the returns gave back.</param>
+/// <param name="CashClosing">What should be in the drawer at the end of the day.</param>
+/// <param name="CountedCash">What the drawer was counted to hold at the end of the day, when it has been counted.</param>
+/// <param name="Variance">The difference between the two, when the drawer has been counted.</param>
+public sealed record CashierShiftRow(
+    DateOnly Date,
+    int UserId,
+    string Cashier,
+    Money CashOpening,
+    Money CashTaken,
+    Money CashRefunded,
+    Money CashClosing,
+    Money? CountedCash,
+    Money? Variance);
 
 /// <summary>Reads the reports.</summary>
 public interface IReportReader
@@ -286,7 +341,11 @@ public interface IReportReader
         ReportFilter filter,
         CancellationToken cancellationToken = default);
 
-    /// <summary>REP-05 — what the shelf is worth.</summary>
+    /// <summary>What the shelf is worth, on the day the report is dated.</summary>
+    /// <remarks>
+    /// The PRD does not number this report separately: REP-04 asks for the stock value beside the
+    /// quantity, and this is the same reading with the average cost spelled out.
+    /// </remarks>
     Task<IReadOnlyList<StockValuationRow>> ReadStockValuationAsync(
         ReportFilter filter,
         CancellationToken cancellationToken = default);
@@ -308,6 +367,16 @@ public interface IReportReader
 
     /// <summary>REP-09 — what each cashier took.</summary>
     Task<IReadOnlyList<CashierPerformanceRow>> ReadCashierPerformanceAsync(
+        ReportFilter filter,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>REP-09 — what came back, product by product.</summary>
+    Task<IReadOnlyList<ReturnsRow>> ReadReturnsAsync(
+        ReportFilter filter,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>REP-11 — what each cashier took, and what should be in the drawer.</summary>
+    Task<IReadOnlyList<CashierShiftRow>> ReadCashierShiftsAsync(
         ReportFilter filter,
         CancellationToken cancellationToken = default);
 }

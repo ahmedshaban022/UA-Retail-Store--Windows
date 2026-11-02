@@ -166,6 +166,7 @@ public static class ServiceRegistration
         // The reports. Every figure is worked out by the report rules, so the money can be checked
         // by hand against the documents it came from (PRD §5.8).
         services.AddSingleton<IReportReader, EfReportReader>();
+        services.AddSingleton<ICommandHandler<RecordDrawerCashCommand, Result>, RecordDrawerCashCommandHandler>();
 
         // The approvals. A discount over the shop's limit is held for a manager and no invoice is
         // written until the request has been approved (PRD §3, UAT-13).

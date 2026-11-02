@@ -534,6 +534,13 @@ public static class StringKeys
     public const string ReportsInvalidDate = "Reports.InvalidDate";
     public const string ReportsExported = "Reports.Exported";
     public const string ReportsNoAccess = "Reports.NoAccess";
+    public const string ReportsCashier = "Reports.Cashier";
+    public const string ReportsDrawerOpening = "Reports.DrawerOpening";
+    public const string ReportsDrawerCounted = "Reports.DrawerCounted";
+    public const string ReportsRecordDrawer = "Reports.RecordDrawer";
+    public const string ReportsNoCashier = "Reports.NoCashier";
+    public const string ReportsInvalidAmount = "Reports.InvalidAmount";
+    public const string ReportsDrawerRecorded = "Reports.DrawerRecorded";
 
     // The names of the reports themselves.
     public const string ReportsNameDailySales = "Reports.Name.DailySales";
@@ -545,6 +552,9 @@ public static class StringKeys
     public const string ReportsNamePurchasesBySupplier = "Reports.Name.PurchasesBySupplier";
     public const string ReportsNameProfitAndLoss = "Reports.Name.ProfitAndLoss";
     public const string ReportsNameCashierPerformance = "Reports.Name.CashierPerformance";
+    public const string ReportsNameLowOrOutOfStock = "Reports.Name.LowOrOutOfStock";
+    public const string ReportsNameReturns = "Reports.Name.Returns";
+    public const string ReportsNameCashierShift = "Reports.Name.CashierShift";
     public const string ReportsNameAuditTrail = "Reports.Name.AuditTrail";
 
     // The columns of the reports.
@@ -577,6 +587,9 @@ public static class StringKeys
     public const string ReportsColumnTotal = "Reports.Column.Total";
     public const string ReportsColumnCashier = "Reports.Column.Cashier";
     public const string ReportsColumnAverageInvoice = "Reports.Column.AverageInvoice";
+    public const string ReportsColumnDrawerOpening = "Reports.Column.DrawerOpening";
+    public const string ReportsColumnDrawerCounted = "Reports.Column.DrawerCounted";
+    public const string ReportsColumnVariance = "Reports.Column.Variance";
 
     // The lines of the profit and loss statement.
     public const string ReportsLineNetSales = "Reports.Line.NetSales";
