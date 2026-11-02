@@ -616,4 +616,28 @@ public static class StringKeys
     public const string DashboardToday = "Dashboard.Today";
     public const string DashboardPeriod = "Dashboard.Period";
     public const string DashboardRefresh = "Dashboard.Refresh";
+
+    // The users and roles screen.
+    public const string UsersTitle = "Users.Title";
+    public const string UsersList = "Users.List";
+    public const string UsersRoles = "Users.Roles";
+    public const string UsersUsername = "Users.Username";
+    public const string UsersDisplayName = "Users.DisplayName";
+    public const string UsersRole = "Users.Role";
+    public const string UsersActive = "Users.Active";
+    public const string UsersPermissions = "Users.Permissions";
+    public const string UsersAdd = "Users.Add";
+    public const string UsersDeactivate = "Users.Deactivate";
+    public const string UsersReactivate = "Users.Reactivate";
+    public const string UsersChangeRole = "Users.ChangeRole";
+    public const string UsersNewUsername = "Users.NewUsername";
+    public const string UsersNewDisplayName = "Users.NewDisplayName";
+    public const string UsersNewPassword = "Users.NewPassword";
+    public const string UsersNewRole = "Users.NewRole";
+    public const string UsersNoRole = "Users.NoRole";
+
+    // The audit trail's filters.
+    public const string AuditFrom = "Audit.From";
+    public const string AuditTo = "Audit.To";
+    public const string AuditActor = "Audit.Actor";
 }

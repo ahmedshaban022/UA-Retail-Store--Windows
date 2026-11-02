@@ -146,7 +146,16 @@ public sealed record ImportSummary(int Created, int Updated, int Failed);
 /// <param name="EntityType">The entity type to restrict to, or null for every type.</param>
 /// <param name="Search">Free text matched against the action, the entity and the summary.</param>
 /// <param name="Take">How many entries to return.</param>
-public sealed record ListAuditEntriesQuery(string? EntityType, string? Search, int Take)
+/// <param name="From">The first day to show, or null for the beginning of the trail.</param>
+/// <param name="To">The last day to show, or null for the end of the trail.</param>
+/// <param name="Actor">The name of the person to narrow the trail to, or null for everybody.</param>
+public sealed record ListAuditEntriesQuery(
+    string? EntityType,
+    string? Search,
+    int Take,
+    DateOnly? From = null,
+    DateOnly? To = null,
+    string? Actor = null)
     : IQuery<Result<IReadOnlyList<AuditEntryView>>>;
 
 /// <summary>Reads the audit trail of one product.</summary>

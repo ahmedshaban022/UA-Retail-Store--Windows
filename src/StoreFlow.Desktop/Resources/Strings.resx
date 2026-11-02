@@ -1814,4 +1814,64 @@
   <data name="Nav.Approvals" xml:space="preserve">
     <value>Approvals</value>
   </data>
+  <data name="Users.Title" xml:space="preserve">
+    <value>Users and roles</value>
+  </data>
+  <data name="Users.List" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="Users.Roles" xml:space="preserve">
+    <value>Roles and their permissions</value>
+  </data>
+  <data name="Users.Username" xml:space="preserve">
+    <value>User name</value>
+  </data>
+  <data name="Users.DisplayName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Users.Role" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="Users.Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Users.Permissions" xml:space="preserve">
+    <value>Permissions</value>
+  </data>
+  <data name="Users.Add" xml:space="preserve">
+    <value>Add a user</value>
+  </data>
+  <data name="Users.Deactivate" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="Users.Reactivate" xml:space="preserve">
+    <value>Bring back</value>
+  </data>
+  <data name="Users.ChangeRole" xml:space="preserve">
+    <value>Change role</value>
+  </data>
+  <data name="Users.NewUsername" xml:space="preserve">
+    <value>User name</value>
+  </data>
+  <data name="Users.NewDisplayName" xml:space="preserve">
+    <value>Name shown in the interface</value>
+  </data>
+  <data name="Users.NewPassword" xml:space="preserve">
+    <value>First password</value>
+  </data>
+  <data name="Users.NewRole" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="Users.NoRole" xml:space="preserve">
+    <value>Choose a role first.</value>
+  </data>
+  <data name="Audit.From" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="Audit.To" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="Audit.Actor" xml:space="preserve">
+    <value>Who</value>
+  </data>
 </root>

@@ -1,0 +1,156 @@
+<UserControl x:Class="StoreFlow.Desktop.Views.UsersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             TextOptions.TextFormattingMode="Display">
+
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*" />
+      <ColumnDefinition Width="360" />
+    </Grid.ColumnDefinitions>
+
+    <!-- The accounts -->
+    <Grid Grid.Column="0" Margin="0,0,12,0">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+
+      <TextBlock Grid.Row="0"
+                 Text="{Binding UsersLabel}"
+                 Style="{StaticResource Type.SectionLabel}"
+                 Margin="0,0,0,8" />
+
+      <DataGrid Grid.Row="1"
+                AutomationProperties.AutomationId="Users.Grid"
+                ItemsSource="{Binding Users}"
+                SelectedItem="{Binding SelectedUser}"
+                IsReadOnly="True"
+                EnableColumnVirtualization="False"
+                CellStyle="{StaticResource DataGrid.Cell.Tight}"
+                ColumnHeaderStyle="{StaticResource DataGrid.Header.Tight}">
+        <DataGrid.Columns>
+          <DataGridTextColumn Width="140" Binding="{Binding Username}">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding UsernameLabel}" Style="{StaticResource Type.ColumnValue}" />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Width="1*" MinWidth="140" Binding="{Binding DisplayName}">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding DisplayNameLabel}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Width="130" Binding="{Binding RoleName}">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding RoleLabel}" Style="{StaticResource Type.ColumnValue}" />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+    </Grid>
+
+    <!-- The roles, and what may be done with the picked account -->
+    <Grid Grid.Column="1">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+
+      <TextBlock Grid.Row="0"
+                 Text="{Binding RolesLabel}"
+                 Style="{StaticResource Type.SectionLabel}"
+                 Margin="0,0,0,8" />
+
+      <!-- The roles and their permissions -->
+      <DataGrid Grid.Row="1"
+                AutomationProperties.AutomationId="Users.Roles"
+                ItemsSource="{Binding Roles}"
+                SelectedItem="{Binding SelectedRole}"
+                IsReadOnly="True"
+                MaxHeight="220"
+                EnableColumnVirtualization="False"
+                CellStyle="{StaticResource DataGrid.Cell.Tight}"
+                ColumnHeaderStyle="{StaticResource DataGrid.Header.Tight}">
+        <DataGrid.Columns>
+          <DataGridTextColumn Width="110" Binding="{Binding Code}" />
+          <DataGridTextColumn Width="100" Binding="{Binding UserCount}" />
+          <DataGridTextColumn Width="1*" MinWidth="120" Binding="{Binding Permissions}">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="{Binding PermissionsLabel}" Style="{StaticResource Type.ColumnValue}" />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <!-- What may be done with the picked account -->
+      <Border Grid.Row="2"
+              Style="{StaticResource Surface.Panel}"
+              Padding="16"
+              Margin="0,12,0,0">
+        <StackPanel>
+          <TextBlock Text="{Binding ChangeRoleLabel}" Style="{StaticResource Type.FieldLabel}" />
+
+          <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+            <ComboBox Width="160"
+                      ItemsSource="{Binding Roles}"
+                      SelectedItem="{Binding SelectedRole}"
+                      DisplayMemberPath="Name"
+                      AutomationProperties.AutomationId="Users.ChangeRolePicker" />
+
+            <Button Content="{Binding ChangeRoleLabel}"
+                    Command="{Binding ChangeRoleCommand}"
+                    IsEnabled="{Binding HasSelection}"
+                    Style="{StaticResource Button.Ghost}"
+                    Margin="8,0,0,0"
+                    AutomationProperties.AutomationId="Users.ChangeRole" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+            <Button Content="{Binding DeactivateLabel}"
+                    Command="{Binding DeactivateCommand}"
+                    IsEnabled="{Binding HasSelection}"
+                    Style="{StaticResource Button.Ghost}"
+                    Margin="0,0,8,0"
+                    AutomationProperties.AutomationId="Users.Deactivate" />
+
+            <Button Content="{Binding ReactivateLabel}"
+                    Command="{Binding ReactivateCommand}"
+                    IsEnabled="{Binding HasSelection}"
+                    Style="{StaticResource Button.Ghost}"
+                    AutomationProperties.AutomationId="Users.Reactivate" />
+          </StackPanel>
+
+          <!-- Adding somebody -->
+          <TextBlock Text="{Binding AddLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,16,0,0" />
+
+          <TextBlock Text="{Binding NewUsernameLabel}" Style="{StaticResource Type.Caption}" Margin="0,8,0,0" />
+          <TextBox Text="{Binding NewUsername, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="Users.NewUsername" />
+
+          <TextBlock Text="{Binding NewDisplayNameLabel}" Style="{StaticResource Type.Caption}" Margin="0,8,0,0" />
+          <TextBox Text="{Binding NewDisplayName, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="Users.NewDisplayName" />
+
+          <TextBlock Text="{Binding NewPasswordLabel}" Style="{StaticResource Type.Caption}" Margin="0,8,0,0" />
+          <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"
+                   AutomationProperties.AutomationId="Users.NewPassword" />
+
+          <TextBlock Text="{Binding NewRoleLabel}" Style="{StaticResource Type.Caption}" Margin="0,8,0,0" />
+          <ComboBox ItemsSource="{Binding Roles}"
+                    SelectedItem="{Binding NewUserRole}"
+                    DisplayMemberPath="Name"
+                    AutomationProperties.AutomationId="Users.NewRole" />
+
+          <Button Content="{Binding AddLabel}"
+                  Command="{Binding AddUserCommand}"
+                  Style="{StaticResource Button.Primary}"
+                  Margin="0,12,0,0"
+                  AutomationProperties.AutomationId="Users.Add" />
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -19,6 +19,7 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -43,6 +44,36 @@
                     SelectedItem="{Binding SelectedEntityType}"
                     DisplayMemberPath="DisplayName"
                     AutomationProperties.AutomationId="Audit.EntityType" />
+        </StackPanel>
+
+        <!-- The days the trail is narrowed to, and who did it -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+          <TextBlock Text="{Binding FromLabel}"
+                     Style="{StaticResource Type.Caption}"
+                     VerticalAlignment="Center"
+                     Margin="0,0,6,0" />
+          <TextBox Width="100"
+                   Text="{Binding FromText, UpdateSourceTrigger=PropertyChanged}"
+                   VerticalAlignment="Center"
+                   AutomationProperties.AutomationId="Audit.From" />
+
+          <TextBlock Text="{Binding ToLabel}"
+                     Style="{StaticResource Type.Caption}"
+                     VerticalAlignment="Center"
+                     Margin="12,0,6,0" />
+          <TextBox Width="100"
+                   Text="{Binding ToText, UpdateSourceTrigger=PropertyChanged}"
+                   VerticalAlignment="Center"
+                   AutomationProperties.AutomationId="Audit.To" />
+
+          <TextBlock Text="{Binding ActorLabel}"
+                     Style="{StaticResource Type.Caption}"
+                     VerticalAlignment="Center"
+                     Margin="12,0,6,0" />
+          <TextBox Width="140"
+                   Text="{Binding ActorText, UpdateSourceTrigger=PropertyChanged}"
+                   VerticalAlignment="Center"
+                   AutomationProperties.AutomationId="Audit.Actor" />
         </StackPanel>
       </Grid>
     </Border>

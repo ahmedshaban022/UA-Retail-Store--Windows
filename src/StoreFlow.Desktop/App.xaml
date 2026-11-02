@@ -80,6 +80,10 @@
       <DataTemplate DataType="{x:Type viewModels:ApprovalsViewModel}">
         <views:ApprovalsView />
       </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:UsersViewModel}">
+        <views:UsersView />
+      </DataTemplate>
     </ResourceDictionary>
   </Application.Resources>
 </Application>

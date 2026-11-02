@@ -1814,4 +1814,64 @@
   <data name="Nav.Approvals" xml:space="preserve">
     <value>الموافقات</value>
   </data>
+  <data name="Users.Title" xml:space="preserve">
+    <value>المستخدمون والأدوار</value>
+  </data>
+  <data name="Users.List" xml:space="preserve">
+    <value>الحسابات</value>
+  </data>
+  <data name="Users.Roles" xml:space="preserve">
+    <value>الأدوار وصلاحياتها</value>
+  </data>
+  <data name="Users.Username" xml:space="preserve">
+    <value>اسم المستخدم</value>
+  </data>
+  <data name="Users.DisplayName" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Users.Role" xml:space="preserve">
+    <value>الدور</value>
+  </data>
+  <data name="Users.Active" xml:space="preserve">
+    <value>نشط</value>
+  </data>
+  <data name="Users.Permissions" xml:space="preserve">
+    <value>الصلاحيات</value>
+  </data>
+  <data name="Users.Add" xml:space="preserve">
+    <value>إضافة مستخدم</value>
+  </data>
+  <data name="Users.Deactivate" xml:space="preserve">
+    <value>تعطيل</value>
+  </data>
+  <data name="Users.Reactivate" xml:space="preserve">
+    <value>إعادة التفعيل</value>
+  </data>
+  <data name="Users.ChangeRole" xml:space="preserve">
+    <value>تغيير الدور</value>
+  </data>
+  <data name="Users.NewUsername" xml:space="preserve">
+    <value>اسم المستخدم</value>
+  </data>
+  <data name="Users.NewDisplayName" xml:space="preserve">
+    <value>الاسم الظاهر في الواجهة</value>
+  </data>
+  <data name="Users.NewPassword" xml:space="preserve">
+    <value>كلمة المرور الأولى</value>
+  </data>
+  <data name="Users.NewRole" xml:space="preserve">
+    <value>الدور</value>
+  </data>
+  <data name="Users.NoRole" xml:space="preserve">
+    <value>اختر الدور أولًا.</value>
+  </data>
+  <data name="Audit.From" xml:space="preserve">
+    <value>من</value>
+  </data>
+  <data name="Audit.To" xml:space="preserve">
+    <value>إلى</value>
+  </data>
+  <data name="Audit.Actor" xml:space="preserve">
+    <value>من</value>
+  </data>
 </root>

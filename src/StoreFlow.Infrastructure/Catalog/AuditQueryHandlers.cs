@@ -55,6 +55,34 @@ public sealed class ListAuditEntriesQueryHandler(
                     && EF.Functions.Like(entry.EntityId, pattern, SearchProductsQueryHandler.LikeEscapeCharacter)));
         }
 
+        string? actor = query.Actor?.Trim();
+
+        if (!string.IsNullOrEmpty(actor))
+        {
+            string actorPattern = SearchProductsQueryHandler.LikePattern(actor);
+
+            logs = logs.Where(entry =>
+                entry.ActorUser != null &&
+                EF.Functions.Like(
+                    entry.ActorUser.DisplayName,
+                    actorPattern,
+                    SearchProductsQueryHandler.LikeEscapeCharacter));
+        }
+
+        if (query.From is DateOnly from)
+        {
+            DateTimeOffset start = new(from.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+
+            logs = logs.Where(entry => entry.TimestampUtc >= start);
+        }
+
+        if (query.To is DateOnly to)
+        {
+            DateTimeOffset end = new(to.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+
+            logs = logs.Where(entry => entry.TimestampUtc <= end);
+        }
+
         List<AuditEntryView> result = await logs
             // The trail is append-only, so the identifier is the order the entries were written in.
             // SQLite cannot sort by a date-and-time column, and sorting by the identifier gives the

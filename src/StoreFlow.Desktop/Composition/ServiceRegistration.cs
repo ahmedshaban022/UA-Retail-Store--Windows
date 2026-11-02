@@ -238,6 +238,14 @@ public static class ServiceRegistration
         services.AddTransient<ReportsViewModel>();
         services.AddTransient<ApprovalsViewModel>();
 
+        // The users and roles screen.
+        services.AddSingleton<IQueryHandler<ListUsersQuery, Result<IReadOnlyList<UserSummary>>>, ListUsersQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListRolesQuery, Result<IReadOnlyList<RoleSummary>>>, ListRolesQueryHandler>();
+        services.AddSingleton<ICommandHandler<CreateUserCommand, Result<UserSummary>>, CreateUserCommandHandler>();
+        services.AddSingleton<ICommandHandler<ChangeUserRoleCommand, Result<UserSummary>>, ChangeUserRoleCommandHandler>();
+        services.AddSingleton<ICommandHandler<SetUserActiveCommand, Result<UserSummary>>, SetUserActiveCommandHandler>();
+        services.AddTransient<UsersViewModel>();
+
         return services;
     }
 }

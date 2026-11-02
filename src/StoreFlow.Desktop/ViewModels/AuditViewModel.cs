@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StoreFlow.Application.Catalog;
@@ -46,6 +47,15 @@ public sealed partial class AuditViewModel : ObservableObject
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
+
+    [ObservableProperty]
+    private string _fromText = string.Empty;
+
+    [ObservableProperty]
+    private string _toText = string.Empty;
+
+    [ObservableProperty]
+    private string _actorText = string.Empty;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -102,6 +112,15 @@ public sealed partial class AuditViewModel : ObservableObject
     /// <summary>The label of the type filter.</summary>
     public string EntityTypeLabel => _strings[StringKeys.AuditEntityType];
 
+    /// <summary>The label of the first date field.</summary>
+    public string FromLabel => _strings[StringKeys.AuditFrom];
+
+    /// <summary>The label of the second date field.</summary>
+    public string ToLabel => _strings[StringKeys.AuditTo];
+
+    /// <summary>The label of the actor field.</summary>
+    public string ActorLabel => _strings[StringKeys.AuditActor];
+
     /// <summary>The text shown when nothing has been recorded yet.</summary>
     public string EmptyText => _strings[StringKeys.AuditEmpty];
 
@@ -117,7 +136,13 @@ public sealed partial class AuditViewModel : ObservableObject
         try
         {
             Result<IReadOnlyList<AuditEntryView>> result = await _query.HandleAsync(
-                new ListAuditEntriesQuery(SelectedEntityType?.Key, SearchText, 500),
+                new ListAuditEntriesQuery(
+                    SelectedEntityType?.Key,
+                    SearchText,
+                    500,
+                    ReadDate(FromText),
+                    ReadDate(ToText),
+                    ActorText),
                 cancellationToken);
 
             if (result.IsFailure)
@@ -150,6 +175,22 @@ public sealed partial class AuditViewModel : ObservableObject
     }
 
     partial void OnSelectedEntityTypeChanged(AuditEntityTypeOption? value) => ScheduleRefresh();
+
+    partial void OnFromTextChanged(string value) => ScheduleRefresh();
+
+    partial void OnToTextChanged(string value) => ScheduleRefresh();
+
+    partial void OnActorTextChanged(string value) => ScheduleRefresh();
+
+    /// <summary>
+    /// Reads a day out of a field. A field that is empty means "no limit", and a field that does not
+    /// hold a day is read as no limit as well, so that a half-typed date never hides the trail.
+    /// </summary>
+    /// <param name="text">What the field holds.</param>
+    private static DateOnly? ReadDate(string text) =>
+        DateOnly.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly day)
+            ? day
+            : null;
 
     private void ScheduleRefresh()
     {
