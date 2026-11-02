@@ -1570,4 +1570,248 @@
   <data name="Error.Sales.StockNotRestored" xml:space="preserve">
     <value>The stock could not be put back on the shelf.</value>
   </data>
+  <data name="Reports.Title" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="Reports.Kind" xml:space="preserve">
+    <value>Report</value>
+  </data>
+  <data name="Reports.From" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="Reports.To" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="Reports.Run" xml:space="preserve">
+    <value>Run</value>
+  </data>
+  <data name="Reports.Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Reports.Empty" xml:space="preserve">
+    <value>This report has nothing to show.</value>
+  </data>
+  <data name="Reports.InvalidDate" xml:space="preserve">
+    <value>The date is not a date the shop understands.</value>
+  </data>
+  <data name="Reports.Exported" xml:space="preserve">
+    <value>The report was written to {0}.</value>
+  </data>
+  <data name="Reports.NoAccess" xml:space="preserve">
+    <value>You may not look at the reports.</value>
+  </data>
+  <data name="Reports.Name.DailySales" xml:space="preserve">
+    <value>Daily sales</value>
+  </data>
+  <data name="Reports.Name.SalesByProduct" xml:space="preserve">
+    <value>Sales by product</value>
+  </data>
+  <data name="Reports.Name.BestSellers" xml:space="preserve">
+    <value>Best sellers</value>
+  </data>
+  <data name="Reports.Name.StockOnHand" xml:space="preserve">
+    <value>Stock on hand</value>
+  </data>
+  <data name="Reports.Name.StockValuation" xml:space="preserve">
+    <value>Stock valuation</value>
+  </data>
+  <data name="Reports.Name.StockMovements" xml:space="preserve">
+    <value>Stock movements</value>
+  </data>
+  <data name="Reports.Name.PurchasesBySupplier" xml:space="preserve">
+    <value>Purchases by supplier</value>
+  </data>
+  <data name="Reports.Name.ProfitAndLoss" xml:space="preserve">
+    <value>Profit and loss</value>
+  </data>
+  <data name="Reports.Name.CashierPerformance" xml:space="preserve">
+    <value>Cashier performance</value>
+  </data>
+  <data name="Reports.Name.AuditTrail" xml:space="preserve">
+    <value>Audit trail</value>
+  </data>
+  <data name="Reports.Column.Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Reports.Column.Invoices" xml:space="preserve">
+    <value>Invoices</value>
+  </data>
+  <data name="Reports.Column.GrossSales" xml:space="preserve">
+    <value>Gross sales</value>
+  </data>
+  <data name="Reports.Column.Discounts" xml:space="preserve">
+    <value>Discounts</value>
+  </data>
+  <data name="Reports.Column.Tax" xml:space="preserve">
+    <value>Tax</value>
+  </data>
+  <data name="Reports.Column.Returns" xml:space="preserve">
+    <value>Returns</value>
+  </data>
+  <data name="Reports.Column.NetSales" xml:space="preserve">
+    <value>Net sales</value>
+  </data>
+  <data name="Reports.Column.Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Reports.Column.Sku" xml:space="preserve">
+    <value>SKU</value>
+  </data>
+  <data name="Reports.Column.Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Reports.Column.Quantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Reports.Column.Revenue" xml:space="preserve">
+    <value>Revenue</value>
+  </data>
+  <data name="Reports.Column.Cogs" xml:space="preserve">
+    <value>Cost of goods</value>
+  </data>
+  <data name="Reports.Column.Profit" xml:space="preserve">
+    <value>Gross profit</value>
+  </data>
+  <data name="Reports.Column.Rank" xml:space="preserve">
+    <value>Rank</value>
+  </data>
+  <data name="Reports.Column.Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Reports.Column.AverageCost" xml:space="preserve">
+    <value>Average cost</value>
+  </data>
+  <data name="Reports.Column.ReorderLevel" xml:space="preserve">
+    <value>Reorder level</value>
+  </data>
+  <data name="Reports.Column.Movement" xml:space="preserve">
+    <value>Movement</value>
+  </data>
+  <data name="Reports.Column.Disposition" xml:space="preserve">
+    <value>Bucket</value>
+  </data>
+  <data name="Reports.Column.Balance" xml:space="preserve">
+    <value>Balance</value>
+  </data>
+  <data name="Reports.Column.Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="Reports.Column.UnitCost" xml:space="preserve">
+    <value>Unit cost</value>
+  </data>
+  <data name="Reports.Column.Supplier" xml:space="preserve">
+    <value>Supplier</value>
+  </data>
+  <data name="Reports.Column.Documents" xml:space="preserve">
+    <value>Documents</value>
+  </data>
+  <data name="Reports.Column.Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Reports.Column.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Reports.Column.Cashier" xml:space="preserve">
+    <value>Cashier</value>
+  </data>
+  <data name="Reports.Column.AverageInvoice" xml:space="preserve">
+    <value>Average sale</value>
+  </data>
+  <data name="Reports.Line.NetSales" xml:space="preserve">
+    <value>Net sales</value>
+  </data>
+  <data name="Reports.Line.Discounts" xml:space="preserve">
+    <value>Discounts given</value>
+  </data>
+  <data name="Reports.Line.Tax" xml:space="preserve">
+    <value>Tax collected</value>
+  </data>
+  <data name="Reports.Line.CostOfGoodsSold" xml:space="preserve">
+    <value>Cost of goods sold</value>
+  </data>
+  <data name="Reports.Line.GrossProfit" xml:space="preserve">
+    <value>Gross profit</value>
+  </data>
+  <data name="Reports.Line.Purchases" xml:space="preserve">
+    <value>Purchases</value>
+  </data>
+  <data name="Approvals.Title" xml:space="preserve">
+    <value>Approvals</value>
+  </data>
+  <data name="Approvals.Empty" xml:space="preserve">
+    <value>Nothing is waiting for a decision.</value>
+  </data>
+  <data name="Approvals.Approve" xml:space="preserve">
+    <value>Approve</value>
+  </data>
+  <data name="Approvals.Reject" xml:space="preserve">
+    <value>Reject</value>
+  </data>
+  <data name="Approvals.Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Approvals.RequestedBy" xml:space="preserve">
+    <value>Asked by</value>
+  </data>
+  <data name="Approvals.Discount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Approvals.CartTotal" xml:space="preserve">
+    <value>Cart total</value>
+  </data>
+  <data name="Approvals.When" xml:space="preserve">
+    <value>When</value>
+  </data>
+  <data name="Approvals.DecidedBy" xml:space="preserve">
+    <value>Decided by</value>
+  </data>
+  <data name="Approvals.Pending" xml:space="preserve">
+    <value>Waiting for a decision</value>
+  </data>
+  <data name="Approvals.Approved" xml:space="preserve">
+    <value>Approved</value>
+  </data>
+  <data name="Approvals.Rejected" xml:space="preserve">
+    <value>Rejected</value>
+  </data>
+  <data name="Approvals.Decided" xml:space="preserve">
+    <value>Decided</value>
+  </data>
+  <data name="Pos.ApprovalRequired" xml:space="preserve">
+    <value>The discount is over the limit, so it is waiting for a manager to approve it.</value>
+  </data>
+  <data name="Pos.ApprovalWaiting" xml:space="preserve">
+    <value>Waiting for the approval number {0}.</value>
+  </data>
+  <data name="Pos.ApprovalApproved" xml:space="preserve">
+    <value>The discount was approved. Confirm the sale again.</value>
+  </data>
+  <data name="Pos.ApprovalRejected" xml:space="preserve">
+    <value>The discount was not approved.</value>
+  </data>
+  <data name="Dashboard.NetSales" xml:space="preserve">
+    <value>Net sales</value>
+  </data>
+  <data name="Dashboard.GrossProfit" xml:space="preserve">
+    <value>Gross profit</value>
+  </data>
+  <data name="Dashboard.StockValue" xml:space="preserve">
+    <value>Stock value</value>
+  </data>
+  <data name="Dashboard.Returns" xml:space="preserve">
+    <value>Returns</value>
+  </data>
+  <data name="Dashboard.Today" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="Dashboard.Period" xml:space="preserve">
+    <value>Period</value>
+  </data>
+
+  <data name="Dashboard.Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Nav.Approvals" xml:space="preserve">
+    <value>Approvals</value>
+  </data>
 </root>

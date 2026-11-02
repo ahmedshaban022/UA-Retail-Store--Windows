@@ -5,28 +5,87 @@
 
   <StackPanel>
     <TextBlock Text="{Binding WelcomeText}" Style="{StaticResource Type.Title}" />
-    <TextBlock Text="{Binding TodaySalesLabel}"
+
+    <!-- The day the figures belong to -->
+    <StackPanel Orientation="Horizontal" Margin="0,16,0,0" VerticalAlignment="Center">
+      <TextBlock Text="{Binding DateLabel}"
+                 Style="{StaticResource Type.FieldLabel}"
+                 VerticalAlignment="Center"
+                 Margin="0,0,8,0" />
+      <TextBox Width="120"
+               Text="{Binding DateText, UpdateSourceTrigger=PropertyChanged}"
+               VerticalAlignment="Center"
+               AutomationProperties.AutomationId="Dashboard.Date" />
+      <Button Content="{Binding RefreshLabel}"
+              Command="{Binding RefreshCommand}"
+              Style="{StaticResource Button.Ghost}"
+              Margin="12,0,0,0"
+              AutomationProperties.AutomationId="Dashboard.Refresh" />
+    </StackPanel>
+
+    <TextBlock Text="{Binding NetSalesLabel}"
                Style="{StaticResource Type.SectionLabel}"
                Margin="0,24,0,12" />
 
-    <UniformGrid Columns="3" Rows="1">
-      <!-- Today's sales -->
+    <UniformGrid Columns="4" Rows="1">
+      <!-- The day's takings -->
       <Border Style="{StaticResource Surface.Card}" Margin="0,0,12,0">
         <StackPanel>
-          <TextBlock Text="{Binding TodaySalesLabel}" Style="{StaticResource Type.Caption}" />
-          <TextBlock Text="{Binding TodaySales}"
+          <TextBlock Text="{Binding NetSalesLabel}" Style="{StaticResource Type.Caption}" />
+          <TextBlock Text="{Binding NetSales}"
                      Style="{StaticResource Type.Display}"
-                     Margin="0,6,0,0" />
+                     Margin="0,6,0,0"
+                     AutomationProperties.AutomationId="Dashboard.NetSales" />
         </StackPanel>
       </Border>
 
-      <!-- Invoice count -->
+      <!-- What was left after the cost of the goods -->
       <Border Style="{StaticResource Surface.Card}" Margin="6,0">
         <StackPanel>
-          <TextBlock Text="{Binding InvoicesLabel}" Style="{StaticResource Type.Caption}" />
-          <TextBlock Text="{Binding TodayInvoiceCount}"
+          <TextBlock Text="{Binding GrossProfitLabel}" Style="{StaticResource Type.Caption}" />
+          <TextBlock Text="{Binding GrossProfit}"
                      Style="{StaticResource Type.Display}"
-                     Margin="0,6,0,0" />
+                     Margin="0,6,0,0"
+                     AutomationProperties.AutomationId="Dashboard.GrossProfit" />
+        </StackPanel>
+      </Border>
+
+      <!-- What came back -->
+      <Border Style="{StaticResource Surface.Card}" Margin="6,0">
+        <StackPanel>
+          <TextBlock Text="{Binding ReturnsLabel}" Style="{StaticResource Type.Caption}" />
+          <TextBlock Text="{Binding Returns}"
+                     Style="{StaticResource Type.Display}"
+                     Margin="0,6,0,0"
+                     AutomationProperties.AutomationId="Dashboard.Returns" />
+        </StackPanel>
+      </Border>
+
+      <!-- What the shelf is worth -->
+      <Border Style="{StaticResource Surface.Card}" Margin="12,0,0,0">
+        <StackPanel>
+          <TextBlock Text="{Binding StockValueLabel}" Style="{StaticResource Type.Caption}" />
+          <TextBlock Text="{Binding StockValue}"
+                     Style="{StaticResource Type.Display}"
+                     Margin="0,6,0,0"
+                     AutomationProperties.AutomationId="Dashboard.StockValue" />
+        </StackPanel>
+      </Border>
+    </UniformGrid>
+
+    <TextBlock Text="{Binding InvoicesLabel}"
+               Style="{StaticResource Type.SectionLabel}"
+               Margin="0,24,0,12" />
+
+    <UniformGrid Columns="2" Rows="1">
+      <!-- Invoice count -->
+      <Border Style="{StaticResource Surface.Card}" Margin="0,0,12,0">
+        <StackPanel>
+          <TextBlock Text="{Binding InvoicesLabel}" Style="{StaticResource Type.Caption}" />
+          <TextBlock Text="{Binding InvoiceCount}"
+                     Style="{StaticResource Type.Display}"
+                     Margin="0,6,0,0"
+                     AutomationProperties.AutomationId="Dashboard.Invoices" />
         </StackPanel>
       </Border>
 
@@ -36,7 +95,8 @@
           <TextBlock Text="{Binding LowStockLabel}" Style="{StaticResource Type.Caption}" />
           <TextBlock Text="{Binding LowStockCount}"
                      Style="{StaticResource Type.Display}"
-                     Margin="0,6,0,0" />
+                     Margin="0,6,0,0"
+                     AutomationProperties.AutomationId="Dashboard.LowStock" />
         </StackPanel>
       </Border>
     </UniformGrid>

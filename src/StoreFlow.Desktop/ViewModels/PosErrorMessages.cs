@@ -49,6 +49,7 @@ public static class PosErrorMessages
         PosErrorCodes.InsufficientStock => StringKeys.ErrorPosInsufficientStock,
         PosErrorCodes.NegativeTotal => StringKeys.ErrorPosNegativeTotal,
         PosErrorCodes.DiscountOverLimit => StringKeys.ErrorPosDiscountOverLimit,
+        PosErrorCodes.DiscountApprovalRequired => StringKeys.PosApprovalRequired,
         PosErrorCodes.PriceOverrideNotAllowed => StringKeys.ErrorPosPriceOverride,
         PosErrorCodes.InsufficientPayment => StringKeys.ErrorPosInsufficientPayment,
         PosErrorCodes.InsufficientCash => StringKeys.ErrorPosInsufficientCash,

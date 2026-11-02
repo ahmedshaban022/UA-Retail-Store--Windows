@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using StoreFlow.Application.Abstractions;
+using StoreFlow.Application.Approvals;
 using StoreFlow.Application.Authorization;
 using StoreFlow.Application.Common;
 using StoreFlow.Application.Pos;
@@ -90,7 +91,7 @@ public sealed class PostSaleCommandHandler(
             return Result<SaleReceipt>.Failure(issue.Code, issue.Message);
         }
 
-        Result gate = await AuthorizeCartAsync(cart, products, settings, cancellationToken);
+        Result gate = await AuthorizeCartAsync(cart, products, settings, context, command, cancellationToken);
 
         if (gate.IsFailure)
         {
@@ -269,6 +270,21 @@ public sealed class PostSaleCommandHandler(
                     session.Current?.UserId),
                 cancellationToken);
 
+            if (command.ApprovalRequestId is int approvalRequestId)
+            {
+                // The approval that let the discount through is written down, so that the trail
+                // shows why the sale was allowed.
+                await auditWriter.WriteAsync(
+                    new AuditEntry(
+                        Approvals.ApprovalAudit.Applied,
+                        nameof(SalesInvoice),
+                        invoice.Id.ToString(CultureInfo.InvariantCulture),
+                        null,
+                        $"approval {approvalRequestId.ToString(CultureInfo.InvariantCulture)}",
+                        session.Current?.UserId),
+                    cancellationToken);
+            }
+
             return Result<SaleReceipt>.Success(receipt);
         }
         catch (DbUpdateException)
@@ -428,6 +444,8 @@ public sealed class PostSaleCommandHandler(
         PosCart cart,
         IReadOnlyDictionary<int, PosProductFacts> products,
         StoreSettings settings,
+        StoreFlowDbContext context,
+        PostSaleCommand command,
         CancellationToken cancellationToken)
     {
         bool priceChanged = cart.Lines.Any(line =>
@@ -455,10 +473,77 @@ public sealed class PostSaleCommandHandler(
 
             if (discountPermitted.IsFailure)
             {
+                // The sale is held for a manager. Nothing is written to the ledger; the till asks
+                // for the approval and the cashier confirms the sale again once it has been given.
+                if (command.ApprovalRequestId is int approvalRequestId)
+                {
+                    return await CheckApprovalAsync(
+                        context,
+                        approvalRequestId,
+                        DiscountApproval.CartFingerprint(command.Lines, command.InvoiceDiscount),
+                        cancellationToken);
+                }
+
                 return Result.Failure(
-                    PosErrorCodes.DiscountOverLimit,
-                    "The discount is over the limit, and it needs somebody who can approve it.");
+                    PosErrorCodes.DiscountApprovalRequired,
+                    "The discount is over the limit, so it is waiting for a manager to approve it.");
             }
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Checks that the approval really is the approval of this cart by this cashier. An approval
+    /// that has not been given, that belongs to another cart or to another cashier is no approval
+    /// at all.
+    /// </summary>
+    private async Task<Result> CheckApprovalAsync(
+        StoreFlowDbContext context,
+        int approvalRequestId,
+        string cartFingerprint,
+        CancellationToken cancellationToken)
+    {
+        ApprovalRequest? request = await context.ApprovalRequests
+            .AsNoTracking()
+            .FirstOrDefaultAsync(candidate => candidate.Id == approvalRequestId, cancellationToken);
+
+        if (request is null)
+        {
+            return Result.Failure(
+                ApprovalErrorCodes.NotFound,
+                "That approval is not waiting for anybody.");
+        }
+
+        if (request.Kind != ApprovalKind.DiscountOverLimit)
+        {
+            return Result.Failure(
+                ApprovalErrorCodes.Mismatch,
+                "That approval is about something else.");
+        }
+
+        if (request.Status != ApprovalStatus.Approved)
+        {
+            return Result.Failure(
+                ApprovalErrorCodes.NotApproved,
+                "That approval has not been given yet.");
+        }
+
+        if (request.RequestedByUserId != (session.Current?.UserId ?? 0))
+        {
+            return Result.Failure(
+                ApprovalErrorCodes.Mismatch,
+                "That approval was asked for by somebody else.");
+        }
+
+        DiscountApprovalPayload? payload = DiscountApproval.ReadPayload(request.PayloadJson);
+
+        if (payload is null ||
+            !string.Equals(payload.Fingerprint, cartFingerprint, StringComparison.Ordinal))
+        {
+            return Result.Failure(
+                ApprovalErrorCodes.Mismatch,
+                "The cart has changed since the approval was asked for, so it has to be asked for again.");
         }
 
         return Result.Success();

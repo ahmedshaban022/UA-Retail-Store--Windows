@@ -21,13 +21,18 @@ namespace StoreFlow.Application.Pos;
 /// <param name="InvoiceDiscount">The discount granted on the whole sale.</param>
 /// <param name="Payments">The payments the customer made.</param>
 /// <param name="Notes">The free-text note on the invoice.</param>
+/// <param name="ApprovalRequestId">
+/// The approval that lets a discount over the shop's limit through. Without it the sale is held
+/// for a manager to decide, and no invoice is written.
+/// </param>
 public sealed record PostSaleCommand(
     Guid ClientOperationId,
     DateOnly BusinessDate,
     IReadOnlyList<SaleLineInput> Lines,
     DiscountSpec InvoiceDiscount,
     IReadOnlyList<PaymentInput> Payments,
-    string? Notes = null) : ICommand<Result<SaleReceipt>>;
+    string? Notes = null,
+    int? ApprovalRequestId = null) : ICommand<Result<SaleReceipt>>;
 
 /// <summary>
 /// Suspends the cart so the cashier can serve the next customer and come back to it. A suspended

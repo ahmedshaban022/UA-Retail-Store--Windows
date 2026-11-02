@@ -91,7 +91,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             new("Inventory", "▣", _strings[StringKeys.NavInventory]),
             new("Pos", "▶", _strings[StringKeys.NavPos]),
             new("Sales", "≡", _strings[StringKeys.NavSales]),
-            new("Reports", "◫", _strings[StringKeys.NavReports], IsAvailable: false),
+            new("Reports", "◫", _strings[StringKeys.NavReports]),
+            new("Approvals", "✓", _strings[StringKeys.NavApprovals]),
             new("Users", "◉", _strings[StringKeys.NavUsers], IsAvailable: false),
             new("Settings", "⚙", _strings[StringKeys.NavSettings]),
             new("Backup", "⛁", _strings[StringKeys.NavBackup], IsAvailable: false),
@@ -146,6 +147,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             "Inventory" => _services.GetService(typeof(InventoryViewModel)),
             "Pos" => _services.GetService(typeof(PosViewModel)),
             "Sales" => _services.GetService(typeof(SalesViewModel)),
+            "Reports" => _services.GetService(typeof(ReportsViewModel)),
+            "Approvals" => _services.GetService(typeof(ApprovalsViewModel)),
             "Settings" => _services.GetService(typeof(SettingsViewModel)),
             _ => null,
         };
@@ -191,6 +194,9 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             case SalesViewModel sales:
                 sales.RefreshCommand.Execute(null);
                 break;
+            case ApprovalsViewModel approvals:
+                approvals.RefreshCommand.Execute(null);
+                break;
         }
     }
 
@@ -207,6 +213,8 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         "Inventory" => _strings[StringKeys.NavInventory],
         "Pos" => _strings[StringKeys.PosTitle],
         "Sales" => _strings[StringKeys.SalesTitle],
+        "Reports" => _strings[StringKeys.ReportsTitle],
+        "Approvals" => _strings[StringKeys.ApprovalsTitle],
         _ => _strings[StringKeys.NavSettings],
     };
 

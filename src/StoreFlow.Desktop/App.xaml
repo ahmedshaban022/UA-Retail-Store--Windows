@@ -72,6 +72,14 @@
       <DataTemplate DataType="{x:Type viewModels:SalesViewModel}">
         <views:SalesView />
       </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:ReportsViewModel}">
+        <views:ReportsView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:ApprovalsViewModel}">
+        <views:ApprovalsView />
+      </DataTemplate>
     </ResourceDictionary>
   </Application.Resources>
 </Application>

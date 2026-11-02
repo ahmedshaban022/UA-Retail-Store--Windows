@@ -212,6 +212,7 @@ public static class StringKeys
     public const string NavBackup = "Nav.Backup";
     public const string NavCategories = "Nav.Categories";
     public const string NavDashboard = "Nav.Dashboard";
+    public const string NavApprovals = "Nav.Approvals";
     public const string NavInventory = "Nav.Inventory";
     public const string NavPos = "Nav.Pos";
     public const string NavProducts = "Nav.Products";
@@ -521,4 +522,98 @@ public static class StringKeys
     public const string ErrorSalesNothingToReverse = "Error.Sales.NothingToReverse";
     public const string ErrorSalesRefundTooLarge = "Error.Sales.RefundTooLarge";
     public const string ErrorSalesStockNotRestored = "Error.Sales.StockNotRestored";
+
+    // The reports screen (PRD §5.8).
+    public const string ReportsTitle = "Reports.Title";
+    public const string ReportsKind = "Reports.Kind";
+    public const string ReportsFrom = "Reports.From";
+    public const string ReportsTo = "Reports.To";
+    public const string ReportsRun = "Reports.Run";
+    public const string ReportsExport = "Reports.Export";
+    public const string ReportsEmpty = "Reports.Empty";
+    public const string ReportsInvalidDate = "Reports.InvalidDate";
+    public const string ReportsExported = "Reports.Exported";
+    public const string ReportsNoAccess = "Reports.NoAccess";
+
+    // The names of the reports themselves.
+    public const string ReportsNameDailySales = "Reports.Name.DailySales";
+    public const string ReportsNameSalesByProduct = "Reports.Name.SalesByProduct";
+    public const string ReportsNameBestSellers = "Reports.Name.BestSellers";
+    public const string ReportsNameStockOnHand = "Reports.Name.StockOnHand";
+    public const string ReportsNameStockValuation = "Reports.Name.StockValuation";
+    public const string ReportsNameStockMovements = "Reports.Name.StockMovements";
+    public const string ReportsNamePurchasesBySupplier = "Reports.Name.PurchasesBySupplier";
+    public const string ReportsNameProfitAndLoss = "Reports.Name.ProfitAndLoss";
+    public const string ReportsNameCashierPerformance = "Reports.Name.CashierPerformance";
+    public const string ReportsNameAuditTrail = "Reports.Name.AuditTrail";
+
+    // The columns of the reports.
+    public const string ReportsColumnDate = "Reports.Column.Date";
+    public const string ReportsColumnInvoices = "Reports.Column.Invoices";
+    public const string ReportsColumnGrossSales = "Reports.Column.GrossSales";
+    public const string ReportsColumnDiscounts = "Reports.Column.Discounts";
+    public const string ReportsColumnTax = "Reports.Column.Tax";
+    public const string ReportsColumnReturns = "Reports.Column.Returns";
+    public const string ReportsColumnNetSales = "Reports.Column.NetSales";
+    public const string ReportsColumnProduct = "Reports.Column.Product";
+    public const string ReportsColumnSku = "Reports.Column.Sku";
+    public const string ReportsColumnCategory = "Reports.Column.Category";
+    public const string ReportsColumnQuantity = "Reports.Column.Quantity";
+    public const string ReportsColumnRevenue = "Reports.Column.Revenue";
+    public const string ReportsColumnCogs = "Reports.Column.Cogs";
+    public const string ReportsColumnProfit = "Reports.Column.Profit";
+    public const string ReportsColumnRank = "Reports.Column.Rank";
+    public const string ReportsColumnValue = "Reports.Column.Value";
+    public const string ReportsColumnAverageCost = "Reports.Column.AverageCost";
+    public const string ReportsColumnReorderLevel = "Reports.Column.ReorderLevel";
+    public const string ReportsColumnMovement = "Reports.Column.Movement";
+    public const string ReportsColumnDisposition = "Reports.Column.Disposition";
+    public const string ReportsColumnBalance = "Reports.Column.Balance";
+    public const string ReportsColumnReason = "Reports.Column.Reason";
+    public const string ReportsColumnUnitCost = "Reports.Column.UnitCost";
+    public const string ReportsColumnSupplier = "Reports.Column.Supplier";
+    public const string ReportsColumnDocuments = "Reports.Column.Documents";
+    public const string ReportsColumnSubtotal = "Reports.Column.Subtotal";
+    public const string ReportsColumnTotal = "Reports.Column.Total";
+    public const string ReportsColumnCashier = "Reports.Column.Cashier";
+    public const string ReportsColumnAverageInvoice = "Reports.Column.AverageInvoice";
+
+    // The lines of the profit and loss statement.
+    public const string ReportsLineNetSales = "Reports.Line.NetSales";
+    public const string ReportsLineDiscounts = "Reports.Line.Discounts";
+    public const string ReportsLineTax = "Reports.Line.Tax";
+    public const string ReportsLineCostOfGoodsSold = "Reports.Line.CostOfGoodsSold";
+    public const string ReportsLineGrossProfit = "Reports.Line.GrossProfit";
+    public const string ReportsLinePurchases = "Reports.Line.Purchases";
+
+    // The approvals screen (PRD §3, UAT-13).
+    public const string ApprovalsTitle = "Approvals.Title";
+    public const string ApprovalsEmpty = "Approvals.Empty";
+    public const string ApprovalsApprove = "Approvals.Approve";
+    public const string ApprovalsReject = "Approvals.Reject";
+    public const string ApprovalsStatus = "Approvals.Status";
+    public const string ApprovalsRequestedBy = "Approvals.RequestedBy";
+    public const string ApprovalsDiscount = "Approvals.Discount";
+    public const string ApprovalsCartTotal = "Approvals.CartTotal";
+    public const string ApprovalsWhen = "Approvals.When";
+    public const string ApprovalsDecidedBy = "Approvals.DecidedBy";
+    public const string ApprovalsPending = "Approvals.Pending";
+    public const string ApprovalsApproved = "Approvals.Approved";
+    public const string ApprovalsRejected = "Approvals.Rejected";
+    public const string ApprovalsDecided = "Approvals.Decided";
+
+    // The till, when a discount is waiting for a manager.
+    public const string PosApprovalRequired = "Pos.ApprovalRequired";
+    public const string PosApprovalWaiting = "Pos.ApprovalWaiting";
+    public const string PosApprovalApproved = "Pos.ApprovalApproved";
+    public const string PosApprovalRejected = "Pos.ApprovalRejected";
+
+    // The dashboard's figures.
+    public const string DashboardNetSales = "Dashboard.NetSales";
+    public const string DashboardGrossProfit = "Dashboard.GrossProfit";
+    public const string DashboardStockValue = "Dashboard.StockValue";
+    public const string DashboardReturns = "Dashboard.Returns";
+    public const string DashboardToday = "Dashboard.Today";
+    public const string DashboardPeriod = "Dashboard.Period";
+    public const string DashboardRefresh = "Dashboard.Refresh";
 }

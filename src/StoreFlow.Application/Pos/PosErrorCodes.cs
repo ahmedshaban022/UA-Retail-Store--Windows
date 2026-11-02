@@ -33,6 +33,12 @@ public static class PosErrorCodes
     /// <summary>The discount is above the limit the store's policy allows without an approver.</summary>
     public const string DiscountOverLimit = "pos.discount_over_limit";
 
+    /// <summary>
+    /// The discount is above the limit, so the sale is held for a manager to approve. The till asks
+    /// for the approval and the cashier confirms the sale again once it has been given.
+    /// </summary>
+    public const string DiscountApprovalRequired = "pos.discount_approval_required";
+
     /// <summary>The price differs from the catalogue and the cashier may not change it.</summary>
     public const string PriceOverrideNotAllowed = "pos.price_override_not_allowed";
 

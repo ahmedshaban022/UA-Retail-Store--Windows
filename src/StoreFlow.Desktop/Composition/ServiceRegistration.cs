@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using StoreFlow.Application.Abstractions;
 using StoreFlow.Application.Authorization;
+using StoreFlow.Application.Approvals;
 using StoreFlow.Application.Catalog;
 using StoreFlow.Application.Common;
 using StoreFlow.Application.Identity;
@@ -21,6 +22,7 @@ using StoreFlow.Desktop.Printing;
 using StoreFlow.Desktop.Services;
 using StoreFlow.Desktop.ViewModels;
 using StoreFlow.Infrastructure;
+using StoreFlow.Infrastructure.Approvals;
 using StoreFlow.Infrastructure.Catalog;
 using StoreFlow.Infrastructure.Export;
 using StoreFlow.Infrastructure.Identity;
@@ -161,6 +163,17 @@ public static class ServiceRegistration
         services.AddSingleton<IQueryHandler<GetSalesReturnQuery, Result<SalesReturnDetails>>, GetSalesReturnQueryHandler>();
         services.AddSingleton<IQueryHandler<ListSalesCashiersQuery, Result<IReadOnlyList<SalesCashierOption>>>, ListSalesCashiersQueryHandler>();
 
+        // The reports. Every figure is worked out by the report rules, so the money can be checked
+        // by hand against the documents it came from (PRD §5.8).
+        services.AddSingleton<IReportReader, EfReportReader>();
+
+        // The approvals. A discount over the shop's limit is held for a manager and no invoice is
+        // written until the request has been approved (PRD §3, UAT-13).
+        services.AddSingleton<ICommandHandler<RequestDiscountApprovalCommand, Result<ApprovalRequestSummary>>, RequestDiscountApprovalCommandHandler>();
+        services.AddSingleton<ICommandHandler<DecideApprovalRequestCommand, Result<ApprovalRequestSummary>>, DecideApprovalRequestCommandHandler>();
+        services.AddSingleton<IQueryHandler<ListApprovalRequestsQuery, Result<IReadOnlyList<ApprovalRequestSummary>>>, ListApprovalRequestsQueryHandler>();
+        services.AddSingleton<IQueryHandler<GetApprovalRequestQuery, Result<ApprovalRequestSummary>>, GetApprovalRequestQueryHandler>();
+
         services.AddLogging(logging =>
         {
             logging.ClearProviders();
@@ -220,6 +233,10 @@ public static class ServiceRegistration
         services.AddTransient<SalesViewModel>();
         services.AddTransient<ReturnDialogViewModel>();
         services.AddTransient<ReverseDialogViewModel>();
+
+        // The reports screen and the approvals screen.
+        services.AddTransient<ReportsViewModel>();
+        services.AddTransient<ApprovalsViewModel>();
 
         return services;
     }

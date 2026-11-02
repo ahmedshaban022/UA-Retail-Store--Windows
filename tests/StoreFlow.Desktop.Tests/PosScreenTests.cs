@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Xml.Linq;
 using StoreFlow.Application.Abstractions;
+using StoreFlow.Application.Approvals;
 using StoreFlow.Application.Common;
 using StoreFlow.Application.Pos;
 using StoreFlow.Application.Theming;
@@ -569,6 +570,7 @@ public sealed class PosScreenTests
                 new FakeSearchHandler(products),
                 new FakeHeldCartsHandler(),
                 PostSale,
+                new FakeApprovalHandler(),
                 new FakeHoldCartHandler(),
                 new FakeResumeCartHandler(),
                 new FakeClearCartHandler(),
@@ -640,9 +642,32 @@ public sealed class PosScreenTests
         }
     }
 
-    /// <summary>The cart that is put aside.</summary>
-    private sealed class FakeHoldCartHandler : ICommandHandler<HoldCartCommand, Result<HeldCartSummary>>
+    /// <summary>The approval a held discount waits for.</summary>
+    private sealed class FakeApprovalHandler
+        : ICommandHandler<RequestDiscountApprovalCommand, Result<ApprovalRequestSummary>>
     {
+        public Task<Result<ApprovalRequestSummary>> HandleAsync(
+            RequestDiscountApprovalCommand command,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(Result<ApprovalRequestSummary>.Success(
+                new ApprovalRequestSummary(
+                    1,
+                    ApprovalKind.DiscountOverLimit,
+                    ApprovalStatus.Pending,
+                    1,
+                    "Cashier",
+                    null,
+                    null,
+                    DateTimeOffset.UnixEpoch,
+                    null,
+                    null,
+                    new Money(50m),
+                    25m,
+                    new Money(200m))));
+    }
+
+    /// <summary>The cart that is put aside.</summary>
+    private sealed class FakeHoldCartHandler : ICommandHandler<HoldCartCommand, Result<HeldCartSummary>>    {
         public Task<Result<HeldCartSummary>> HandleAsync(
             HoldCartCommand command,
             CancellationToken cancellationToken) =>

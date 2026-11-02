@@ -36,16 +36,30 @@ public sealed class LocalizationTests
     [Fact]
     public void The_localization_service_resolves_the_resources_through_dependency_injection()
     {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddLocalization(options => options.ResourcesPath = "Resources");
+        // The language service applies its culture to every thread in the process, so a test that
+        // builds one leaves the whole process in that language. This test says which language it
+        // means to be in instead of inheriting the one the last test left behind.
+        CultureInfo previous = CultureInfo.CurrentUICulture;
 
-        using ServiceProvider provider = services.BuildServiceProvider();
+        try
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("en");
 
-        IStringLocalizer<Strings> localizer = provider.GetRequiredService<IStringLocalizer<Strings>>();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddLocalization(options => options.ResourcesPath = "Resources");
 
-        localizer["Login.SignIn"].Value.ShouldBe("Sign in");
-        localizer["Login.Username"].Value.ShouldBe("User name");
+            using ServiceProvider provider = services.BuildServiceProvider();
+
+            IStringLocalizer<Strings> localizer = provider.GetRequiredService<IStringLocalizer<Strings>>();
+
+            localizer["Login.SignIn"].Value.ShouldBe("Sign in");
+            localizer["Login.Username"].Value.ShouldBe("User name");
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
     }
 
     [Fact]

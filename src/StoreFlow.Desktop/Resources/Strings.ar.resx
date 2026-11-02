@@ -1570,4 +1570,248 @@
   <data name="Error.Sales.StockNotRestored" xml:space="preserve">
     <value>لم تتمكن البضاعة من العودة إلى الرف.</value>
   </data>
+  <data name="Reports.Title" xml:space="preserve">
+    <value>التقارير</value>
+  </data>
+  <data name="Reports.Kind" xml:space="preserve">
+    <value>التقرير</value>
+  </data>
+  <data name="Reports.From" xml:space="preserve">
+    <value>من</value>
+  </data>
+  <data name="Reports.To" xml:space="preserve">
+    <value>إلى</value>
+  </data>
+  <data name="Reports.Run" xml:space="preserve">
+    <value>تشغيل</value>
+  </data>
+  <data name="Reports.Export" xml:space="preserve">
+    <value>تصدير</value>
+  </data>
+  <data name="Reports.Empty" xml:space="preserve">
+    <value>لا يوجد شيء في هذا التقرير.</value>
+  </data>
+  <data name="Reports.InvalidDate" xml:space="preserve">
+    <value>التاريخ ليس تاريخًا صحيحًا.</value>
+  </data>
+  <data name="Reports.Exported" xml:space="preserve">
+    <value>تم كتابة التقرير في {0}.</value>
+  </data>
+  <data name="Reports.NoAccess" xml:space="preserve">
+    <value>لا تملك صلاحية عرض التقارير.</value>
+  </data>
+  <data name="Reports.Name.DailySales" xml:space="preserve">
+    <value>المبيعات اليومية</value>
+  </data>
+  <data name="Reports.Name.SalesByProduct" xml:space="preserve">
+    <value>المبيعات حسب المنتج</value>
+  </data>
+  <data name="Reports.Name.BestSellers" xml:space="preserve">
+    <value>الأكثر مبيعًا</value>
+  </data>
+  <data name="Reports.Name.StockOnHand" xml:space="preserve">
+    <value>المخزون المتاح</value>
+  </data>
+  <data name="Reports.Name.StockValuation" xml:space="preserve">
+    <value>تقييم المخزون</value>
+  </data>
+  <data name="Reports.Name.StockMovements" xml:space="preserve">
+    <value>حركات المخزون</value>
+  </data>
+  <data name="Reports.Name.PurchasesBySupplier" xml:space="preserve">
+    <value>المشتريات حسب المورّد</value>
+  </data>
+  <data name="Reports.Name.ProfitAndLoss" xml:space="preserve">
+    <value>الأرباح والخسائر</value>
+  </data>
+  <data name="Reports.Name.CashierPerformance" xml:space="preserve">
+    <value>أداء الكاشيرين</value>
+  </data>
+  <data name="Reports.Name.AuditTrail" xml:space="preserve">
+    <value>سجل التدقيق</value>
+  </data>
+  <data name="Reports.Column.Date" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="Reports.Column.Invoices" xml:space="preserve">
+    <value>عدد الفواتير</value>
+  </data>
+  <data name="Reports.Column.GrossSales" xml:space="preserve">
+    <value>إجمالي المبيعات</value>
+  </data>
+  <data name="Reports.Column.Discounts" xml:space="preserve">
+    <value>الخصومات</value>
+  </data>
+  <data name="Reports.Column.Tax" xml:space="preserve">
+    <value>الضريبة</value>
+  </data>
+  <data name="Reports.Column.Returns" xml:space="preserve">
+    <value>المرتجعات</value>
+  </data>
+  <data name="Reports.Column.NetSales" xml:space="preserve">
+    <value>صافي المبيعات</value>
+  </data>
+  <data name="Reports.Column.Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="Reports.Column.Sku" xml:space="preserve">
+    <value>الرمز</value>
+  </data>
+  <data name="Reports.Column.Category" xml:space="preserve">
+    <value>الفئة</value>
+  </data>
+  <data name="Reports.Column.Quantity" xml:space="preserve">
+    <value>الكمية</value>
+  </data>
+  <data name="Reports.Column.Revenue" xml:space="preserve">
+    <value>الإيراد</value>
+  </data>
+  <data name="Reports.Column.Cogs" xml:space="preserve">
+    <value>تكلفة البضاعة</value>
+  </data>
+  <data name="Reports.Column.Profit" xml:space="preserve">
+    <value>مجمل الربح</value>
+  </data>
+  <data name="Reports.Column.Rank" xml:space="preserve">
+    <value>الترتيب</value>
+  </data>
+  <data name="Reports.Column.Value" xml:space="preserve">
+    <value>القيمة</value>
+  </data>
+  <data name="Reports.Column.AverageCost" xml:space="preserve">
+    <value>متوسط التكلفة</value>
+  </data>
+  <data name="Reports.Column.ReorderLevel" xml:space="preserve">
+    <value>حد إعادة الطلب</value>
+  </data>
+  <data name="Reports.Column.Movement" xml:space="preserve">
+    <value>الحركة</value>
+  </data>
+  <data name="Reports.Column.Disposition" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Reports.Column.Balance" xml:space="preserve">
+    <value>الرصيد</value>
+  </data>
+  <data name="Reports.Column.Reason" xml:space="preserve">
+    <value>السبب</value>
+  </data>
+  <data name="Reports.Column.UnitCost" xml:space="preserve">
+    <value>سعر الوحدة</value>
+  </data>
+  <data name="Reports.Column.Supplier" xml:space="preserve">
+    <value>المورّد</value>
+  </data>
+  <data name="Reports.Column.Documents" xml:space="preserve">
+    <value>المستندات</value>
+  </data>
+  <data name="Reports.Column.Subtotal" xml:space="preserve">
+    <value>المجموع الفرعي</value>
+  </data>
+  <data name="Reports.Column.Total" xml:space="preserve">
+    <value>الإجمالي</value>
+  </data>
+  <data name="Reports.Column.Cashier" xml:space="preserve">
+    <value>الكاشير</value>
+  </data>
+  <data name="Reports.Column.AverageInvoice" xml:space="preserve">
+    <value>متوسط الفاتورة</value>
+  </data>
+  <data name="Reports.Line.NetSales" xml:space="preserve">
+    <value>صافي المبيعات</value>
+  </data>
+  <data name="Reports.Line.Discounts" xml:space="preserve">
+    <value>الخصومات الممنوحة</value>
+  </data>
+  <data name="Reports.Line.Tax" xml:space="preserve">
+    <value>الضريبة المحصّلة</value>
+  </data>
+  <data name="Reports.Line.CostOfGoodsSold" xml:space="preserve">
+    <value>تكلفة البضاعة المباعة</value>
+  </data>
+  <data name="Reports.Line.GrossProfit" xml:space="preserve">
+    <value>مجمل الربح</value>
+  </data>
+  <data name="Reports.Line.Purchases" xml:space="preserve">
+    <value>المشتريات</value>
+  </data>
+  <data name="Approvals.Title" xml:space="preserve">
+    <value>الموافقات</value>
+  </data>
+  <data name="Approvals.Empty" xml:space="preserve">
+    <value>لا شيء ينتظر قرارًا.</value>
+  </data>
+  <data name="Approvals.Approve" xml:space="preserve">
+    <value>موافقة</value>
+  </data>
+  <data name="Approvals.Reject" xml:space="preserve">
+    <value>رفض</value>
+  </data>
+  <data name="Approvals.Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Approvals.RequestedBy" xml:space="preserve">
+    <value>طلبها</value>
+  </data>
+  <data name="Approvals.Discount" xml:space="preserve">
+    <value>الخصم</value>
+  </data>
+  <data name="Approvals.CartTotal" xml:space="preserve">
+    <value>إجمالي السلة</value>
+  </data>
+  <data name="Approvals.When" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="Approvals.DecidedBy" xml:space="preserve">
+    <value>قرّرها</value>
+  </data>
+  <data name="Approvals.Pending" xml:space="preserve">
+    <value>بانتظار القرار</value>
+  </data>
+  <data name="Approvals.Approved" xml:space="preserve">
+    <value>تمت الموافقة</value>
+  </data>
+  <data name="Approvals.Rejected" xml:space="preserve">
+    <value>مرفوض</value>
+  </data>
+  <data name="Approvals.Decided" xml:space="preserve">
+    <value>تم الحسم</value>
+  </data>
+  <data name="Pos.ApprovalRequired" xml:space="preserve">
+    <value>الخصم أكبر من الحد المسموح، وهو بانتظار موافقة المدير.</value>
+  </data>
+  <data name="Pos.ApprovalWaiting" xml:space="preserve">
+    <value>بانتظار الموافقة رقم {0}.</value>
+  </data>
+  <data name="Pos.ApprovalApproved" xml:space="preserve">
+    <value>تمت الموافقة على الخصم. أكّد البيع مرة أخرى.</value>
+  </data>
+  <data name="Pos.ApprovalRejected" xml:space="preserve">
+    <value>لم تتم الموافقة على الخصم.</value>
+  </data>
+  <data name="Dashboard.NetSales" xml:space="preserve">
+    <value>صافي المبيعات</value>
+  </data>
+  <data name="Dashboard.GrossProfit" xml:space="preserve">
+    <value>مجمل الربح</value>
+  </data>
+  <data name="Dashboard.StockValue" xml:space="preserve">
+    <value>قيمة المخزون</value>
+  </data>
+  <data name="Dashboard.Returns" xml:space="preserve">
+    <value>المرتجعات</value>
+  </data>
+  <data name="Dashboard.Today" xml:space="preserve">
+    <value>اليوم</value>
+  </data>
+  <data name="Dashboard.Period" xml:space="preserve">
+    <value>الفترة</value>
+  </data>
+
+  <data name="Dashboard.Refresh" xml:space="preserve">
+    <value>تحديث</value>
+  </data>
+  <data name="Nav.Approvals" xml:space="preserve">
+    <value>الموافقات</value>
+  </data>
 </root>

@@ -3,6 +3,7 @@ using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using StoreFlow.Application.Approvals;
 using StoreFlow.Application.Common;
 using StoreFlow.Application.Pos;
 using StoreFlow.Domain.Enumerations;
@@ -31,6 +32,7 @@ public sealed partial class PosViewModel : ObservableObject
     private readonly IQueryHandler<SearchSellableProductsQuery, Result<IReadOnlyList<PosProductFacts>>> _searchHandler;
     private readonly IQueryHandler<ListHeldCartsQuery, Result<IReadOnlyList<HeldCartSummary>>> _heldCartsHandler;
     private readonly ICommandHandler<PostSaleCommand, Result<SaleReceipt>> _postSaleHandler;
+    private readonly ICommandHandler<RequestDiscountApprovalCommand, Result<ApprovalRequestSummary>> _approvalHandler;
     private readonly ICommandHandler<HoldCartCommand, Result<HeldCartSummary>> _holdCartHandler;
     private readonly ICommandHandler<ResumeHeldCartCommand, Result<HeldCartDetails>> _resumeCartHandler;
     private readonly ICommandHandler<ClearHeldCartCommand, Result> _clearCartHandler;
@@ -76,12 +78,19 @@ public sealed partial class PosViewModel : ObservableObject
     [ObservableProperty]
     private string _lastReceiptNumber = string.Empty;
 
+    /// <summary>
+    /// The approval the cart is waiting for. It is set when the discount is over the limit and the
+    /// sale has been held for a manager; the sale is completed with it once the manager has said yes.
+    /// </summary>
+    private int? _pendingApprovalRequestId;
+
     /// <summary>Creates the till.</summary>
     public PosViewModel(
         IQueryHandler<LookupProductByBarcodeQuery, Result<PosProductFacts>> lookupHandler,
         IQueryHandler<SearchSellableProductsQuery, Result<IReadOnlyList<PosProductFacts>>> searchHandler,
         IQueryHandler<ListHeldCartsQuery, Result<IReadOnlyList<HeldCartSummary>>> heldCartsHandler,
         ICommandHandler<PostSaleCommand, Result<SaleReceipt>> postSaleHandler,
+        ICommandHandler<RequestDiscountApprovalCommand, Result<ApprovalRequestSummary>> approvalHandler,
         ICommandHandler<HoldCartCommand, Result<HeldCartSummary>> holdCartHandler,
         ICommandHandler<ResumeHeldCartCommand, Result<HeldCartDetails>> resumeCartHandler,
         ICommandHandler<ClearHeldCartCommand, Result> clearCartHandler,
@@ -95,6 +104,7 @@ public sealed partial class PosViewModel : ObservableObject
         _searchHandler = searchHandler;
         _heldCartsHandler = heldCartsHandler;
         _postSaleHandler = postSaleHandler;
+        _approvalHandler = approvalHandler;
         _holdCartHandler = holdCartHandler;
         _resumeCartHandler = resumeCartHandler;
         _clearCartHandler = clearCartHandler;
@@ -390,6 +400,7 @@ public sealed partial class PosViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(line);
 
         Lines.Remove(line);
+        InvalidatePendingApproval();
         Recalculate();
     }
 
@@ -525,12 +536,29 @@ public sealed partial class PosViewModel : ObservableObject
                 DateOnly.FromDateTime(DateTime.Now),
                 Lines.Select(line => line.ToInput()).ToList(),
                 PosLineViewModel.ParseDiscount(InvoiceDiscountText),
-                BuildPayments());
+                BuildPayments(),
+                null,
+                _pendingApprovalRequestId);
 
             Result<SaleReceipt> result = await _postSaleHandler.HandleAsync(command, CancellationToken.None);
 
             if (result.IsFailure)
             {
+                if (result.Error.Code == PosErrorCodes.DiscountApprovalRequired)
+                {
+                    await RequestApprovalAsync(command, CancellationToken.None);
+                    return;
+                }
+
+                if (result.Error.Code == ApprovalErrorCodes.NotApproved)
+                {
+                    _pendingApprovalRequestId = null;
+
+                    StatusMessage = _strings[StringKeys.PosApprovalRejected];
+
+                    return;
+                }
+
                 StatusMessage = PosErrorMessages.Resolve(_strings, result.Error.Code);
                 return;
             }
@@ -550,6 +578,30 @@ public sealed partial class PosViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    /// <summary>
+    /// Asks a manager to approve the discount. Nothing is sold and nothing is written to the shelf:
+    /// the till simply holds the cart and waits for the answer. The cashier presses the button again
+    /// once the request has been approved.
+    /// </summary>
+    /// <param name="command">The sale that is waiting.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    private async Task RequestApprovalAsync(PostSaleCommand command, CancellationToken cancellationToken)
+    {
+        Result<ApprovalRequestSummary> result = await _approvalHandler.HandleAsync(
+            new RequestDiscountApprovalCommand(command.Lines, command.InvoiceDiscount),
+            cancellationToken);
+
+        if (result.IsFailure)
+        {
+            StatusMessage = result.Error.Message;
+            return;
+        }
+
+        _pendingApprovalRequestId = result.Value.Id;
+
+        StatusMessage = _strings.Format(StringKeys.PosApprovalWaiting, result.Value.Id);
     }
 
     /// <summary>Prints the receipt of the last sale again. It does not sell anything.</summary>
@@ -705,6 +757,7 @@ public sealed partial class PosViewModel : ObservableObject
         InvoiceDiscountText = string.Empty;
         CashReceivedText = string.Empty;
         StatusMessage = string.Empty;
+        InvalidatePendingApproval();
         Recalculate();
     }
 
@@ -720,7 +773,11 @@ public sealed partial class PosViewModel : ObservableObject
         }
     }
 
-    partial void OnInvoiceDiscountTextChanged(string value) => Recalculate();
+    partial void OnInvoiceDiscountTextChanged(string value)
+    {
+        InvalidatePendingApproval();
+        Recalculate();
+    }
 
     partial void OnCashReceivedTextChanged(string value) => Recalculate();
 
@@ -759,7 +816,17 @@ public sealed partial class PosViewModel : ObservableObject
     /// </summary>
     /// <param name="sender">The line that changed.</param>
     /// <param name="e">The event arguments.</param>
-    private void OnLineChanged(object? sender, EventArgs e) => Recalculate();
+    private void OnLineChanged(object? sender, EventArgs e)
+    {
+        InvalidatePendingApproval();
+        Recalculate();
+    }
+
+    /// <summary>
+    /// Forgets the approval the cart was waiting for. An approval belongs to one exact cart, so a
+    /// cart that has changed has to be approved again.
+    /// </summary>
+    private void InvalidatePendingApproval() => _pendingApprovalRequestId = null;
 
     /// <summary>
     /// Puts the chip on the line that was just scanned, and takes it away again a moment later.
