@@ -257,6 +257,14 @@ The whole solution was tested **three times**, and every run was green.
 | The S3 destination really speaks the S3 API | `A_backup_is_written_to_the_object_store_and_read_back`, `A_cloud_target_that_was_never_set_up_says_so` |
 | The backup screen is written in the shop's language | `The_backup_screen_is_written_in_both_languages`, `A_destination_is_named_in_the_language_the_shop_reads` |
 
+### The design check
+
+The mechanical design detector was run over every new surface — the backup screen, the two wizards,
+the converters and their view models — and it reported **no findings**. The rules it checks that
+matter most here were checked by hand as well: every colour on the new screens comes from a semantic
+token, the Arabic layout mirrors through `FlowDirection`, the copy is written in the shop's language
+in both, and no font size is written into a view.
+
 ### The application, driven
 
 `tools/smoke-backup.ps1` drove the running application through the whole story: choose a
