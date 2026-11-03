@@ -474,13 +474,18 @@ application is.
 
 The numbering is the PRD's §11 and §10, not the numbering any earlier report used.
 
+The labels carry their own qualifier, because a reader who scans this table for the bold words should
+not be able to read one of them on its own: **PROVED (…)** names what was proved, **PARTIAL (…)** names
+the part this phase owns and the part it does not, and **MANUAL-ONLY-ON-HARDWARE (…)** names the step
+that still needs a person and the hardware.
+
 | Row | What it needs | What this phase did | Where it stands |
 |---|---|---|---|
-| **UAT-16** | Back up then restore on clean test PC; invoice counts, sales totals and inventory figures reconcile | The copy is taken, the file carries the checksum the screen shows, the wizard reads that file back, and the shop is put back with its invoices, its stock and its settings. The **same copy restores into a second, empty shop folder** and the figures reconcile exactly — one invoice, 200.00 of sales, eight on the shelf, 400.00 of stock | **PARTIAL.** Proved in substance on this machine. The second PC, the USB drive and the power cut are **MANUAL-ONLY-ON-HARDWARE** |
-| **UAT-17** | Disconnect internet and make sale; checkout and local printing still succeed | The sale path is pinned by a type-closure walk that fails if any HTTP client can be reached from it — over the Application assembly and over the Desktop assembly | **PARTIAL.** Proved for the code path. Unplugging the cable and watching the till carry on is **MANUAL-ONLY-ON-HARDWARE** |
-| **NFR-08** | Backup/restore succeeds on a different testing device **or** clean environment | The round trip restores into a second, empty data root on this machine and every figure reconciles | **PROVED** for the *clean environment* half of the row. The *different device* half is **MANUAL-ONLY-ON-HARDWARE** |
-| **NFR-12** | Backup before sensitive DB migration; documented rollback/recovery plan | Any migration that is not on the reviewed allow-list takes a backup first, the failure of that hook is logged and the migration still proceeds, and the recovery wizard is the way back in | **PARTIAL.** The backup-before-migration half is **PROVED** by a test. The written rollback runbook is Phase 7's; the in-app recovery wizard stands in for it today |
-| **NFR-07** | Forced shutdown/power-loss tests leave committed-or-rolled-back transactional state | This phase bears on it: the capture cannot tear a live database, a restore is refused while a sale is being posted, and the data a restore replaces is kept | **PARTIAL.** What this phase guarantees is **PROVED**; the forced-shutdown test itself is Phase 7's fault-injection work |
+| **UAT-16** | Back up then restore on clean test PC; invoice counts, sales totals and inventory figures reconcile | The copy is taken, the file carries the checksum the screen shows, the wizard reads that file back, and the shop is put back with its invoices, its stock and its settings. The **same copy restores into a second, empty shop folder** and the figures reconcile exactly — one invoice, 200.00 of sales, eight on the shelf, 400.00 of stock | **PARTIAL (proved in substance on this machine)** · **MANUAL-ONLY-ON-HARDWARE (the second PC, the USB drive, the power cut)** |
+| **UAT-17** | Disconnect internet and make sale; checkout and local printing still succeed | The sale path is pinned by a type-closure walk that fails if any HTTP client can be reached from it — over the Application assembly and over the Desktop assembly | **PARTIAL (proved for the code path)** · **MANUAL-ONLY-ON-HARDWARE (unplugging the cable and watching the till carry on)** |
+| **NFR-08** | Backup/restore succeeds on a different testing device **or** clean environment | The round trip restores into a second, empty data root on this machine and every figure reconciles | **PROVED (the clean-environment half of the row)** · **MANUAL-ONLY-ON-HARDWARE (the different-device half)** |
+| **NFR-12** | Backup before sensitive DB migration; documented rollback/recovery plan | Any migration that is not on the reviewed allow-list takes a backup first, the failure of that hook is logged and the migration still proceeds, and the recovery wizard is the way back in | **PARTIAL (the backup-before-migration half is PROVED by a test; the written rollback runbook is Phase 7's — the in-app recovery wizard stands in for it today)** |
+| **NFR-07** | Forced shutdown/power-loss tests leave committed-or-rolled-back transactional state | This phase bears on it: the capture cannot tear a live database, a restore is refused while a sale is being posted, and the data a restore replaces is kept | **PARTIAL (what this phase guarantees is PROVED; the forced-shutdown test itself is Phase 7's fault-injection work)** |
 
 ---
 
