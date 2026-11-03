@@ -133,28 +133,37 @@ public sealed class BackupRestoreService(
             return null;
         }
 
-        Directory.CreateDirectory(paths.RestorePointsDirectory);
-
-        string name = string.Create(
-            CultureInfo.InvariantCulture,
-            $"storeflow-restorepoint-{clock.UtcNow.UtcDateTime:yyyyMMdd-HHmmss}.db");
-
-        string restorePoint = Path.Combine(paths.RestorePointsDirectory, name);
-
         try
         {
+            Directory.CreateDirectory(paths.RestorePointsDirectory);
+
+            string name = string.Create(
+                CultureInfo.InvariantCulture,
+                $"storeflow-restorepoint-{clock.UtcNow.UtcDateTime:yyyyMMdd-HHmmss}.db");
+
+            string restorePoint = Path.Combine(paths.RestorePointsDirectory, name);
+
             SqliteSnapshot.Copy(paths.DatabasePath, restorePoint);
+
+            return restorePoint;
         }
         catch (SqliteException)
         {
+            // The shop's data is damaged, which is exactly when a recovery is needed. The restore
+            // goes ahead without a restore point; there is nothing else that can be done.
             return null;
         }
         catch (IOException)
         {
+            // The restore-points folder could not be written to. The restore goes ahead without a
+            // restore point rather than failing the recovery it was meant to serve.
             return null;
         }
-
-        return restorePoint;
+        catch (UnauthorizedAccessException)
+        {
+            // The same: the folder exists, but this account may not write to it.
+            return null;
+        }
     }
 
     private void ReplaceDatabase(string archivePath, CancellationToken cancellationToken)

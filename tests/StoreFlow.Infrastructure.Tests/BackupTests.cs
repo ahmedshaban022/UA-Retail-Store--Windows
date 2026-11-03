@@ -322,6 +322,34 @@ public sealed class BackupTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_restore_that_cannot_keep_a_restore_point_still_puts_the_shop_back()
+    {
+        await SeedShopAsync();
+
+        string path = Path.Combine(_shop.Root, "backups", "storeflow-manual.sfb");
+
+        await CaptureAsync(_shop, path);
+
+        // The folder the restore point goes in is taken by a file, so it cannot be created. This is
+        // the situation the recovery wizard exists for: the shop's own folder is in a state where
+        // not everything can be written. A restore point that cannot be kept is a reason to go
+        // ahead without one, not a reason to refuse to put the shop back.
+        Directory.Delete(_shop.Paths.RestorePointsDirectory, recursive: true);
+
+        await File.WriteAllTextAsync(_shop.Paths.RestorePointsDirectory, "this is a file, not a folder");
+
+        RestoreOutcome outcome = await RestoreAsync(_shop, path);
+
+        outcome.IsSucceeded.ShouldBeTrue(outcome.Message);
+        outcome.RestorePointPath.ShouldBeNull();
+
+        // The shop is back, and the copy that was taken is the copy that was put back.
+        await using StoreFlowDbContext after = await _shop.Factory.CreateDbContextAsync();
+
+        (await after.SalesInvoices.CountAsync()).ShouldBe(1);
+    }
+
+    [Fact]
     public async Task The_copy_past_the_number_the_shop_keeps_is_the_one_that_goes()
     {
         string folder = Path.Combine(_shop.Root, "retention");
