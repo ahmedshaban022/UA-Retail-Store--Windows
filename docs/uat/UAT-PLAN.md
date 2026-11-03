@@ -49,16 +49,24 @@ screen, a real printer and a real shop PC. Nothing in this plan has been execute
    runs open the sign-in window (`src/StoreFlow.Desktop/Views/LoginWindow.xaml`).
 7. The application data lives under the Windows application-data folder, not next to the executable: the database
    is `%APPDATA%\StoreFlow\data\storeflow.db` (`src/StoreFlow.Infrastructure/AppPaths.cs`). To start from a
-   clean store, delete that folder. Use a copy of it for the restore case (UAT-16).
+   clean store, delete that folder. The restore case (UAT-16) now has a screen of its own: **Backup →
+   Restore…** reads a `.sfb` file and puts the shop back, and the data it replaces is kept as a restore point
+   in `%APPDATA%\StoreFlow\data\restore-points\`.
 8. The navigation rail and the command bar are defined in `src/StoreFlow.Desktop/Views/MainWindow.xaml` and
    `src/StoreFlow.Desktop/ViewModels/ShellViewModel.cs`; the rail entries are Dashboard, Products, Purchases,
-   Inventory, POS, Sales, Reports, Users, Settings, Backup and Audit. Entries that this build does not provide
-   yet are disabled in the rail. Labels come from `src/StoreFlow.Desktop/Localization/StringKeys.cs` and
-   `src/StoreFlow.Desktop/Resources/Strings.resx`.
+   Inventory, POS, Sales, Reports, Approvals, Users, Settings, Backup and Audit. **Every rail entry is live
+   in this build** — the catalogue and the audit trail from Phase 1, the purchases and the inventory from
+   Phase 2, the till from Phase 3, the sales register from Phase 4, the reports, the approvals and the users
+   from Phase 5, and the backup, the restore and the recovery from Phase 6. Labels come from
+   `src/StoreFlow.Desktop/Localization/StringKeys.cs` and `src/StoreFlow.Desktop/Resources/Strings.resx`.
 9. The **Purchases** and **Inventory** rail entries are live from Phase 2. **Purchases** is the purchase register;
    **Inventory** carries three tabs — *stock on hand*, *movements* and *counts* — under a valuation panel that
    shows what the shelf is worth. The dialogs are **New purchase**, **New stock count**, **Stock adjustment**,
    **Opening stock** and the reason prompt that a reversal and an approval both use.
+10. The **Backup** rail entry is live from Phase 6. It carries the destinations the shop copies to, the
+   schedule, the log of the copies that have been taken, **Back up now**, **Restore…** and **Recover…**. The
+   restore is a wizard of its own, and the recovery wizard is the way back in when the shop's data cannot be
+   read at all.
 
 ### 2.2 Test data precondition
 
@@ -117,7 +125,7 @@ The moving-average case uses the PRD's own worked example (PRD §6.1): 10 pieces
 | UAT-13 | POS-03, GEN-02, GEN-03 | Cashier signed in; discount policy limit set; a manager account available | POS → RICE-001 qty 1 → apply a 50.00 EGP discount → Confirm Sale | Discount blocked or routed to manager approval; no invoice without approval; total never negative | Manual | Not run |  |
 | UAT-14 | INV-05, INV-02 | RICE-001 book quantity known | Inventory → the **Counts** tab → New stock count; select RICE-001; counted 5 against book 7; Submit for approval; Approve with a reason; Post count | Book quantity unchanged until approval; after approval on-hand 5 with a -2 CountCorrection movement and reason; audit entry recorded | Auto | Not run |  |
 | UAT-15 | REP-10 | A product with an Arabic name exists (WTR-002 "مياه") | Reports → Daily sales summary → Export CSV; open the file in Excel | CSV opens in Excel with Arabic text intact and no mojibake; headers and rows in order | Auto | Not run |  |
-| UAT-16 | NFR-08, NFR-12 | Backup target configured; invoice count, sales total and on-hand quantity recorded | Backup → Back up now; copy the artifact to a clean test PC; install StoreFlow there; restore; compare the figures | Invoice count, sales total and inventory figures identical after restore; backup integrity check passes | Manual (hardware) | Not run |  |
+| UAT-16 | NFR-08, NFR-12 | Backup target configured; invoice count, sales total and on-hand quantity recorded | Backup → choose the destination → Back up now; copy the `.sfb` file to a clean test PC; install StoreFlow there; sign in as the owner; Backup → Restore… → pick the file → check it → restore the shop; compare the figures | Invoice count, sales total and inventory figures identical after restore; the integrity check passes before the restore begins | Manual (hardware) | Not run |  |
 | UAT-17 | NFR-01 | Network cable unplugged; RICE-001 in stock | POS → scan 6221000000017 → Confirm Sale → print the receipt | Checkout completes offline; local receipt prints; amount due 450.00 EGP; no network error | Manual | Not run |  |
 | UAT-18 | PRD-01, SAL-01 | RICE-001 has a posted invoice | Products → RICE-001 → Deactivate; try to add it to a new POS sale; reopen the old invoice | RICE-001 not selectable in a new sale; old invoice opens with its original values; product not deleted | Manual | Not run |  |
 | UAT-19 | PUR-04, INV-07 | VAL-004 on hand 10 at average cost 50.00 EGP | Purchases → receipt 10 units of VAL-004 at unit cost 70.00 EGP → Post; then sell 3 units | Inventory value 1,200.00 EGP and average cost 60.00 EGP; COGS on the 3-unit sale 180.00 EGP, snapshotted on the invoice line | Auto | Not run |  |
@@ -311,18 +319,26 @@ order. The file is UTF-8 with a byte-order mark, which is what makes Excel read 
 
 1. On the shop PC, record the exact invoice count, the total sales for today, and the on-hand quantity and
    inventory value of every product.
-2. Backup → **Back up now** to the configured target (USB media or a cloud provider account such as the
-   Google Drive, OneDrive, Dropbox or S3-compatible target defined by
-   `src/StoreFlow.Application/Abstractions/IBackupTarget.cs`).
-3. Confirm the backup log records the artifact path, its checksum and a successful result.
-4. On a clean test PC with no StoreFlow data, install StoreFlow and sign in as the owner.
-5. Restore the backup artifact and let the integrity check run.
-6. Compare the figures from step 1 with the restored store.
+2. Backup → choose the destination in the picker at the top of the screen — the **local folder** (which may
+   be a USB drive) or an **S3-compatible object store** — and press **Back up now**.
+3. Confirm the backup log records the artifact path, its checksum and a successful result, and that the
+   checksum on the screen is the checksum of the file in the folder.
+4. On a clean test PC with no StoreFlow data, install StoreFlow, sign in as the owner, and open **Backup**.
+5. Press **Restore…**, choose the `.sfb` file (either pick it from the list of known backups or use
+   **Browse…** to find it on a disk), press **Check**, and read the integrity verdict.
+6. Press **Restore the shop**, confirm, and let it finish. Restart the application when it says so.
+7. Compare the figures from step 1 with the restored store.
 
 Expected: the restored store has the same invoice count, the same sales total and the same inventory
 quantities and values as the source PC; the restored database passes its integrity check; the restore is
 recorded in the backup log and the audit trail. The restore is restricted to an administrator
-(`Permission.BackupRestore`), and a restore point is preserved where possible (PRD §8.5, NFR-08).
+(`Permission.BackupRestore`), the shop is kept as a **restore point** in `data\restore-points\` before it is
+overwritten, and the restore is refused while a sale is in flight (PRD §8.5, NFR-08).
+
+The cloud targets this build ships are the local folder and an S3-compatible object store. Google Drive,
+OneDrive and Dropbox are not implemented, and a target that is not configured says so on the screen rather
+than failing at the moment of the backup. The archive is **not encrypted** — the copy holds the shop's
+commercial data in the clear, so a destination that is not trusted is not a destination.
 
 ### UAT-17 — Disconnect internet and make sale
 
@@ -423,9 +439,9 @@ Manager. That tests an orderly close and an ungraceful process kill, but it does
 path, so the WAL and journal recovery behaviour stays partly unverified.
 
 **UAT-16 — Back up then restore on a clean test PC**
-Hardware: a second, clean Windows PC and a backup target — USB media, or a real cloud provider account
-(Google Drive, OneDrive, Dropbox, S3-compatible or WebDAV) for the remote target implementations of
-`src/StoreFlow.Application/Abstractions/IBackupTarget.cs`.
+Hardware: a second, clean Windows PC and a backup destination — a local folder on a USB drive, or a real
+S3-compatible object store (MinIO, AWS S3, or any other that speaks the same API). Google Drive, OneDrive
+and Dropbox are not implemented in this build.
 Simulation if unavailable: restore on the same PC into a different data folder. That does not prove the
 backup survives a different machine or a disk failure, so the recovery objective stays unverified.
 
@@ -444,6 +460,8 @@ be executed end to end on this build:
 | UAT-19 | The purchase and the valuation are implementable now; **step 4 (the sale and its COGS snapshot) needs Phase 5**, so the case cannot be signed off before then. |
 | UAT-04, UAT-05, UAT-06, UAT-07, UAT-08 | The point of sale. Every one of these is implemented and proved in substance by the Phase 3 gate table; the manual steps are still waiting for a person to walk them. |
 | UAT-10, UAT-11, UAT-12, UAT-20 | The sales register and the returns. The register, the return and the reversal are implemented and proved in substance by the Phase 4 gate table; **the gross-profit reading behind UAT-12 and UAT-20 needs Phase 5**, so those two cannot be signed off before then. |
+| UAT-13, UAT-15 | The reports, the approvals and the users screens, all built in Phase 5 and proved in substance by the Phase 5 gate table. |
+| UAT-16, UAT-17 | The backup, the restore and the recovery screens, built in Phase 6 and proved in substance by the Phase 6 gate table. **UAT-16 still needs a second, clean machine** — the same-PC run proves the copy and the restore, not the hardware. |
 
 Each phase says in its own report which of these rows it proved and which it could not reach, and
 this plan and that report must not disagree. The gate table in
@@ -462,10 +480,10 @@ The `Status` column above stays `Not run` until a person executes the manual ste
 of §2.3 requires both the automated counterpart to be green **and** the manual step to have been
 executed. A phase report is evidence that the automated half is green; it is not a sign-off.
 
-The reports, the backup and the users screens are not built yet, so the cases that depend on them
-cannot be executed. The rail entries for them are disabled rather than hidden, so the plan and the
-application agree on what exists. The **Point of sale** rail entry is live from Phase 3, in both
-languages, and the **Sales** rail entry is live from Phase 4, in both languages.
+The reports, the approvals, the users, the backup and the recovery screens are built — the reports, the
+approvals and the users in Phase 5, the backup and the recovery in Phase 6 — so the cases that depend on them
+can now be executed. Their rail entries are live in both languages. The **Point of sale** rail entry is live
+from Phase 3, in both languages, and the **Sales** rail entry is live from Phase 4, in both languages.
 
 ### 4.2 What to look at while running these cases
 

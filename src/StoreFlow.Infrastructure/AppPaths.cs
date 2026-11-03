@@ -31,6 +31,7 @@ public sealed class AppPaths
         LogsDirectory = Path.Combine(RootDirectory, "logs");
         MediaDirectory = Path.Combine(RootDirectory, "media");
         BackupsDirectory = Path.Combine(RootDirectory, "backups");
+        RestorePointsDirectory = Path.Combine(RootDirectory, "data", "restore-points");
         BrandDirectory = Path.Combine(RootDirectory, "brand");
         DiagnosticsDirectory = Path.Combine(RootDirectory, "diagnostics");
     }
@@ -56,6 +57,12 @@ public sealed class AppPaths
     /// <summary>Where local backups are written by default.</summary>
     public string BackupsDirectory { get; }
 
+    /// <summary>
+    /// Where the database is kept before it is replaced by a restore, so that a restore can be
+    /// undone (PRD §8.5).
+    /// </summary>
+    public string RestorePointsDirectory { get; }
+
     /// <summary>Where the logo and other brand assets live.</summary>
     public string BrandDirectory { get; }
 
@@ -72,6 +79,7 @@ public sealed class AppPaths
         Directory.CreateDirectory(LogsDirectory);
         Directory.CreateDirectory(MediaDirectory);
         Directory.CreateDirectory(BackupsDirectory);
+        Directory.CreateDirectory(RestorePointsDirectory);
         Directory.CreateDirectory(BrandDirectory);
         Directory.CreateDirectory(DiagnosticsDirectory);
     }

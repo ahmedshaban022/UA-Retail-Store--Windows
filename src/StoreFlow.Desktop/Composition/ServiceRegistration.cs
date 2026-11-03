@@ -5,17 +5,18 @@ using Serilog;
 using StoreFlow.Application.Abstractions;
 using StoreFlow.Application.Authorization;
 using StoreFlow.Application.Approvals;
+using StoreFlow.Application.Backup;
 using StoreFlow.Application.Catalog;
 using StoreFlow.Application.Common;
 using StoreFlow.Application.Identity;
 using StoreFlow.Application.Inventory;
 using StoreFlow.Application.Reporting;
+using StoreFlow.Application.Pos;
 using StoreFlow.Application.Scanning;
 using StoreFlow.Application.Security;
 using StoreFlow.Application.Setup;
 using StoreFlow.Application.Theming;
 using StoreFlow.Application.Settings;
-using StoreFlow.Application.Pos;
 using StoreFlow.Application.Sales;
 using StoreFlow.Desktop.Localization;
 using StoreFlow.Desktop.Printing;
@@ -23,6 +24,7 @@ using StoreFlow.Desktop.Services;
 using StoreFlow.Desktop.ViewModels;
 using StoreFlow.Infrastructure;
 using StoreFlow.Infrastructure.Approvals;
+using StoreFlow.Infrastructure.Backup;
 using StoreFlow.Infrastructure.Catalog;
 using StoreFlow.Infrastructure.Export;
 using StoreFlow.Infrastructure.Identity;
@@ -174,6 +176,37 @@ public static class ServiceRegistration
         services.AddSingleton<ICommandHandler<DecideApprovalRequestCommand, Result<ApprovalRequestSummary>>, DecideApprovalRequestCommandHandler>();
         services.AddSingleton<IQueryHandler<ListApprovalRequestsQuery, Result<IReadOnlyList<ApprovalRequestSummary>>>, ListApprovalRequestsQueryHandler>();
         services.AddSingleton<IQueryHandler<GetApprovalRequestQuery, Result<ApprovalRequestSummary>>, GetApprovalRequestQueryHandler>();
+
+        // The backup screen, the restore wizard and the recovery wizard. The backup engine works
+        // against the port, so a new destination is one more implementation and nothing else
+        // changes here.
+        services.AddSingleton<BackupSettingsStore>();
+        services.AddSingleton<IBackupScheduleSettingsStore>(provider => provider.GetRequiredService<BackupSettingsStore>());
+        services.AddSingleton<IStoreSettingsWriter>(provider => provider.GetRequiredService<BackupSettingsStore>());
+        services.AddSingleton<ICloudBackupConfigurationProvider, CloudBackupConfigurationProvider>();
+        services.AddSingleton<IBackupTargetFactory, BackupTargetFactory>();
+        services.AddSingleton<IBackupCaptureService, SqliteBackupCaptureService>();
+        services.AddSingleton<IBackupRestoreService, BackupRestoreService>();
+        services.AddSingleton<BackupRunner>();
+        services.AddSingleton<IMigrationBackupHook, MigrationBackupHook>();
+        services.AddSingleton<ISaleActivityMonitor, SaleActivityMonitor>();
+
+        services.AddSingleton<ICommandHandler<CreateBackupCommand, Result<BackupRunResult>>, CreateBackupCommandHandler>();
+        services.AddSingleton<IQueryHandler<ListBackupTargetsQuery, Result<IReadOnlyList<BackupTargetSummary>>>, ListBackupTargetsQueryHandler>();
+        services.AddSingleton<IQueryHandler<TestBackupTargetQuery, Result<BackupTargetTestResult>>, TestBackupTargetQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListBackupHistoryQuery, Result<IReadOnlyList<BackupHistoryEntry>>>, ListBackupHistoryQueryHandler>();
+        services.AddSingleton<IQueryHandler<ListBackupArtifactsQuery, Result<IReadOnlyList<BackupArtifactInfo>>>, ListBackupArtifactsQueryHandler>();
+        services.AddSingleton<IQueryHandler<InspectBackupQuery, Result<RestorePreview>>, InspectBackupQueryHandler>();
+        services.AddSingleton<ICommandHandler<RestoreBackupCommand, Result<RestoreOutcome>>, RestoreBackupCommandHandler>();
+        services.AddSingleton<ICommandHandler<RecoverStoreCommand, Result<RestoreOutcome>>, RecoverStoreCommandHandler>();
+        services.AddSingleton<IQueryHandler<GetBackupScheduleQuery, Result<BackupScheduleView>>, GetBackupScheduleQueryHandler>();
+        services.AddSingleton<ICommandHandler<SaveBackupScheduleCommand, Result>, SaveBackupScheduleCommandHandler>();
+        services.AddSingleton<ICommandHandler<RunScheduledBackupsCommand, Result<int>>, RunScheduledBackupsCommandHandler>();
+
+        services.AddSingleton<IBackupDialogs, BackupDialogs>();
+        services.AddTransient<BackupViewModel>();
+        services.AddTransient<RestoreWizardViewModel>();
+        services.AddTransient<RecoveryWizardViewModel>();
 
         services.AddLogging(logging =>
         {

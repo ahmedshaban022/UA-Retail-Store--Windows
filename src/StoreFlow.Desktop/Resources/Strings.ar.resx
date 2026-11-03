@@ -18,6 +18,198 @@
   <data name="App.Title" xml:space="preserve">
     <value>ستور فلو</value>
   </data>
+  <data name="Backup.Checksum" xml:space="preserve">
+    <value>البصمة</value>
+  </data>
+  <data name="Backup.Column.Checksum" xml:space="preserve">
+    <value>البصمة</value>
+  </data>
+  <data name="Backup.Column.Message" xml:space="preserve">
+    <value>ما حدث</value>
+  </data>
+  <data name="Backup.Column.Path" xml:space="preserve">
+    <value>المكان</value>
+  </data>
+  <data name="Backup.Column.Result" xml:space="preserve">
+    <value>النتيجة</value>
+  </data>
+  <data name="Backup.Column.Size" xml:space="preserve">
+    <value>الحجم</value>
+  </data>
+  <data name="Backup.Column.Target" xml:space="preserve">
+    <value>الوجهة</value>
+  </data>
+  <data name="Backup.Column.When" xml:space="preserve">
+    <value>الوقت</value>
+  </data>
+  <data name="Backup.DailyEnabled" xml:space="preserve">
+    <value>نسخة يومية</value>
+  </data>
+  <data name="Backup.DailyRetention" xml:space="preserve">
+    <value>النسخ المحفوظة</value>
+  </data>
+  <data name="Backup.DailyTime" xml:space="preserve">
+    <value>الساعة</value>
+  </data>
+  <data name="Backup.Day.Friday" xml:space="preserve">
+    <value>الجمعة</value>
+  </data>
+  <data name="Backup.Day.Monday" xml:space="preserve">
+    <value>الاثنين</value>
+  </data>
+  <data name="Backup.Day.Saturday" xml:space="preserve">
+    <value>السبت</value>
+  </data>
+  <data name="Backup.Day.Sunday" xml:space="preserve">
+    <value>الأحد</value>
+  </data>
+  <data name="Backup.Day.Thursday" xml:space="preserve">
+    <value>الخميس</value>
+  </data>
+  <data name="Backup.Day.Tuesday" xml:space="preserve">
+    <value>الثلاثاء</value>
+  </data>
+  <data name="Backup.Day.Wednesday" xml:space="preserve">
+    <value>الأربعاء</value>
+  </data>
+  <data name="Backup.Destination" xml:space="preserve">
+    <value>تُحفظ النسخة في</value>
+  </data>
+  <data name="Backup.Directory" xml:space="preserve">
+    <value>مجلد النسخ الاحتياطية</value>
+  </data>
+  <data name="Backup.ErrorCaptureFailed" xml:space="preserve">
+    <value>تعذّر التقاط بيانات المحل.</value>
+  </data>
+  <data name="Backup.ErrorDirectoryUnusable" xml:space="preserve">
+    <value>لا يمكن الكتابة في المجلد المختار للنسخ الاحتياطية.</value>
+  </data>
+  <data name="Backup.ErrorIntegrityFailed" xml:space="preserve">
+    <value>ملف النسخة الاحتياطية لا يطابق بصمته.</value>
+  </data>
+  <data name="Backup.ErrorNotABackup" xml:space="preserve">
+    <value>هذا الملف ليس نسخة احتياطية أنشأها ستور فلو.</value>
+  </data>
+  <data name="Backup.ErrorNotFound" xml:space="preserve">
+    <value>تعذّر العثور على ملف النسخة الاحتياطية.</value>
+  </data>
+  <data name="Backup.ErrorRestoreBusy" xml:space="preserve">
+    <value>يجري تسجيل عملية بيع، لذا لا يمكن استبدال بيانات المحل الآن.</value>
+  </data>
+  <data name="Backup.ErrorRestoreFailed" xml:space="preserve">
+    <value>تعذّر استرجاع بيانات المحل.</value>
+  </data>
+  <data name="Backup.ErrorSchemaMismatch" xml:space="preserve">
+    <value>هذه النسخة الاحتياطية أُنشئت بإصدار من المحل لا يستطيع هذا الإصدار استرجاعه.</value>
+  </data>
+  <data name="Backup.ErrorTargetNotConfigured" xml:space="preserve">
+    <value>لم يتم إعداد هذه الوجهة بعد.</value>
+  </data>
+  <data name="Backup.ErrorTargetUnreachable" xml:space="preserve">
+    <value>تعذّر الوصول إلى الوجهة.</value>
+  </data>
+  <data name="Backup.ErrorUploadFailed" xml:space="preserve">
+    <value>تعذّرت كتابة النسخة الاحتياطية في الوجهة.</value>
+  </data>
+  <data name="Backup.Filter.From" xml:space="preserve">
+    <value>من</value>
+  </data>
+  <data name="Backup.Filter.Result" xml:space="preserve">
+    <value>النتيجة</value>
+  </data>
+  <data name="Backup.Filter.Target" xml:space="preserve">
+    <value>الوجهة</value>
+  </data>
+  <data name="Backup.Filter.To" xml:space="preserve">
+    <value>إلى</value>
+  </data>
+  <data name="Backup.Log" xml:space="preserve">
+    <value>سجل النسخ الاحتياطية</value>
+  </data>
+  <data name="Backup.LogEmpty" xml:space="preserve">
+    <value>لم تُؤخذ أي نسخة احتياطية بعد.</value>
+  </data>
+  <data name="Backup.NoTarget" xml:space="preserve">
+    <value>اختر أولًا أين تُحفظ النسخة الاحتياطية.</value>
+  </data>
+  <data name="Backup.Now" xml:space="preserve">
+    <value>خذ نسخة احتياطية الآن</value>
+  </data>
+  <data name="Backup.OutcomeWritten" xml:space="preserve">
+    <value>تم كتابة النسخة الاحتياطية والتحقق منها: {0}</value>
+  </data>
+  <data name="Backup.Recover" xml:space="preserve">
+    <value>إنعاش...</value>
+  </data>
+  <data name="Backup.Restore" xml:space="preserve">
+    <value>استعادة...</value>
+  </data>
+  <data name="Backup.RestoreDone" xml:space="preserve">
+    <value>تم استرجاع بيانات المحل. وتم الاحتفاظ بالبيانات التي استُبدلت في {0}</value>
+  </data>
+  <data name="Backup.RestoreDonePlain" xml:space="preserve">
+    <value>تم استرجاع بيانات المحل.</value>
+  </data>
+
+  <data name="Backup.Result.Cancelled" xml:space="preserve">
+    <value>أُلغيت</value>
+  </data>
+  <data name="Backup.Result.Failed" xml:space="preserve">
+    <value>فشلت</value>
+  </data>
+  <data name="Backup.Result.Succeeded" xml:space="preserve">
+    <value>تمت بنجاح</value>
+  </data>
+  <data name="Backup.Schedule" xml:space="preserve">
+    <value>موعد أخذ النسخ الاحتياطية</value>
+  </data>
+  <data name="Backup.ScheduleSaved" xml:space="preserve">
+    <value>تم حفظ الجدول.</value>
+  </data>
+  <data name="Backup.TargetLocalFolder" xml:space="preserve">
+    <value>مجلد محلي</value>
+  </data>
+  <data name="Backup.TargetNotConfigured" xml:space="preserve">
+    <value>لم يتم إعداد هذه الوجهة بعد.</value>
+  </data>
+  <data name="Backup.TargetReady" xml:space="preserve">
+    <value>جاهزة. تُكتب النسخ في {0}.</value>
+  </data>
+  <data name="Backup.TargetReadyPlain" xml:space="preserve">
+    <value>جاهزة.</value>
+  </data>
+  <data name="Backup.TargetS3" xml:space="preserve">
+    <value>تخزين كائنات متوافق مع S3</value>
+  </data>
+  <data name="Backup.TargetUnreachable" xml:space="preserve">
+    <value>تعذّر الوصول إلى الوجهة: {0}</value>
+  </data>
+
+  <data name="Backup.TargetUnreachablePlain" xml:space="preserve">
+    <value>تعذّر الوصول إلى الوجهة.</value>
+  </data>
+
+  <data name="Backup.Targets" xml:space="preserve">
+    <value>أماكن حفظ النسخ الاحتياطية</value>
+  </data>
+  <data name="Backup.Test" xml:space="preserve">
+    <value>اختبار</value>
+  </data>
+<data name="Backup.Title" xml:space="preserve">
+    <value>النسخ الاحتياطي والسحابة</value>
+  </data>
+  <data name="Backup.WeeklyDay" xml:space="preserve">
+    <value>اليوم</value>
+  </data>
+  <data name="Backup.WeeklyEnabled" xml:space="preserve">
+    <value>نسخة أسبوعية</value>
+  </data>
+  <data name="Backup.WeeklyRetention" xml:space="preserve">
+    <value>النسخ المحفوظة</value>
+  </data>
+  <data name="Backup.WeeklyTime" xml:space="preserve">
+    <value>الساعة</value>
+  </data>
   <data name="Common.Back" xml:space="preserve">
     <value>رجوع</value>
   </data>
@@ -370,7 +562,7 @@
     <value>سجل التدقيق</value>
   </data>
   <data name="Nav.Backup" xml:space="preserve">
-    <value>النسخ الاحتياطي والاستعادة</value>
+    <value>النسخ الاحتياطي والسحابة</value>
   </data>
   <data name="Nav.Dashboard" xml:space="preserve">
     <value>لوحة التحكم</value>
@@ -560,6 +752,91 @@
   </data>
   <data name="Purchases.Total" xml:space="preserve">
     <value>الإجمالي</value>
+  </data>
+  <data name="Recovery.Choose" xml:space="preserve">
+    <value>ملف النسخة الاحتياطية</value>
+  </data>
+  <data name="Recovery.Help" xml:space="preserve">
+    <value>ابحث عن ملف النسخة الاحتياطية على الذاكرة الخارجية أو على قرص الشبكة أو في حساب السحابة الذي استخدمه المحل، ثم اختره واستعد. ستُستبدل بيانات المحل بالنسخة الاحتياطية، وتُحفظ البيانات المستبدلة كنقطة استعادة.</value>
+  </data>
+  <data name="Recovery.Restore" xml:space="preserve">
+    <value>استعد بيانات المحل</value>
+  </data>
+  <data name="Recovery.RestoreHeading" xml:space="preserve">
+    <value>إعادة بيانات المحل</value>
+  </data>
+  <data name="Recovery.RunbookHeading" xml:space="preserve">
+    <value>ما يجب عمله</value>
+  </data>
+  <data name="Recovery.Step1" xml:space="preserve">
+    <value>لا تمسح بيانات الجهاز. اترك القرص كما هو تمامًا.</value>
+  </data>
+  <data name="Recovery.Step2" xml:space="preserve">
+    <value>خذ الذاكرة الخارجية أو قرص الشبكة أو حساب السحابة الذي استخدمه المحل في نسخه الاحتياطية.</value>
+  </data>
+  <data name="Recovery.Step3" xml:space="preserve">
+    <value>على الجهاز الجديد، ثبّت StoreFlow ثم أغلقه.</value>
+  </data>
+  <data name="Recovery.Step4" xml:space="preserve">
+    <value>افتح StoreFlow. إذا عرض استعادة بيانات المحل، اختر ملف النسخة الاحتياطية من الخطوة السابقة.</value>
+  </data>
+  <data name="Recovery.Step5" xml:space="preserve">
+    <value>سجّل الدخول بحساب المالك، وتأكد من وجود مبيعات اليوم قبل فتح الصندوق.</value>
+  </data>
+
+  <data name="Recovery.Title" xml:space="preserve">
+    <value>إذا تعطل كمبيوتر المحل</value>
+  </data>
+  <data name="Restore.AppVersion" xml:space="preserve">
+    <value>أُنشئت بواسطة</value>
+  </data>
+  <data name="Restore.Check" xml:space="preserve">
+    <value>افحص هذه النسخة</value>
+  </data>
+  <data name="Restore.Checksum" xml:space="preserve">
+    <value>البصمة</value>
+  </data>
+  <data name="Restore.Choose" xml:space="preserve">
+    <value>اختر نسخة احتياطية</value>
+  </data>
+  <data name="Restore.Confirm" xml:space="preserve">
+    <value>نعم، استعد بيانات المحل</value>
+  </data>
+  <data name="Restore.ConfirmBody" xml:space="preserve">
+    <value>سيُستبدل قاعدة بيانات المحل الحالية بالنسخة الاحتياطية التي اخترتها. وتُحفظ قاعدة البيانات المستبدلة كنقطة استعادة، فيمكن التراجع عن العملية. ويعيد StoreFlow تشغيل نفسه بعد انتهاء الاستعادة.</value>
+  </data>
+  <data name="Restore.ConfirmHeading" xml:space="preserve">
+    <value>هذا يستبدل بيانات المحل</value>
+  </data>
+  <data name="Restore.Created" xml:space="preserve">
+    <value>أُخذت في</value>
+  </data>
+  <data name="Restore.Empty" xml:space="preserve">
+    <value>لا يوجد ملف نسخة احتياطية على هذا الجهاز بعد. خذ نسخة، أو اختر ملفًا من ذاكرة خارجية.</value>
+  </data>
+  <data name="Restore.IntegrityFailed" xml:space="preserve">
+    <value>النسخة الاحتياطية لا تطابق بصمتها.</value>
+  </data>
+  <data name="Restore.IntegrityOk" xml:space="preserve">
+    <value>النسخة الاحتياطية مطابقة لبصمتها.</value>
+  </data>
+  <data name="Restore.Machine" xml:space="preserve">
+    <value>أُخذت على</value>
+  </data>
+  <data name="Restore.NothingChosen" xml:space="preserve">
+    <value>اختر نسخة احتياطية أولًا.</value>
+  </data>
+  <data name="Restore.Now" xml:space="preserve">
+    <value>استعد بيانات المحل</value>
+  </data>
+  <data name="Restore.Schema" xml:space="preserve">
+    <value>شكل البيانات</value>
+  </data>
+  <data name="Restore.Size" xml:space="preserve">
+    <value>الحجم</value>
+  </data>
+  <data name="Restore.Title" xml:space="preserve">
+    <value>الاستعادة من نسخة احتياطية</value>
   </data>
   <data name="Session.Lock" xml:space="preserve">
     <value>قفل</value>

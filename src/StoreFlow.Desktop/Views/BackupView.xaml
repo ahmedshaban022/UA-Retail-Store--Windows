@@ -1,0 +1,422 @@
+<UserControl x:Class="StoreFlow.Desktop.Views.BackupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             TextOptions.TextFormattingMode="Display">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <!-- Where the copy goes, and the commands this screen offers -->
+    <Grid Grid.Row="0" Margin="0,0,0,16">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="260" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <TextBlock Grid.Row="0" Grid.Column="0"
+                 Text="{Binding DestinationLabel}"
+                 Style="{StaticResource Type.FieldLabel}"
+                 VerticalAlignment="Center"
+                 Margin="0,0,8,0" />
+
+      <ComboBox Grid.Row="0" Grid.Column="1"
+                ItemsSource="{Binding Targets}"
+                SelectedItem="{Binding SelectedTarget}"
+                DisplayMemberPath="DisplayName"
+                VerticalAlignment="Center"
+                AutomationProperties.AutomationId="Backup.TargetPicker" />
+
+      <StackPanel Grid.Row="0" Grid.Column="2"
+                  Orientation="Horizontal"
+                  HorizontalAlignment="Right">
+        <Button Content="{Binding BackUpNowLabel}"
+                Command="{Binding BackupNowCommand}"
+                Style="{StaticResource Button.Primary}"
+                AutomationProperties.AutomationId="Backup.Now"
+                Margin="0,0,8,0" />
+
+        <Button Content="{Binding RestoreLabel}"
+                Command="{Binding RestoreCommand}"
+                Style="{StaticResource Button.Ghost}"
+                AutomationProperties.AutomationId="Backup.Restore"
+                Margin="0,0,8,0" />
+
+        <Button Content="{Binding RecoverLabel}"
+                Command="{Binding RecoverCommand}"
+                Style="{StaticResource Button.Ghost}"
+                AutomationProperties.AutomationId="Backup.Recover" />
+      </StackPanel>
+
+      <!-- What the last command did -->
+      <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                 Text="{Binding StatusMessage}"
+                 Style="{StaticResource Type.Caption}"
+                 Foreground="{DynamicResource Text.Muted}"
+                 TextWrapping="Wrap"
+                 Margin="0,8,0,0"
+                 AutomationProperties.AutomationId="Backup.Status" />
+    </Grid>
+
+    <!-- The destinations, and the schedule -->
+    <Grid Grid.Row="1" Margin="0,0,0,16">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="1*" MinWidth="300" />
+        <ColumnDefinition Width="2*" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Where the copies go -->
+      <Border Grid.Column="0"
+              Style="{StaticResource Surface.Card}"
+              Margin="0,0,16,0"
+              Padding="16,16,16,16">
+        <StackPanel>
+          <TextBlock Text="{Binding TargetsLabel}"
+                     Style="{StaticResource Type.SectionLabel}"
+                     Margin="0,0,0,12" />
+
+          <ItemsControl ItemsSource="{Binding Targets}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,0,0,16">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+
+                  <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="{Binding DisplayName}" Style="{StaticResource Type.Body}" />
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Style="{StaticResource Type.Caption}"
+                               Foreground="{DynamicResource Text.Muted}"
+                               TextWrapping="Wrap" />
+                  </StackPanel>
+
+                  <Button Grid.Column="1"
+                          Content="{Binding DataContext.TestLabel, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          Command="{Binding DataContext.TestCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}"
+                          Style="{StaticResource Button.Ghost}"
+                          VerticalAlignment="Center"
+                          AutomationProperties.AutomationId="Backup.Test" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- The outcome of the last backup, with the checksum that proves it -->
+          <Border Style="{StaticResource Surface.Panel}" Padding="12,12,12,12" Margin="0,8,0,0">
+            <StackPanel>
+              <TextBlock Text="{Binding OutcomeMessage}"
+                         Style="{StaticResource Type.Body}"
+                         TextWrapping="Wrap"
+                         AutomationProperties.AutomationId="Backup.Outcome" />
+
+              <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <TextBlock Text="{Binding ChecksumLabel}"
+                           Style="{StaticResource Type.Caption}"
+                           Foreground="{DynamicResource Text.Muted}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0" />
+                <TextBlock Text="{Binding LastChecksum}"
+                           Style="{StaticResource Type.Identifier}"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           AutomationProperties.AutomationId="Backup.Checksum" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <!-- The schedule -->
+      <Border Grid.Column="1" Style="{StaticResource Surface.Card}" Padding="16,16,16,16">
+        <StackPanel>
+          <TextBlock Text="{Binding ScheduleLabel}"
+                     Style="{StaticResource Type.SectionLabel}"
+                     Margin="0,0,0,12" />
+
+          <!-- The daily backup -->
+          <Grid Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="85" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="65" />
+            </Grid.ColumnDefinitions>
+
+            <CheckBox Grid.Column="0"
+                      Content="{Binding DailyEnabledLabel}"
+                      IsChecked="{Binding DailyEnabled}"
+                      VerticalAlignment="Center"
+                      AutomationProperties.AutomationId="Backup.DailyEnabled" />
+
+            <TextBlock Grid.Column="1"
+                       Text="{Binding DailyTimeLabel}"
+                       Style="{StaticResource Type.FieldLabel}"
+                       VerticalAlignment="Center"
+                       Margin="12,0,6,0" />
+
+            <TextBox Grid.Column="2"
+                     Text="{Binding DailyTimeText, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.AutomationId="Backup.DailyTime" />
+
+            <TextBlock Grid.Column="3"
+                       Text="{Binding DailyRetentionLabel}"
+                       Style="{StaticResource Type.FieldLabel}"
+                       VerticalAlignment="Center"
+                       Margin="12,0,6,0" />
+
+            <TextBox Grid.Column="4"
+                     Text="{Binding DailyRetentionText, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.AutomationId="Backup.DailyRetention" />
+          </Grid>
+
+          <!-- The weekly backup -->
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="110" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="85" />
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="65" />
+            </Grid.ColumnDefinitions>
+
+            <CheckBox Grid.Column="0"
+                      Content="{Binding WeeklyEnabledLabel}"
+                      IsChecked="{Binding WeeklyEnabled}"
+                      VerticalAlignment="Center"
+                      AutomationProperties.AutomationId="Backup.WeeklyEnabled" />
+
+            <TextBlock Grid.Column="1"
+                       Text="{Binding WeeklyDayLabel}"
+                       Style="{StaticResource Type.FieldLabel}"
+                       VerticalAlignment="Center"
+                       Margin="12,0,6,0" />
+
+            <ComboBox Grid.Column="2"
+                      ItemsSource="{Binding Days}"
+                      SelectedValuePath="Day"
+                      SelectedValue="{Binding WeeklyDay}"
+                      DisplayMemberPath="Name"
+                      VerticalAlignment="Center"
+                      AutomationProperties.AutomationId="Backup.WeeklyDay" />
+
+            <TextBlock Grid.Column="3"
+                       Text="{Binding WeeklyTimeLabel}"
+                       Style="{StaticResource Type.FieldLabel}"
+                       VerticalAlignment="Center"
+                       Margin="12,0,6,0" />
+
+            <TextBox Grid.Column="4"
+                     Text="{Binding WeeklyTimeText, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.AutomationId="Backup.WeeklyTime" />
+
+            <TextBlock Grid.Column="5"
+                       Text="{Binding WeeklyRetentionLabel}"
+                       Style="{StaticResource Type.FieldLabel}"
+                       VerticalAlignment="Center"
+                       Margin="12,0,6,0" />
+
+            <TextBox Grid.Column="6"
+                     Text="{Binding WeeklyRetentionText, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.AutomationId="Backup.WeeklyRetention" />
+          </Grid>
+
+          <Grid Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="{Binding BackupDirectoryLabel}"
+                       Style="{StaticResource Type.FieldLabel}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,0" />
+
+            <TextBox Grid.Column="1"
+                     Text="{Binding BackupDirectory, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.AutomationId="Backup.Directory" />
+
+            <Button Grid.Column="2"
+                    Content="{Binding SaveLabel}"
+                    Command="{Binding SaveScheduleCommand}"
+                    Style="{StaticResource Button.Primary}"
+                    Margin="12,0,0,0"
+                    AutomationProperties.AutomationId="Backup.SaveSchedule" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- The backup log -->
+    <Border Grid.Row="2" Style="{StaticResource Surface.Card}" Padding="16,16,16,16">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <TextBlock Grid.Column="0"
+                     Text="{Binding LogLabel}"
+                     Style="{StaticResource Type.SectionLabel}"
+                     VerticalAlignment="Center"
+                     Margin="0,0,16,0" />
+
+          <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <TextBlock Text="{Binding FilterTargetLabel}"
+                       Style="{StaticResource Type.Caption}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,6,0" />
+
+            <ComboBox Width="180"
+                      ItemsSource="{Binding LogTargetFilters}"
+                      SelectedItem="{Binding SelectedLogTarget}"
+                      DisplayMemberPath="DisplayName"
+                      VerticalAlignment="Center"
+                      AutomationProperties.AutomationId="Backup.FilterTarget" />
+
+            <TextBlock Text="{Binding FilterResultLabel}"
+                       Style="{StaticResource Type.Caption}"
+                       VerticalAlignment="Center"
+                       Margin="16,0,6,0" />
+
+            <ComboBox Width="140"
+                      ItemsSource="{Binding ResultFilters}"
+                      SelectedItem="{Binding FilterResult}"
+                      DisplayMemberPath="DisplayName"
+                      VerticalAlignment="Center"
+                      AutomationProperties.AutomationId="Backup.FilterResult" />
+
+            <TextBlock Text="{Binding FromLabel}"
+                       Style="{StaticResource Type.Caption}"
+                       VerticalAlignment="Center"
+                       Margin="16,0,6,0" />
+
+            <TextBox Width="110"
+                     Text="{Binding FromText, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.AutomationId="Backup.From" />
+
+            <TextBlock Text="{Binding ToLabel}"
+                       Style="{StaticResource Type.Caption}"
+                       VerticalAlignment="Center"
+                       Margin="12,0,6,0" />
+
+            <TextBox Width="110"
+                     Text="{Binding ToText, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.AutomationId="Backup.To" />
+          </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+          <DataGrid x:Name="BackupGrid"
+                    AutomationProperties.AutomationId="Backup.Grid"
+                    ItemsSource="{Binding History}"
+                    IsReadOnly="True"
+                    EnableColumnVirtualization="False"
+                    CellStyle="{StaticResource DataGrid.Cell.Tight}"
+                    ColumnHeaderStyle="{StaticResource DataGrid.Header.Tight}">
+            <DataGrid.Columns>
+              <DataGridTextColumn Width="150"
+                                  Binding="{Binding CreatedUtc, Converter={StaticResource Timestamp}}">
+                <DataGridTextColumn.Header>
+                  <TextBlock Text="{Binding WhenHeader}" Style="{StaticResource Type.ColumnValue}" />
+                </DataGridTextColumn.Header>
+              </DataGridTextColumn>
+
+              <DataGridTextColumn Width="140" Binding="{Binding TargetKind, Converter={StaticResource BackupTarget}}">
+                <DataGridTextColumn.Header>
+                  <TextBlock Text="{Binding TargetHeader}" Style="{StaticResource Type.SectionLabel}" />
+                </DataGridTextColumn.Header>
+              </DataGridTextColumn>
+
+              <DataGridTextColumn Width="2*" MinWidth="180" Binding="{Binding Path}">
+                <DataGridTextColumn.Header>
+                  <TextBlock Text="{Binding PathHeader}" Style="{StaticResource Type.ColumnValue}" />
+                </DataGridTextColumn.Header>
+
+                <DataGridTextColumn.ElementStyle>
+                  <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}">
+                    <Setter Property="ToolTip" Value="{Binding Path}" />
+                  </Style>
+                </DataGridTextColumn.ElementStyle>
+              </DataGridTextColumn>
+
+              <DataGridTextColumn Width="180" Binding="{Binding Sha256}">
+                <DataGridTextColumn.Header>
+                  <TextBlock Text="{Binding ChecksumHeader}" Style="{StaticResource Type.SectionLabel}" />
+                </DataGridTextColumn.Header>
+
+                <DataGridTextColumn.ElementStyle>
+                  <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Type.LeftToRight}">
+                    <Setter Property="ToolTip" Value="{Binding Sha256}" />
+                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                  </Style>
+                </DataGridTextColumn.ElementStyle>
+              </DataGridTextColumn>
+
+              <DataGridTextColumn Width="100"
+                                  Binding="{Binding SizeBytes, Converter={StaticResource BackupSize}}">
+                <DataGridTextColumn.Header>
+                  <TextBlock Text="{Binding SizeHeader}" Style="{StaticResource Type.ColumnValue}" />
+                </DataGridTextColumn.Header>
+              </DataGridTextColumn>
+
+              <DataGridTextColumn Width="110"
+                                  Binding="{Binding Result, Converter={StaticResource BackupResult}}">
+                <DataGridTextColumn.Header>
+                  <TextBlock Text="{Binding ResultHeader}" Style="{StaticResource Type.SectionLabel}" />
+                </DataGridTextColumn.Header>
+              </DataGridTextColumn>
+
+              <DataGridTextColumn Width="2*" MinWidth="200" Binding="{Binding Message}">
+                <DataGridTextColumn.Header>
+                  <TextBlock Text="{Binding MessageHeader}" Style="{StaticResource Type.ColumnValue}" />
+                </DataGridTextColumn.Header>
+              </DataGridTextColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <Border Style="{StaticResource Surface.Panel}"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Padding="32,24"
+                  Visibility="{Binding IsLogEmpty, Converter={StaticResource BooleanToVisibility}}">
+            <TextBlock Text="{Binding LogEmptyText}"
+                       Style="{StaticResource Type.Body}"
+                       Foreground="{DynamicResource Text.Muted}"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       MaxWidth="420" />
+          </Border>
+        </Grid>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

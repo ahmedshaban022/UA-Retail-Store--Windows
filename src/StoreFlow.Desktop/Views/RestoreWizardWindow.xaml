@@ -1,0 +1,218 @@
+<Window x:Class="StoreFlow.Desktop.Views.RestoreWizardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title}"
+        Width="720"
+        Height="640"
+        MinWidth="620"
+        MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        AutomationProperties.AutomationId="RestoreWizardWindow"
+        Background="{DynamicResource Surface.Canvas}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,0,0,1"
+            Padding="24,16">
+      <TextBlock Text="{Binding Title}" Style="{StaticResource Type.Title}" />
+    </Border>
+
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <StackPanel Margin="24,18,24,18">
+
+        <!-- Step one: choose the backup -->
+        <TextBlock Text="{Binding ChooseLabel}" Style="{StaticResource Type.SectionLabel}" />
+
+        <Grid Margin="0,8,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <ComboBox Grid.Column="0"
+                    ItemsSource="{Binding Artifacts}"
+                    SelectedItem="{Binding SelectedArtifact}"
+                    DisplayMemberPath="Path"
+                    AutomationProperties.AutomationId="Restore.Artifact" />
+
+          <Button Grid.Column="1"
+                  Content="{Binding BrowseLabel}"
+                  Command="{Binding BrowseCommand}"
+                  Style="{StaticResource Button.Ghost}"
+                  Margin="8,0,0,0"
+                  AutomationProperties.AutomationId="Restore.Browse" />
+        </Grid>
+
+        <!-- Checking the backup, and asking to put it back -->
+        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+          <Button Content="{Binding CheckLabel}"
+                  Command="{Binding CheckCommand}"
+                  Style="{StaticResource Button.Primary}"
+                  AutomationProperties.AutomationId="Restore.Check" />
+
+          <Button Content="{Binding RestoreLabel}"
+                  Command="{Binding BeginRestoreCommand}"
+                  IsEnabled="{Binding CanRestore}"
+                  Margin="8,0,0,0"
+                  AutomationProperties.AutomationId="Restore.Now" />
+        </StackPanel>
+
+        <!-- What the backup holds -->
+        <Border Style="{StaticResource Surface.Card}"
+                Margin="0,16,0,0"
+                Padding="16,16,16,16"
+                Visibility="{Binding HasPreview, Converter={StaticResource BooleanToVisibility}}">
+          <StackPanel>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="160" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding CreatedLabel}"
+                         Style="{StaticResource Type.FieldLabel}" Margin="0,0,8,4" />
+              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Preview.CreatedUtc}"
+                         Style="{StaticResource Type.Body}" Margin="0,0,0,4" />
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding SizeLabel}"
+                         Style="{StaticResource Type.FieldLabel}" Margin="0,0,8,4" />
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Preview.SizeBytes}"
+                         Style="{StaticResource Type.Body}" Margin="0,0,0,4" />
+
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding ChecksumLabel}"
+                         Style="{StaticResource Type.FieldLabel}" Margin="0,0,8,4" />
+              <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Preview.Sha256}"
+                         Style="{StaticResource Type.Identifier}" Margin="0,0,0,4"
+                         TextWrapping="Wrap" />
+
+              <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding AppVersionLabel}"
+                         Style="{StaticResource Type.FieldLabel}" Margin="0,0,8,4" />
+              <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Preview.AppVersion}"
+                         Style="{StaticResource Type.Body}" Margin="0,0,0,4" />
+
+              <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding SchemaLabel}"
+                         Style="{StaticResource Type.FieldLabel}" Margin="0,0,8,4" />
+              <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Preview.SchemaVersion}"
+                         Style="{StaticResource Type.Body}" Margin="0,0,0,4" />
+
+              <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding MachineLabel}"
+                         Style="{StaticResource Type.FieldLabel}" Margin="0,0,8,4" />
+              <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Preview.MachineName}"
+                         Style="{StaticResource Type.Body}" Margin="0,0,0,4" />
+            </Grid>
+
+            <TextBlock Text="{Binding Preview.SchemaMessage}"
+                       Style="{StaticResource Type.Error}"
+                       Margin="0,12,0,0"
+                       TextWrapping="Wrap"
+                       Visibility="{Binding Preview.SchemaMessage, Converter={StaticResource StringToVisibility}}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Step two: say what will be replaced, and ask -->
+        <Border Style="{StaticResource Surface.Panel}"
+                Margin="0,16,0,0"
+                Padding="16,16,16,16"
+                Visibility="{Binding IsConfirming, Converter={StaticResource BooleanToVisibility}}">
+          <StackPanel>
+            <TextBlock Text="{Binding ConfirmHeading}"
+                       Style="{StaticResource Type.SectionLabel}"
+                       Margin="0,0,0,8" />
+
+            <TextBlock Text="{Binding ConfirmBody}"
+                       Style="{StaticResource Type.Body}"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,16" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+              <Button Content="{Binding CancelLabel}"
+                      Command="{Binding CancelConfirmCommand}"
+                      Style="{StaticResource Button.Ghost}"
+                      Margin="0,0,8,0"
+                      AutomationProperties.AutomationId="Restore.CancelConfirm" />
+
+              <Button Content="{Binding ConfirmLabel}"
+                      Command="{Binding ConfirmRestoreCommand}"
+                      Style="{StaticResource Button.Danger}"
+                      AutomationProperties.AutomationId="Restore.Confirm" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Step three: the result -->
+        <Border Style="{StaticResource Surface.Card}"
+                Margin="0,16,0,0"
+                Padding="16,16,16,16"
+                Visibility="{Binding IsRestored, Converter={StaticResource BooleanToVisibility}}">
+          <StackPanel>
+            <TextBlock Text="{Binding RestorePointText}"
+                       Style="{StaticResource Type.Caption}"
+                       Foreground="{DynamicResource Text.Muted}"
+                       TextWrapping="Wrap"
+                       Margin="0,8,0,0"
+                       AutomationProperties.AutomationId="Restore.RestorePoint" />
+          </StackPanel>
+        </Border>
+
+        <TextBlock Text="{Binding StatusMessage}"
+                   Style="{StaticResource Type.Caption}"
+                   Foreground="{DynamicResource Text.Muted}"
+                   TextWrapping="Wrap"
+                   Margin="0,16,0,0"
+                   AutomationProperties.AutomationId="Restore.Status" />
+
+        <Border Style="{StaticResource Surface.Panel}"
+                Padding="32,24"
+                HorizontalAlignment="Center"
+                Margin="0,24,0,0"
+                Visibility="{Binding IsEmpty, Converter={StaticResource BooleanToVisibility}}">
+          <TextBlock Text="{Binding EmptyText}"
+                     Style="{StaticResource Type.Body}"
+                     Foreground="{DynamicResource Text.Muted}"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     MaxWidth="420" />
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2"
+            Background="{DynamicResource Surface.Raised}"
+            BorderBrush="{DynamicResource Border.Subtle}"
+            BorderThickness="0,1,0,0"
+            Padding="24,12"
+            Margin="0,16,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Button Grid.Column="1"
+                Content="{Binding CancelLabel}"
+                Command="{Binding CloseCommand}"
+                Style="{StaticResource Button.Ghost}"
+                AutomationProperties.AutomationId="Restore.Close" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

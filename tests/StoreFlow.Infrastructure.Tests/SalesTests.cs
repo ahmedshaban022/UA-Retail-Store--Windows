@@ -547,7 +547,8 @@ public sealed class SalesTests : IAsyncLifetime
             _auditWriter,
             new TestClock(),
             _session,
-            new StoreSettingsReader(_fixture.Factory))
+            new StoreSettingsReader(_fixture.Factory),
+            new SaleActivityMonitor())
             .HandleAsync(
                 new PostSaleCommand(
                     Guid.NewGuid(),

@@ -1,3 +1,5 @@
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using StoreFlow.Application.Abstractions;
@@ -27,12 +29,14 @@ public sealed class AppHost : IAsyncDisposable
         ServiceProvider services,
         AppPaths paths,
         ThemeDefinition theme,
-        ResourceDictionary resources)
+        ResourceDictionary resources,
+        bool databaseReady)
     {
         _services = services;
         Paths = paths;
         Theme = theme;
         Resources = resources;
+        _databaseReady = databaseReady;
     }
 
     /// <summary>The known locations on disk.</summary>
@@ -49,6 +53,15 @@ public sealed class AppHost : IAsyncDisposable
 
     /// <summary>The main shell, once the user has signed in.</summary>
     public MainWindow? Shell { get; private set; }
+
+    /// <summary>
+    /// True when the shop's database could be prepared. When it could not, the owner is offered the
+    /// recovery wizard instead of the sign-in window: there is no shop to sign in to (PRD §8.5).
+    /// </summary>
+    private bool _databaseReady;
+
+    /// <summary>The scheduler that takes the shop's backups while it is open.</summary>
+    private BackupScheduler? _scheduler;
 
     /// <summary>Builds the host and prepares the database.</summary>
     public static async Task<AppHost> CreateAsync()
@@ -74,11 +87,31 @@ public sealed class AppHost : IAsyncDisposable
         language.SetLanguage(theme.Locale.Default);
 
         DatabaseInitializer initializer = provider.GetRequiredService<DatabaseInitializer>();
-        await initializer.InitializeAsync();
+
+        bool databaseReady = true;
+
+        try
+        {
+            await initializer.InitializeAsync();
+        }
+        catch (SqliteException ex)
+        {
+            // The shop's own data cannot be read. The owner is offered the recovery wizard rather
+            // than a sign-in window they cannot get past.
+            databaseReady = false;
+
+            StartupDiagnostics.Write("The shop's database could not be prepared.", ex);
+        }
+        catch (DbUpdateException ex)
+        {
+            databaseReady = false;
+
+            StartupDiagnostics.Write("The shop's database could not be brought up to date.", ex);
+        }
 
         ResourceDictionary resources = System.Windows.Application.Current.Resources;
 
-        return new AppHost(provider, paths, theme, resources);
+        return new AppHost(provider, paths, theme, resources, databaseReady);
     }
 
     /// <summary>Builds the rolling file logger the application writes its diagnostics to.</summary>
@@ -112,6 +145,17 @@ public sealed class AppHost : IAsyncDisposable
     /// </summary>
     public async Task<Window> ShowStartupWindowAsync()
     {
+        if (!_databaseReady)
+        {
+            bool recovered = await ShowRecoveryAsync();
+
+            if (!recovered)
+            {
+                throw new InvalidOperationException(
+                    "The shop's data cannot be read and no backup was restored, so StoreFlow cannot start.");
+            }
+        }
+
         var statusHandler = _services.GetRequiredService<IQueryHandler<SetupStatusQuery, Result<SetupStatus>>>();
         Result<SetupStatus> status = await statusHandler.HandleAsync(new SetupStatusQuery(), CancellationToken.None);
 
@@ -140,6 +184,34 @@ public sealed class AppHost : IAsyncDisposable
         return Shell;
     }
 
+    /// <summary>
+    /// Offers the recovery wizard, which is how a shop whose own data cannot be read is put back.
+    /// </summary>
+    /// <returns>True when the shop was restored.</returns>
+    private async Task<bool> ShowRecoveryAsync()
+    {
+        var viewModel = _services.GetRequiredService<RecoveryWizardViewModel>();
+
+        var window = new RecoveryWizardWindow { DataContext = viewModel };
+
+        window.ShowDialog();
+
+        if (!viewModel.IsRestored)
+        {
+            return false;
+        }
+
+        DatabaseInitializer initializer = _services.GetRequiredService<DatabaseInitializer>();
+
+        await initializer.InitializeAsync();
+
+        _databaseReady = true;
+
+        StartupDiagnostics.Write("The shop was recovered from a backup and the database is ready again.");
+
+        return true;
+    }
+
     /// <summary>Called once the shell is on screen, to run the first page load.</summary>
     public void ShellReady()
     {
@@ -147,11 +219,18 @@ public sealed class AppHost : IAsyncDisposable
         {
             shell.NavigateCommand.Execute("Dashboard");
         }
+
+        // The scheduler starts once the shop is open, so that the backups it takes are taken from
+        // a shop that is ready.
+        _scheduler = new BackupScheduler(_services);
+        _scheduler.Start();
     }
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
     {
+        _scheduler?.Dispose();
+
         _services.Dispose();
         return ValueTask.CompletedTask;
     }

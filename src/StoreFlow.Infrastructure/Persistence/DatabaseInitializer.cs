@@ -4,6 +4,7 @@ using StoreFlow.Application.Settings;
 using StoreFlow.Domain.Authorization;
 using StoreFlow.Domain.Entities;
 using StoreFlow.Domain.Enumerations;
+using StoreFlow.Infrastructure.Backup;
 using StoreFlow.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +16,8 @@ namespace StoreFlow.Infrastructure.Persistence;
 /// </summary>
 public sealed class DatabaseInitializer(
     IDbContextFactory<StoreFlowDbContext> contextFactory,
-    IClock clock)
+    IClock clock,
+    IMigrationBackupHook? backupHook = null)
 {
     /// <summary>The settings key that holds the store details.</summary>
     public const string StoreDetailsSettingKey = "store.details";
@@ -40,10 +42,68 @@ public sealed class DatabaseInitializer(
     {
         await using StoreFlowDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
+        await BackUpBeforeMigrateAsync(context, cancellationToken);
+
         await context.Database.MigrateAsync(cancellationToken);
         await context.Database.ExecuteSqlRawAsync(SchemaTriggers.Script, cancellationToken);
 
         await SeedAsync(context, cancellationToken);
+    }
+
+    /// <summary>
+    /// Keeps a copy of the shop before a migration that might change the shape of the data
+    /// (PRD §8.4, NFR-12).
+    /// </summary>
+    /// <remarks>
+    /// The backup is taken before the migration runs, not after, because afterwards the old shape
+    /// is gone. If the backup cannot be taken the migration is still applied: a shop that cannot
+    /// open its till cannot trade, and the failure is written to the backup log where the owner can
+    /// see it.
+    /// </remarks>
+    private async Task BackUpBeforeMigrateAsync(
+        StoreFlowDbContext context,
+        CancellationToken cancellationToken)
+    {
+        if (backupHook is null)
+        {
+            return;
+        }
+
+        IReadOnlyList<string> pending = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+
+        if (pending.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await backupHook.BackUpAsync(pending, cancellationToken);
+        }
+        catch (BackupCaptureException ex)
+        {
+            await RecordFailedBackupAsync(context, ex.Message, cancellationToken);
+        }
+        catch (IOException ex)
+        {
+            await RecordFailedBackupAsync(context, ex.Message, cancellationToken);
+        }
+    }
+
+    private async Task RecordFailedBackupAsync(
+        StoreFlowDbContext context,
+        string message,
+        CancellationToken cancellationToken)
+    {
+        context.BackupLogs.Add(new BackupLog
+        {
+            TargetKind = "PreMigration",
+            CreatedUtc = clock.UtcNow,
+            Result = BackupResult.Failed,
+            Message = message.Length > 2000 ? message[..2000] : message,
+        });
+
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>Runs the integrity check that tells the user whether the database is healthy.</summary>
@@ -242,41 +302,52 @@ public sealed class DatabaseInitializer(
             TaxNumber: null,
             LogoPath: null);
 
-        await UpsertSettingAsync(
+        await InsertSettingIfMissingAsync(
             context,
             StoreDetailsSettingKey,
             JsonSerializer.Serialize(storeDetails),
             cancellationToken);
 
-        await UpsertSettingAsync(
+        await InsertSettingIfMissingAsync(
             context,
             StoreSettingsSettingKey,
             JsonSerializer.Serialize(StoreSettings.Defaults),
             cancellationToken);
     }
 
-    private async Task UpsertSettingAsync(
+    /// <summary>
+    /// Writes a setting only when the shop does not have one yet.
+    /// </summary>
+    /// <remarks>
+    /// The settings belong to the shop, not to the installation. They are laid down once, when the
+    /// shop is new, and from then on the shop's own values are what count. A shop that moves its
+    /// backup folder, or changes the discount it allows, must still have those settings after the
+    /// next restart — so the installer never writes over a setting that is already there.
+    /// </remarks>
+    /// <param name="context">The context.</param>
+    /// <param name="key">The setting's key.</param>
+    /// <param name="value">The value to lay down.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The task.</returns>
+    private async Task InsertSettingIfMissingAsync(
         StoreFlowDbContext context,
         string key,
         string value,
         CancellationToken cancellationToken)
     {
-        Setting? existing = await context.Settings.FirstOrDefaultAsync(setting => setting.Key == key, cancellationToken);
+        bool exists = await context.Settings.AnyAsync(setting => setting.Key == key, cancellationToken);
 
-        if (existing is null)
+        if (exists)
         {
-            context.Settings.Add(new Setting
-            {
-                Key = key,
-                Value = value,
-                UpdatedUtc = clock.UtcNow,
-            });
+            return;
         }
-        else
+
+        context.Settings.Add(new Setting
         {
-            existing.Value = value;
-            existing.UpdatedUtc = clock.UtcNow;
-        }
+            Key = key,
+            Value = value,
+            UpdatedUtc = clock.UtcNow,
+        });
 
         await context.SaveChangesAsync(cancellationToken);
     }

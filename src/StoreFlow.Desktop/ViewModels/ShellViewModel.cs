@@ -95,7 +95,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             new("Approvals", "✓", _strings[StringKeys.NavApprovals]),
             new("Users", "◉", _strings[StringKeys.NavUsers]),
             new("Settings", "⚙", _strings[StringKeys.NavSettings]),
-            new("Backup", "⛁", _strings[StringKeys.NavBackup], IsAvailable: false),
+            new("Backup", "⛁", _strings[StringKeys.NavBackup]),
             new("Audit", "✎", _strings[StringKeys.NavAudit]),
         ];
 
@@ -151,6 +151,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             "Approvals" => _services.GetService(typeof(ApprovalsViewModel)),
             "Users" => _services.GetService(typeof(UsersViewModel)),
             "Settings" => _services.GetService(typeof(SettingsViewModel)),
+            "Backup" => _services.GetService(typeof(BackupViewModel)),
             _ => null,
         };
 
@@ -201,6 +202,9 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
             case UsersViewModel users:
                 users.RefreshCommand.Execute(null);
                 break;
+            case BackupViewModel backup:
+                backup.RefreshCommand.Execute(null);
+                break;
         }
     }
 
@@ -220,6 +224,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
         "Reports" => _strings[StringKeys.ReportsTitle],
         "Approvals" => _strings[StringKeys.ApprovalsTitle],
         "Users" => _strings[StringKeys.UsersTitle],
+        "Backup" => _strings[StringKeys.BackupTitle],
         _ => _strings[StringKeys.NavSettings],
     };
 

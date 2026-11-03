@@ -37,7 +37,8 @@ public sealed class PostSaleCommandHandler(
     IAuditWriter auditWriter,
     IClock clock,
     IUserSession session,
-    IStoreSettingsReader settingsReader)
+    IStoreSettingsReader settingsReader,
+    ISaleActivityMonitor saleMonitor)
     : ICommandHandler<PostSaleCommand, Result<SaleReceipt>>
 {
     private static readonly JsonSerializerOptions ReceiptJson = new(JsonSerializerDefaults.Web);
@@ -63,6 +64,10 @@ public sealed class PostSaleCommandHandler(
 
         string key = command.ClientOperationId.ToString("D");
         string fingerprint = Fingerprint(command);
+
+        // While a sale is being posted, the shop's data must not be replaced underneath it. A
+        // restore that landed in the middle of a sale would lose money (PRD §8.5).
+        using IDisposable saleScope = saleMonitor.Begin();
 
         // The key is looked at before anything is priced, so a repeated checkout is answered from
         // the ledger rather than from a second reading of the shelf.

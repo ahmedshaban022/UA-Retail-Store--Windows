@@ -333,7 +333,8 @@ public sealed class ApprovalTests : IAsyncLifetime
             _auditWriter,
             new TestClock(),
             _cashierSession,
-            new StoreSettingsReader(_fixture.Factory))
+            new StoreSettingsReader(_fixture.Factory),
+            new SaleActivityMonitor())
             .HandleAsync(
                 new PostSaleCommand(
                     Guid.NewGuid(),

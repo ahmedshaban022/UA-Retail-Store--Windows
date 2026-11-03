@@ -18,6 +18,198 @@
   <data name="App.Title" xml:space="preserve">
     <value>StoreFlow</value>
   </data>
+  <data name="Backup.Checksum" xml:space="preserve">
+    <value>Checksum</value>
+  </data>
+  <data name="Backup.Column.Checksum" xml:space="preserve">
+    <value>Checksum</value>
+  </data>
+  <data name="Backup.Column.Message" xml:space="preserve">
+    <value>What happened</value>
+  </data>
+  <data name="Backup.Column.Path" xml:space="preserve">
+    <value>Where</value>
+  </data>
+  <data name="Backup.Column.Result" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Backup.Column.Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Backup.Column.Target" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="Backup.Column.When" xml:space="preserve">
+    <value>When</value>
+  </data>
+  <data name="Backup.DailyEnabled" xml:space="preserve">
+    <value>Daily backup</value>
+  </data>
+  <data name="Backup.DailyRetention" xml:space="preserve">
+    <value>Copies kept</value>
+  </data>
+  <data name="Backup.DailyTime" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="Backup.Day.Friday" xml:space="preserve">
+    <value>Friday</value>
+  </data>
+  <data name="Backup.Day.Monday" xml:space="preserve">
+    <value>Monday</value>
+  </data>
+  <data name="Backup.Day.Saturday" xml:space="preserve">
+    <value>Saturday</value>
+  </data>
+  <data name="Backup.Day.Sunday" xml:space="preserve">
+    <value>Sunday</value>
+  </data>
+  <data name="Backup.Day.Thursday" xml:space="preserve">
+    <value>Thursday</value>
+  </data>
+  <data name="Backup.Day.Tuesday" xml:space="preserve">
+    <value>Tuesday</value>
+  </data>
+  <data name="Backup.Day.Wednesday" xml:space="preserve">
+    <value>Wednesday</value>
+  </data>
+  <data name="Backup.Destination" xml:space="preserve">
+    <value>The copy goes to</value>
+  </data>
+  <data name="Backup.Directory" xml:space="preserve">
+    <value>Backup folder</value>
+  </data>
+  <data name="Backup.ErrorCaptureFailed" xml:space="preserve">
+    <value>The shop's data could not be captured.</value>
+  </data>
+  <data name="Backup.ErrorDirectoryUnusable" xml:space="preserve">
+    <value>The folder chosen for the backups cannot be written to.</value>
+  </data>
+  <data name="Backup.ErrorIntegrityFailed" xml:space="preserve">
+    <value>The backup file does not match its own checksum.</value>
+  </data>
+  <data name="Backup.ErrorNotABackup" xml:space="preserve">
+    <value>This file is not a backup that StoreFlow wrote.</value>
+  </data>
+  <data name="Backup.ErrorNotFound" xml:space="preserve">
+    <value>The backup file could not be found.</value>
+  </data>
+  <data name="Backup.ErrorRestoreBusy" xml:space="preserve">
+    <value>A sale is being posted, so the shop may not be replaced right now.</value>
+  </data>
+  <data name="Backup.ErrorRestoreFailed" xml:space="preserve">
+    <value>The shop could not be restored.</value>
+  </data>
+  <data name="Backup.ErrorSchemaMismatch" xml:space="preserve">
+    <value>This backup was made by a version of the shop that this build cannot restore.</value>
+  </data>
+  <data name="Backup.ErrorTargetNotConfigured" xml:space="preserve">
+    <value>This destination has not been set up yet.</value>
+  </data>
+  <data name="Backup.ErrorTargetUnreachable" xml:space="preserve">
+    <value>The destination could not be reached.</value>
+  </data>
+  <data name="Backup.ErrorUploadFailed" xml:space="preserve">
+    <value>The backup could not be written to the destination.</value>
+  </data>
+  <data name="Backup.Filter.From" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="Backup.Filter.Result" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Backup.Filter.Target" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="Backup.Filter.To" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="Backup.Log" xml:space="preserve">
+    <value>Backup log</value>
+  </data>
+  <data name="Backup.LogEmpty" xml:space="preserve">
+    <value>No backup has been taken yet.</value>
+  </data>
+  <data name="Backup.NoTarget" xml:space="preserve">
+    <value>Choose where the backup should go first.</value>
+  </data>
+  <data name="Backup.Now" xml:space="preserve">
+    <value>Back up now</value>
+  </data>
+  <data name="Backup.OutcomeWritten" xml:space="preserve">
+    <value>The backup was written and checked: {0}</value>
+  </data>
+  <data name="Backup.Recover" xml:space="preserve">
+    <value>Recover...</value>
+  </data>
+  <data name="Backup.Restore" xml:space="preserve">
+    <value>Restore...</value>
+  </data>
+  <data name="Backup.RestoreDone" xml:space="preserve">
+    <value>The shop was put back. The data it replaced was kept at {0}</value>
+  </data>
+  <data name="Backup.RestoreDonePlain" xml:space="preserve">
+    <value>The shop was put back.</value>
+  </data>
+
+  <data name="Backup.Result.Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Backup.Result.Failed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="Backup.Result.Succeeded" xml:space="preserve">
+    <value>Succeeded</value>
+  </data>
+  <data name="Backup.Schedule" xml:space="preserve">
+    <value>When the backups are taken</value>
+  </data>
+  <data name="Backup.ScheduleSaved" xml:space="preserve">
+    <value>The schedule was saved.</value>
+  </data>
+  <data name="Backup.TargetLocalFolder" xml:space="preserve">
+    <value>Local folder</value>
+  </data>
+  <data name="Backup.TargetNotConfigured" xml:space="preserve">
+    <value>This destination has not been set up yet.</value>
+  </data>
+  <data name="Backup.TargetReady" xml:space="preserve">
+    <value>Ready. The copies are written to {0}.</value>
+  </data>
+  <data name="Backup.TargetReadyPlain" xml:space="preserve">
+    <value>Ready.</value>
+  </data>
+  <data name="Backup.TargetS3" xml:space="preserve">
+    <value>S3-compatible object store</value>
+  </data>
+  <data name="Backup.TargetUnreachable" xml:space="preserve">
+    <value>The destination could not be reached: {0}</value>
+  </data>
+
+  <data name="Backup.TargetUnreachablePlain" xml:space="preserve">
+    <value>The destination could not be reached.</value>
+  </data>
+
+  <data name="Backup.Targets" xml:space="preserve">
+    <value>Where the backups go</value>
+  </data>
+  <data name="Backup.Test" xml:space="preserve">
+    <value>Test</value>
+  </data>
+<data name="Backup.Title" xml:space="preserve">
+    <value>Backup and cloud</value>
+  </data>
+  <data name="Backup.WeeklyDay" xml:space="preserve">
+    <value>Day</value>
+  </data>
+  <data name="Backup.WeeklyEnabled" xml:space="preserve">
+    <value>Weekly backup</value>
+  </data>
+  <data name="Backup.WeeklyRetention" xml:space="preserve">
+    <value>Copies kept</value>
+  </data>
+  <data name="Backup.WeeklyTime" xml:space="preserve">
+    <value>Time</value>
+  </data>
   <data name="Common.Back" xml:space="preserve">
     <value>Back</value>
   </data>
@@ -370,7 +562,7 @@
     <value>Audit trail</value>
   </data>
   <data name="Nav.Backup" xml:space="preserve">
-    <value>Backup and restore</value>
+    <value>Backup and cloud</value>
   </data>
   <data name="Nav.Dashboard" xml:space="preserve">
     <value>Dashboard</value>
@@ -560,6 +752,91 @@
   </data>
   <data name="Purchases.Total" xml:space="preserve">
     <value>Total</value>
+  </data>
+  <data name="Recovery.Choose" xml:space="preserve">
+    <value>Backup file</value>
+  </data>
+  <data name="Recovery.Help" xml:space="preserve">
+    <value>Find the backup file on the USB stick, on the network drive or in the cloud account the shop used, then choose it and restore. The shop's data is replaced by the backup, and the data it replaces is kept as a restore point.</value>
+  </data>
+  <data name="Recovery.Restore" xml:space="preserve">
+    <value>Restore the shop</value>
+  </data>
+  <data name="Recovery.RestoreHeading" xml:space="preserve">
+    <value>Put the shop back</value>
+  </data>
+  <data name="Recovery.RunbookHeading" xml:space="preserve">
+    <value>What to do</value>
+  </data>
+  <data name="Recovery.Step1" xml:space="preserve">
+    <value>Do not wipe the computer. Leave the disk exactly as it is.</value>
+  </data>
+  <data name="Recovery.Step2" xml:space="preserve">
+    <value>Take the USB stick, the network drive or the cloud account the shop used for its backups.</value>
+  </data>
+  <data name="Recovery.Step3" xml:space="preserve">
+    <value>On the new computer, install StoreFlow and leave it closed.</value>
+  </data>
+  <data name="Recovery.Step4" xml:space="preserve">
+    <value>Open StoreFlow. If it offers to recover the shop, choose the backup file from step 2.</value>
+  </data>
+  <data name="Recovery.Step5" xml:space="preserve">
+    <value>Sign in with the owner's account, and check the day's sales are there before you open the till.</value>
+  </data>
+
+  <data name="Recovery.Title" xml:space="preserve">
+    <value>If the shop's computer fails</value>
+  </data>
+  <data name="Restore.AppVersion" xml:space="preserve">
+    <value>Made by</value>
+  </data>
+  <data name="Restore.Check" xml:space="preserve">
+    <value>Check this backup</value>
+  </data>
+  <data name="Restore.Checksum" xml:space="preserve">
+    <value>Checksum</value>
+  </data>
+  <data name="Restore.Choose" xml:space="preserve">
+    <value>Choose a backup</value>
+  </data>
+  <data name="Restore.Confirm" xml:space="preserve">
+    <value>Yes, restore the shop</value>
+  </data>
+  <data name="Restore.ConfirmBody" xml:space="preserve">
+    <value>The shop's current database is replaced by the backup you chose. The database that is replaced is kept as a restore point, so the restore can be undone. StoreFlow restarts once the restore is done.</value>
+  </data>
+  <data name="Restore.ConfirmHeading" xml:space="preserve">
+    <value>This replaces the shop's data</value>
+  </data>
+  <data name="Restore.Created" xml:space="preserve">
+    <value>Taken</value>
+  </data>
+  <data name="Restore.Empty" xml:space="preserve">
+    <value>There is no backup file on this computer yet. Take one, or choose a file from a USB stick.</value>
+  </data>
+  <data name="Restore.IntegrityFailed" xml:space="preserve">
+    <value>The backup does not match its own checksum.</value>
+  </data>
+  <data name="Restore.IntegrityOk" xml:space="preserve">
+    <value>The backup matches its own checksum.</value>
+  </data>
+  <data name="Restore.Machine" xml:space="preserve">
+    <value>Taken on</value>
+  </data>
+  <data name="Restore.NothingChosen" xml:space="preserve">
+    <value>Choose a backup first.</value>
+  </data>
+  <data name="Restore.Now" xml:space="preserve">
+    <value>Restore the shop</value>
+  </data>
+  <data name="Restore.Schema" xml:space="preserve">
+    <value>Data shape</value>
+  </data>
+  <data name="Restore.Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Restore.Title" xml:space="preserve">
+    <value>Restore from a backup</value>
   </data>
   <data name="Session.Lock" xml:space="preserve">
     <value>Lock</value>

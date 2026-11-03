@@ -26,6 +26,9 @@
       <controls:SalesLabelConverter x:Key="SalesLabel" />
       <controls:ProductImageConverter x:Key="ProductImage" />
       <controls:TimestampValueConverter x:Key="Timestamp" />
+      <controls:BackupResultConverter x:Key="BackupResult" />
+      <controls:BackupSizeConverter x:Key="BackupSize" />
+      <controls:BackupTargetConverter x:Key="BackupTarget" />
 
       <!-- The shell shows a page by handing it a view model. Without these templates the content
            control would render the view model's type name instead of the screen. -->
@@ -83,6 +86,10 @@
 
       <DataTemplate DataType="{x:Type viewModels:UsersViewModel}">
         <views:UsersView />
+      </DataTemplate>
+
+      <DataTemplate DataType="{x:Type viewModels:BackupViewModel}">
+        <views:BackupView />
       </DataTemplate>
     </ResourceDictionary>
   </Application.Resources>

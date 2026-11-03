@@ -490,7 +490,8 @@ public sealed class SaleTests : IAsyncLifetime
             _auditWriter,
             new TestClock(),
             _session,
-            new StoreSettingsReader(_fixture.Factory));
+            new StoreSettingsReader(_fixture.Factory),
+            new SaleActivityMonitor());
 
     private static PostSaleCommand SaleCommand(
         Guid operationId,

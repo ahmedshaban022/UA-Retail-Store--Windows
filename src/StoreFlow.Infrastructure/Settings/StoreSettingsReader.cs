@@ -39,5 +39,11 @@ public sealed class StoreSettingsReader(IDbContextFactory<StoreFlowDbContext> co
             // till. The defaults are the safe answer: a discount limit of ten per cent is a limit.
             return StoreSettings.Defaults;
         }
+        catch (InvalidOperationException)
+        {
+            // The row holds something that is not this shape at all. The defaults are still the
+            // safe answer, and the shop can trade.
+            return StoreSettings.Defaults;
+        }
     }
 }
