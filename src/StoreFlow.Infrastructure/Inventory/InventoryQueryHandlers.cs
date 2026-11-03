@@ -235,7 +235,7 @@ public sealed class ListStockBalancesQueryHandler(
 
         Dictionary<int, StockBalance> balances = await context.StockBalances
             .AsNoTracking()
-            .Where(balance => rows.Select(row => row.Id).Contains(balance.ProductId))
+            .Where(balance => products.Any(product => product.Id == balance.ProductId))
             .ToDictionaryAsync(balance => balance.ProductId, cancellationToken);
 
         var summaries = new List<StockBalanceSummary>();
@@ -371,10 +371,12 @@ public sealed class ListLowStockQueryHandler(
 
         var items = new List<LowStockItem>();
 
-        List<Product> products = await context.Products
+        IQueryable<Product> filteredProducts = context.Products
             .AsNoTracking()
+            .Where(product => product.IsActive && product.ReorderLevelScaled > 0);
+
+        List<Product> products = await filteredProducts
             .Include(product => product.Unit)
-            .Where(product => product.IsActive && product.ReorderLevelScaled > 0)
             .OrderBy(product => product.Name)
             .ToListAsync(cancellationToken);
 
@@ -385,7 +387,7 @@ public sealed class ListLowStockQueryHandler(
 
         Dictionary<int, StockBalance> balances = await context.StockBalances
             .AsNoTracking()
-            .Where(balance => products.Select(product => product.Id).Contains(balance.ProductId))
+            .Where(balance => filteredProducts.Any(product => product.Id == balance.ProductId))
             .ToDictionaryAsync(balance => balance.ProductId, cancellationToken);
 
         foreach (Product product in products)

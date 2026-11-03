@@ -42,14 +42,16 @@ public sealed class ListSalesRegisterQueryHandler(
 
         string search = (query.Filter.Search ?? string.Empty).Trim();
 
-        List<InvoiceRow> invoices = await context.SalesInvoices
+        IQueryable<SalesInvoice> filteredInvoices = context.SalesInvoices
             .AsNoTracking()
             .Where(invoice => query.Filter.From == null || invoice.BusinessDate >= query.Filter.From)
             .Where(invoice => query.Filter.To == null || invoice.BusinessDate <= query.Filter.To)
             .Where(invoice => query.Filter.CashierId == null || invoice.UserId == query.Filter.CashierId)
             .Where(invoice => search.Length == 0
                 || invoice.Number.Contains(search)
-                || invoice.User!.DisplayName.Contains(search))
+                || invoice.User!.DisplayName.Contains(search));
+
+        List<InvoiceRow> invoices = await filteredInvoices
             .Select(invoice => new InvoiceRow
             {
                 Id = invoice.Id,
@@ -90,15 +92,13 @@ public sealed class ListSalesRegisterQueryHandler(
 
         // How much of each invoice has already come back, so the reader can see at a glance that a
         // sale has been partly given back.
-        int[] invoiceIds = invoices.Select(invoice => invoice.Id).ToArray();
-
         Dictionary<int, Money> refunded = [];
 
-        if (invoiceIds.Length > 0)
+        if (invoices.Count > 0)
         {
             List<RefundedRow> refundedRows = await context.SalesReturns
                 .AsNoTracking()
-                .Where(salesReturn => invoiceIds.Contains(salesReturn.OriginalInvoiceId))
+                .Where(salesReturn => filteredInvoices.Any(invoice => invoice.Id == salesReturn.OriginalInvoiceId))
                 .Select(salesReturn => new RefundedRow
                 {
                     OriginalInvoiceId = salesReturn.OriginalInvoiceId,

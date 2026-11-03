@@ -855,16 +855,11 @@ public sealed class EfReportReader(
             invoices = invoices.Where(invoice => invoice.Lines.Any(line => line.Product != null && line.Product.CategoryId == categoryId));
         }
 
-        List<int> invoiceIds = await invoices
-            .OrderBy(invoice => invoice.Id)
-            .Select(invoice => invoice.Id)
-            .ToListAsync(cancellationToken);
-
-        // The lines are read on their own, so that the query stays a plain join: SQLite cannot
+        // The lines are read on their own, so that the query stays a plain EXISTS: SQLite cannot
         // translate a correlated projection.
         List<LineAmountRow> rows = await context.SalesInvoiceLines
             .AsNoTracking()
-            .Where(line => invoiceIds.Contains(line.SalesInvoiceId))
+            .Where(line => invoices.Any(invoice => invoice.Id == line.SalesInvoiceId))
             .OrderBy(line => line.Id)
             .Select(line => new LineAmountRow
             {

@@ -1,3 +1,5 @@
+using System.Data.Common;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using StoreFlow.Infrastructure.Persistence;
 
@@ -10,6 +12,13 @@ namespace StoreFlow.Infrastructure.Tests;
 public sealed class DatabaseFixture : IAsyncLifetime
 {
     private string _directory = string.Empty;
+    private readonly ParameterCountInterceptor _parameters = new();
+
+    /// <summary>The most parameters seen on a command since the last reset.</summary>
+    public int LargestParameterCount => _parameters.Largest;
+
+    /// <summary>Starts a fresh measurement of command parameters.</summary>
+    public void ResetParameterCount() => _parameters.Reset();
 
     /// <summary>The path of the database file under test.</summary>
     public string DatabasePath { get; private set; } = string.Empty;
@@ -33,7 +42,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
 
         DbContextOptions<StoreFlowDbContext> options = new DbContextOptionsBuilder<StoreFlowDbContext>()
             .UseSqlite($"Data Source={DatabasePath}")
-            .AddInterceptors(new SqlitePragmaInterceptor())
+            .AddInterceptors(new SqlitePragmaInterceptor(), _parameters)
             .Options;
 
         Factory = new TestContextFactory(options, Faults);
@@ -59,6 +68,75 @@ public sealed class DatabaseFixture : IAsyncLifetime
         }
 
         return Task.CompletedTask;
+    }
+
+    private sealed class ParameterCountInterceptor : DbCommandInterceptor
+    {
+        private int _largest;
+
+        public int Largest => Volatile.Read(ref _largest);
+
+        public void Reset() => Interlocked.Exchange(ref _largest, 0);
+
+        private void Record(DbCommand command)
+        {
+            int count = command.Parameters.Count;
+            int current;
+            do
+            {
+                current = Largest;
+                if (count <= current)
+                {
+                    return;
+                }
+            }
+            while (Interlocked.CompareExchange(ref _largest, count, current) != current);
+        }
+
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result)
+        {
+            Record(command);
+            return result;
+        }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            Record(command);
+            return ValueTask.FromResult(result);
+        }
+
+        public override InterceptionResult<int> NonQueryExecuting(
+            DbCommand command, CommandEventData eventData, InterceptionResult<int> result)
+        {
+            Record(command);
+            return result;
+        }
+
+        public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<int> result,
+            CancellationToken cancellationToken = default)
+        {
+            Record(command);
+            return ValueTask.FromResult(result);
+        }
+
+        public override InterceptionResult<object> ScalarExecuting(
+            DbCommand command, CommandEventData eventData, InterceptionResult<object> result)
+        {
+            Record(command);
+            return result;
+        }
+
+        public override ValueTask<InterceptionResult<object>> ScalarExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<object> result,
+            CancellationToken cancellationToken = default)
+        {
+            Record(command);
+            return ValueTask.FromResult(result);
+        }
     }
 
     private sealed class TestContextFactory(
