@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The tool that fills a shop with the volume a busy shop reaches, so that the slow screens can
+    be measured against real numbers rather than against a feeling.
+
+    It is not part of the solution: it is a measuring instrument, not part of the product, and
+    nobody running the tests needs it built. tools\performance-harness.ps1 builds and runs it.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>StoreFlow.VolumeTool</RootNamespace>
+    <AssemblyName>StoreFlow.VolumeTool</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <NoWarn>$(NoWarn);CA1848</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\StoreFlow.Application\StoreFlow.Application.csproj" />
+    <ProjectReference Include="..\..\src\StoreFlow.Infrastructure\StoreFlow.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
