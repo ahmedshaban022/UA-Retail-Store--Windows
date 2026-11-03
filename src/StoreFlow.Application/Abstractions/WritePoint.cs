@@ -159,6 +159,9 @@ public enum WritePoint
     /// <summary>The backup schedule being saved.</summary>
     SaveBackupSchedule,
 
+    /// <summary>The cloud backup target's address being saved.</summary>
+    SaveCloudAddress,
+
     /// <summary>The first-run setup being completed.</summary>
     CompleteSetup,
 

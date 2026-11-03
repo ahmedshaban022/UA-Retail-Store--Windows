@@ -264,6 +264,8 @@ public sealed class PostStockAdjustmentCommandHandler(
 
         DateTimeOffset now = clock.UtcNow;
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         (StockMovement? movement, string? errorCode, string? errorMessage) = await InventoryLedger.ApplyAsync(
             context,
             product,
@@ -281,11 +283,15 @@ public sealed class PostStockAdjustmentCommandHandler(
 
         if (movement is null)
         {
+            await transaction.RollbackAsync(cancellationToken);
+
             return Result<StockAdjustmentOutcome>.Failure(errorCode!, errorMessage!);
         }
 
         await context.BeforeWriteAsync(WritePoint.PostStockAdjustment, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.PostStockAdjustmentCommit, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
             new AuditEntry(
@@ -392,6 +398,8 @@ public sealed class ApproveStockAdjustmentCommandHandler(
         int scale = product.Unit?.Precision ?? 0;
         DateTimeOffset now = clock.UtcNow;
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         (StockMovement? movement, string? errorCode, string? errorMessage) = await InventoryLedger.ApplyAsync(
             context,
             product,
@@ -409,6 +417,8 @@ public sealed class ApproveStockAdjustmentCommandHandler(
 
         if (movement is null)
         {
+            await transaction.RollbackAsync(cancellationToken);
+
             return Result<int>.Failure(errorCode!, errorMessage!);
         }
 
@@ -419,6 +429,8 @@ public sealed class ApproveStockAdjustmentCommandHandler(
 
         await context.BeforeWriteAsync(WritePoint.ApproveStockAdjustment, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.ApproveStockAdjustmentCommit, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
             new AuditEntry(

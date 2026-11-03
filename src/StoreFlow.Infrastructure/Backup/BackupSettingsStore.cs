@@ -75,7 +75,7 @@ public sealed class BackupSettingsStore(
 
         await using StoreFlowDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-        await UpsertAsync(context, BackupScheduleSettingKey, JsonSerializer.Serialize(settings, Json), cancellationToken);
+        await UpsertAsync(context, BackupScheduleSettingKey, JsonSerializer.Serialize(settings, Json), WritePoint.SaveBackupSchedule, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -89,6 +89,7 @@ public sealed class BackupSettingsStore(
             context,
             DatabaseInitializer.StoreSettingsSettingKey,
             JsonSerializer.Serialize(settings, Json),
+            WritePoint.SaveStoreSettings,
             cancellationToken);
     }
 
@@ -137,6 +138,7 @@ public sealed class BackupSettingsStore(
             context,
             CloudTargetSettingKey,
             JsonSerializer.Serialize(address, Json),
+            WritePoint.SaveCloudAddress,
             cancellationToken);
     }
 
@@ -144,6 +146,7 @@ public sealed class BackupSettingsStore(
         StoreFlowDbContext context,
         string key,
         string value,
+        WritePoint point,
         CancellationToken cancellationToken)
     {
         Setting? existing = await context.Settings
@@ -164,7 +167,7 @@ public sealed class BackupSettingsStore(
             existing.UpdatedUtc = clock.UtcNow;
         }
 
-        await context.BeforeWriteAsync(WritePoint.SaveBackupSchedule, cancellationToken);
+        await context.BeforeWriteAsync(point, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 }
