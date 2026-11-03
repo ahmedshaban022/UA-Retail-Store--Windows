@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\StoreFlow.CrashProbe\StoreFlow.CrashProbe.csproj" />
     <ProjectReference Include="..\..\src\StoreFlow.Infrastructure\StoreFlow.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\StoreFlow.Application\StoreFlow.Application.csproj" />
     <ProjectReference Include="..\..\src\StoreFlow.Domain\StoreFlow.Domain.csproj" />
