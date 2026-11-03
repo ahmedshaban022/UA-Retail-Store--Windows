@@ -13,37 +13,47 @@
         <TextBlock Text="{Binding ProductNameLabel}"
                    Style="{StaticResource Type.SectionLabel}"
                    Margin="0,16,0,6" />
-        <TextBox Text="{Binding ProductNameEn, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox Text="{Binding ProductNameEn, UpdateSourceTrigger=PropertyChanged}"
+                 AutomationProperties.AutomationId="Settings.ProductNameEn"
+                 AutomationProperties.Name="{Binding ProductNameLabel}" />
 
         <TextBlock Text="{Binding ProductNameLabel}"
                    Style="{StaticResource Type.SectionLabel}"
                    Margin="0,16,0,6" />
         <TextBox Text="{Binding ProductNameAr, UpdateSourceTrigger=PropertyChanged}"
-                 FlowDirection="RightToLeft" />
+                 FlowDirection="RightToLeft"
+                 AutomationProperties.AutomationId="Settings.ProductNameAr"
+                 AutomationProperties.Name="{Binding ProductNameLabel}" />
 
         <TextBlock Text="{Binding ThemeLabel}"
                    Style="{StaticResource Type.SectionLabel}"
                    Margin="0,16,0,6" />
         <ComboBox ItemsSource="{Binding Modes}"
-                  SelectedItem="{Binding SelectedModeOption}" />
+                  SelectedItem="{Binding SelectedModeOption}"
+                  AutomationProperties.AutomationId="Settings.Theme"
+                  AutomationProperties.Name="{Binding ThemeLabel}" />
 
         <TextBlock Text="{Binding LanguageLabel}"
                    Style="{StaticResource Type.SectionLabel}"
                    Margin="0,16,0,6" />
         <ComboBox ItemsSource="{Binding Languages}"
                   SelectedItem="{Binding SelectedLanguage}"
-                  DisplayMemberPath="NativeName" />
+                  DisplayMemberPath="NativeName"
+                  AutomationProperties.AutomationId="Settings.Language"
+                  AutomationProperties.Name="{Binding LanguageLabel}" />
 
         <Button Content="{Binding SaveLabel}"
                 Command="{Binding SaveCommand}"
                 Style="{StaticResource Button.Primary}"
                 Margin="0,20,0,0"
-                MinHeight="36" />
+                MinHeight="36"
+                AutomationProperties.AutomationId="Settings.Save" />
 
         <TextBlock Text="{Binding StatusMessage}"
                    Style="{StaticResource Type.Caption}"
                    Foreground="{DynamicResource State.Success}"
                    Margin="0,12,0,0"
+                   AutomationProperties.AutomationId="Settings.Status"
                    Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
       </StackPanel>
     </Border>

@@ -29,6 +29,7 @@
                    Height="{DynamicResource Size.PosHitTarget}"
                    FontSize="16"
                    AutomationProperties.AutomationId="Pos.Scan"
+                   AutomationProperties.Name="{Binding ScanLabel}"
                    KeyDown="OnScanKeyDown" />
           <TextBlock Text="{Binding ScanPlaceholder}"
                      IsHitTestVisible="False"
@@ -67,6 +68,7 @@
           <ListBox Grid.Row="1"
                    ItemsSource="{Binding HeldCarts}"
                    AutomationProperties.AutomationId="Pos.HeldCarts"
+                   AutomationProperties.Name="{Binding HeldCartsLabel}"
                    Background="Transparent"
                    BorderThickness="0"
                    Visibility="{Binding HasHeldCarts, Converter={StaticResource BooleanToVisibility}}">
@@ -141,6 +143,7 @@
             <DataGrid x:Name="CartGrid"
                       Grid.Row="1"
                       AutomationProperties.AutomationId="Pos.Cart"
+                      AutomationProperties.Name="{Binding CartLabel}"
                       ItemsSource="{Binding Lines}"
                       SelectedItem="{Binding SelectedLine, Mode=TwoWay}"
                       EnableColumnVirtualization="False"
@@ -173,6 +176,7 @@
                       <Grid>
                         <TextBox Text="{Binding QuantityText, UpdateSourceTrigger=PropertyChanged}"
                                  AutomationProperties.AutomationId="Pos.Quantity"
+                                 AutomationProperties.Name="{Binding QuantityColumnLabel}"
                                  Margin="0,2" />
                         <Border Background="{DynamicResource Accent.Default}"
                                 CornerRadius="4"
@@ -394,11 +398,13 @@
               <TextBlock Text="{Binding CashReceivedLabel}" Style="{StaticResource Type.FieldLabel}" />
               <TextBox Text="{Binding CashReceivedText, UpdateSourceTrigger=PropertyChanged}"
                        AutomationProperties.AutomationId="Pos.CashReceived"
+                       AutomationProperties.Name="{Binding CashReceivedLabel}"
                        Margin="0,2,0,10" />
 
               <TextBlock Text="{Binding InvoiceDiscountLabel}" Style="{StaticResource Type.FieldLabel}" />
               <TextBox Text="{Binding InvoiceDiscountText, UpdateSourceTrigger=PropertyChanged}"
                        AutomationProperties.AutomationId="Pos.InvoiceDiscount"
+                       AutomationProperties.Name="{Binding InvoiceDiscountLabel}"
                        Margin="0,2,0,12" />
             </StackPanel>
           </ScrollViewer>

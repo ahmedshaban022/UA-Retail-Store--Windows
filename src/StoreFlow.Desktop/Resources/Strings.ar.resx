@@ -2190,4 +2190,7 @@
   <data name="Reports.Column.Variance" xml:space="preserve">
     <value>الفرق</value>
   </data>
+  <data name="Backup.RestoreRestartNotice" xml:space="preserve">
+    <value>تمت استعادة المتجر. سيعيد البرنامج التشغيل الآن.</value>
+  </data>
 </root>

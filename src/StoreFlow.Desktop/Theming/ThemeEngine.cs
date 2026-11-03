@@ -111,14 +111,22 @@ public static class ThemeEngine
             ["Font.Size.Display"] = 28d * theme.Typography.Scale,
             ["Font.Size.PosTotal"] = 34d * theme.Typography.Scale,
 
-            ["Size.RowHeight"] = theme.Density.RowHeight,
-            ["Size.ControlHeight"] = theme.Density.ControlHeight,
+            // The row and control heights follow the font scale. A theme that asks for larger type
+            // gets taller rows and taller boxes, so the Arabic text is not cut off at the bottom of
+            // the control it sits in. Without this the text grows while the box it lives in does
+            // not, and the clerk loses the last line of what they are reading.
+            ["Size.RowHeight"] = theme.Density.RowHeight * theme.Typography.Scale,
+            ["Size.ControlHeight"] = theme.Density.ControlHeight * theme.Typography.Scale,
             // A row that holds an editor - a box or a picker the clerk types into - has to be taller
             // than a row that only holds text, otherwise the control is squeezed and the digits in
             // it are cut off at the bottom. The extra room is the control plus a little air.
-            ["Size.EditorRowHeight"] = theme.Density.ControlHeight + 12d,
-            ["Size.SpacingUnit"] = theme.Density.SpacingUnit,
-            ["Size.PosHitTarget"] = theme.Density.PosHitTarget,
+            ["Size.EditorRowHeight"] = (theme.Density.ControlHeight + 12d) * theme.Typography.Scale,
+            ["Size.SpacingUnit"] = theme.Density.SpacingUnit * theme.Typography.Scale,
+            ["Size.PosHitTarget"] = theme.Density.PosHitTarget * theme.Typography.Scale,
+
+            // The box that takes a paragraph - a reason, a description. It has to grow with the
+            // font, or the Arabic text is cut off at the bottom of the box.
+            ["Size.MultilineFieldHeight"] = 72d * theme.Typography.Scale,
 
             // CornerRadius and Thickness are the types the control templates actually assign to
             // Border.CornerRadius and Border.BorderThickness. Publishing plain doubles here would

@@ -54,6 +54,15 @@ public sealed partial class RecoveryWizardViewModel : ObservableObject
     /// <summary>Raised when the owner closes the wizard.</summary>
     public event EventHandler? CloseRequested;
 
+    /// <summary>
+    /// Raised when the shop has been recovered and the programme has to be started again, because
+    /// the database on disk is no longer the one this window is holding.
+    /// </summary>
+    public event EventHandler? RestartRequested;
+
+    /// <summary>True once the shop has been recovered and the programme is waiting to restart.</summary>
+    public bool RequiresRestart { get; private set; }
+
     /// <summary>The steps of the runbook, in the order they are done.</summary>
     public ObservableCollection<string> Steps { get; } = [];
 
@@ -129,6 +138,17 @@ public sealed partial class RecoveryWizardViewModel : ObservableObject
             StatusMessage = result.Value.RestorePointPath is null or ""
                 ? _strings[StringKeys.BackupRestoreDonePlain]
                 : _strings.Format(StringKeys.BackupRestoreDone, result.Value.RestorePointPath);
+
+            // The shop's database has been replaced on disk. The programme that is running is
+            // still holding the old one, so it has to be started again before anybody sells
+            // anything.
+            RequiresRestart = true;
+
+            StatusMessage = StatusMessage + " " + _strings[StringKeys.BackupRestoreRestartNotice];
+
+            OnPropertyChanged(nameof(RequiresRestart));
+
+            RestartRequested?.Invoke(this, EventArgs.Empty);
         }
         finally
         {

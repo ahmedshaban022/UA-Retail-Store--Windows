@@ -33,30 +33,38 @@
         <StackPanel Visibility="{Binding Step, Converter={StaticResource IntEqualsVisibility}, ConverterParameter=0}">
           <TextBlock Text="{Binding StoreNameLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,0,0,6" />
           <TextBox Text="{Binding StoreName, UpdateSourceTrigger=PropertyChanged}" />
+                     AutomationProperties.Name="{Binding StoreNameLabel}"
 
           <TextBlock Text="{Binding StoreNameLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
           <TextBox Text="{Binding StoreNameAr, UpdateSourceTrigger=PropertyChanged}" FlowDirection="RightToLeft" />
+                     AutomationProperties.Name="{Binding StoreNameLabel}"
 
           <TextBlock Text="{Binding AddressLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
           <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
+                     AutomationProperties.Name="{Binding AddressLabel}"
 
           <TextBlock Text="{Binding PhoneLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
           <TextBox Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}" />
+                     AutomationProperties.Name="{Binding PhoneLabel}"
         </StackPanel>
 
         <!-- Step 2: administrator account -->
         <StackPanel Visibility="{Binding Step, Converter={StaticResource IntEqualsVisibility}, ConverterParameter=1}">
           <TextBlock Text="{Binding DisplayNameLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,0,0,6" />
           <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" />
+                     AutomationProperties.Name="{Binding DisplayNameLabel}"
 
           <TextBlock Text="{Binding UsernameLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
           <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" />
+                     AutomationProperties.Name="{Binding UsernameLabel}"
 
           <TextBlock Text="{Binding PasswordLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
           <PasswordBox controls:PasswordBoxBehavior.Password="{Binding Password}" />
+                                  AutomationProperties.Name="{Binding PasswordLabel}"
 
           <TextBlock Text="{Binding ConfirmPasswordLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
           <PasswordBox controls:PasswordBoxBehavior.Password="{Binding ConfirmPassword}" />
+                                  AutomationProperties.Name="{Binding ConfirmPasswordLabel}"
         </StackPanel>
 
         <!-- Step 3: language and appearance -->
@@ -64,10 +72,13 @@
           <TextBlock Text="{Binding LanguageLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,0,0,6" />
           <ComboBox ItemsSource="{Binding Languages}"
                     SelectedItem="{Binding SelectedLanguage}"
-                    DisplayMemberPath="NativeName" />
+                    DisplayMemberPath="NativeName"
+                    AutomationProperties.Name="{Binding LanguageLabel}" />
 
           <TextBlock Text="{Binding ThemeLabel}" Style="{StaticResource Type.SectionLabel}" Margin="0,16,0,6" />
-          <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedModeOption}" />
+          <ComboBox ItemsSource="{Binding Modes}"
+                    SelectedItem="{Binding SelectedModeOption}"
+                    AutomationProperties.Name="{Binding ThemeLabel}" />
         </StackPanel>
       </Grid>
     </Border>

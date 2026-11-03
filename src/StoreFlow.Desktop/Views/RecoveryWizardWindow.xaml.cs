@@ -9,6 +9,7 @@ namespace StoreFlow.Desktop.Views;
 public partial class RecoveryWizardWindow : Window
 {
     private bool _closing;
+    private bool _restart;
 
     /// <summary>Creates the window.</summary>
     public RecoveryWizardWindow()
@@ -25,8 +26,11 @@ public partial class RecoveryWizardWindow : Window
         if (DataContext is ViewModels.RecoveryWizardViewModel viewModel)
         {
             viewModel.CloseRequested += OnCloseRequested;
+            viewModel.RestartRequested += OnRestartRequested;
         }
     }
+
+    private void OnRestartRequested(object? sender, EventArgs e) => _restart = true;
 
     private void OnCloseRequested(object? sender, EventArgs e)
     {
@@ -47,8 +51,14 @@ public partial class RecoveryWizardWindow : Window
         if (DataContext is ViewModels.RecoveryWizardViewModel viewModel)
         {
             viewModel.CloseRequested -= OnCloseRequested;
+            viewModel.RestartRequested -= OnRestartRequested;
         }
 
         base.OnClosed(e);
+
+        if (_restart)
+        {
+            ApplicationRestart.Restart();
+        }
     }
 }

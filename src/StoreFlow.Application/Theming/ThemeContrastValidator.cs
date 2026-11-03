@@ -53,20 +53,40 @@ public static class ThemeContrastValidator
         CheckText(issues, "text.primary", colors.TextPrimary, "surface.canvas", colors.SurfaceCanvas);
         CheckText(issues, "text.primary", colors.TextPrimary, "surface.raised", colors.SurfaceRaised);
         CheckText(issues, "text.primary", colors.TextPrimary, "surface.sunken", colors.SurfaceSunken);
+        CheckText(issues, "text.primary", colors.TextPrimary, "surface.overlay", colors.SurfaceOverlay);
         CheckText(issues, "text.secondary", colors.TextSecondary, "surface.canvas", colors.SurfaceCanvas);
+        CheckText(issues, "text.secondary", colors.TextSecondary, "surface.raised", colors.SurfaceRaised);
         CheckText(issues, "text.muted", colors.TextMuted, "surface.canvas", colors.SurfaceCanvas);
+        CheckText(issues, "text.muted", colors.TextMuted, "surface.raised", colors.SurfaceRaised);
         CheckText(issues, "text.inverse", colors.TextInverse, "accent.default", colors.AccentDefault);
         CheckText(issues, "accent.on", colors.AccentOn, "accent.default", colors.AccentDefault);
         CheckText(issues, "accent.on", colors.AccentOn, "state.critical", colors.StateCritical);
         CheckText(issues, "accent.on", colors.AccentOn, "state.warning", colors.StateWarning);
         CheckText(issues, "accent.on", colors.AccentOn, "state.success", colors.StateSuccess);
+        CheckText(issues, "accent.on", colors.AccentOn, "state.info", colors.StateInfo);
         CheckText(issues, "state.critical", colors.StateCritical, "surface.canvas", colors.SurfaceCanvas);
         CheckText(issues, "state.warning", colors.StateWarning, "surface.canvas", colors.SurfaceCanvas);
         CheckText(issues, "state.success", colors.StateSuccess, "surface.canvas", colors.SurfaceCanvas);
         CheckText(issues, "state.info", colors.StateInfo, "surface.canvas", colors.SurfaceCanvas);
+        CheckText(issues, "state.critical", colors.StateCritical, "surface.raised", colors.SurfaceRaised);
+        CheckText(issues, "state.warning", colors.StateWarning, "surface.raised", colors.SurfaceRaised);
+        CheckText(issues, "state.success", colors.StateSuccess, "surface.raised", colors.SurfaceRaised);
+        CheckText(issues, "state.info", colors.StateInfo, "surface.raised", colors.SurfaceRaised);
+        CheckText(issues, "state.critical", colors.StateCritical, "surface.sunken", colors.SurfaceSunken);
+        CheckText(issues, "state.warning", colors.StateWarning, "surface.sunken", colors.SurfaceSunken);
+        CheckText(issues, "state.success", colors.StateSuccess, "surface.sunken", colors.SurfaceSunken);
+        CheckText(issues, "state.info", colors.StateInfo, "surface.sunken", colors.SurfaceSunken);
+        CheckText(issues, "state.critical", colors.StateCritical, "state.critical.subtle", colors.StateCriticalSubtle);
+        CheckText(issues, "state.warning", colors.StateWarning, "state.warning.subtle", colors.StateWarningSubtle);
+        CheckText(issues, "state.success", colors.StateSuccess, "state.success.subtle", colors.StateSuccessSubtle);
+        CheckText(issues, "state.info", colors.StateInfo, "state.info.subtle", colors.StateInfoSubtle);
+        CheckText(issues, "selection.foreground", colors.SelectionForeground, "selection.background", colors.SelectionBackground);
 
         CheckNonText(issues, "focus.ring", colors.FocusRing, "surface.canvas", colors.SurfaceCanvas);
+        CheckNonText(issues, "focus.ring", colors.FocusRing, "surface.raised", colors.SurfaceRaised);
         CheckNonText(issues, "border.strong", colors.BorderStrong, "surface.canvas", colors.SurfaceCanvas);
+        CheckNonText(issues, "border.strong", colors.BorderStrong, "surface.raised", colors.SurfaceRaised);
+        CheckNonText(issues, "accent.default", colors.AccentDefault, "surface.canvas", colors.SurfaceCanvas);
 
         return issues;
     }

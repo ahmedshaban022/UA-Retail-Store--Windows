@@ -700,6 +700,7 @@ public static class StringKeys
     public const string BackupOutcomeWritten = "Backup.OutcomeWritten";
     public const string BackupRestoreDone = "Backup.RestoreDone";
     public const string BackupRestoreDonePlain = "Backup.RestoreDonePlain";
+    public const string BackupRestoreRestartNotice = "Backup.RestoreRestartNotice";
     public const string BackupErrorNotFound = "Backup.ErrorNotFound";
     public const string BackupErrorIntegrityFailed = "Backup.ErrorIntegrityFailed";
     public const string BackupErrorSchemaMismatch = "Backup.ErrorSchemaMismatch";
