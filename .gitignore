@@ -73,11 +73,12 @@ test.log
 build/
 
 ## Scratch files a work session leaves in the working copy. The local file-safety policy on
-## this machine refuses deletions, so they are ignored rather than removed. They are not
-## part of the product and should be deleted by hand.
-.tmp-*
-tools/add-backup-destination-string.ps1
+## this machine refuses deletions, so they are moved into build\scratch\ rather than removed.
+## They are not part of the product and can be deleted by hand from there.
+build/scratch/
+build/legacy/
 
-## The stray solution file the first `dotnet new sln` left behind. StoreFlow.sln is the
-## authoritative one; the .slnx only makes a bare `dotnet build` in the root ambiguous.
-*.slnx
+## The stray solution file the first `dotnet new sln` left behind has been moved to
+## build\legacy\StoreFlow.slnx, so a bare `dotnet build` in the root is no longer ambiguous.
+## There is deliberately NO `*.slnx` rule here: if one ever appears in the root again it must
+## show up in `git status` rather than hide itself.
