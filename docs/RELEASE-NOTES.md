@@ -2,7 +2,7 @@
 
 StoreFlow is an offline shop programme for keeping a catalogue, tracking stock and purchases, making sales and returns, reviewing reports, and taking backups. It can be used in Arabic or English.
 
-**Release candidate: not ready for shop use.** During the installed release checks, first-run setup could not open. The problem must be fixed and the installed programme checked again before handing it to a shop.
+**Release candidate.** Backup and recovery checks passed against both the development programme and the installed copy. In an earlier development run, the restore confirmation did not appear; the cause has not been established, so this should be investigated before the programme is handed to a shop.
 
 ## What v1.0 does not do
 
@@ -12,7 +12,7 @@ A sale cannot have a customer attached or be paid using split tender. Each purch
 
 - Backup files (`.sfb`) are not encrypted. They contain the shop's data in the clear, so keep them on a protected disk and control who can access them.
 - Some controls have no accessible name. A screen-reader user may be unable to identify or use them.
-- A sale is saved just before its audit entry is written. In a very small window, an interruption can leave a sale without that entry.
+- A sale and its audit entry are now written together, so a sale cannot exist without its audit entry. Some other actions still write their audit entry just after the action itself has been saved.
 - When a price override is not allowed, StoreFlow refuses the sale instead of asking a manager to approve it.
 - Stock counts are not blind: the person counting can see the recorded quantity, which can influence the count.
 
@@ -24,12 +24,12 @@ The shop's data is kept in `%APPDATA%\StoreFlow`, separately from the programme.
 
 ## Taking the first backup
 
-Once setup works and you have signed in, open **Backup**, choose the backup target, and press **Back up now**. The copy goes to the folder or cloud target you selected. The shop's automatic local backups are kept under `%APPDATA%\StoreFlow\backups`. Keep a copy on a protected disk away from the shop computer too.
+Once you have completed setup and signed in, open **Backup**, choose the backup target, and press **Back up now**. The copy goes to the folder or cloud target you selected. The shop's automatic local backups are kept under `%APPDATA%\StoreFlow\backups`. Keep a copy on a protected disk away from the shop computer too.
 
 ## Check the installer
 
 The SHA-256 of this release candidate's installer is:
 
-`E751055E2B86EB81ACEAC6E836790BD99681C3E927C948A5E103810E3FC753DE`
+`13879A7237429097D8BD933CA994534612B6FED2870F1DBF71516EADB07E5ABD`
 
 For help, contact the person who supplied or supports your StoreFlow installation.
