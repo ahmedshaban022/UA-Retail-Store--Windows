@@ -30,9 +30,9 @@ $ErrorActionPreference = 'Continue'
 # empty shop folder on the same machine, which is what a new computer would be.
 
 $exe = $ExePath
-$outDir = 'D:\Coding\UA Retail Store\docs\phases\phase6-screens'
 $runRoot = Join-Path $env:TEMP ('storeflow-phase6-' + [Guid]::NewGuid().ToString('N'))
 $runRootTwo = Join-Path $env:TEMP ('storeflow-phase6-other-' + [Guid]::NewGuid().ToString('N'))
+$outDir = Join-Path $runRoot 'screens'
 $pipeName = 'storeflow-phase6-capture-' + [Guid]::NewGuid().ToString('N')
 
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
@@ -1262,6 +1262,41 @@ try {
         Start-Sleep -Seconds 3
     }
 
+    # The restored database is opened by the application's replacement process. Its restart does
+    # not carry capture arguments, so identify its sign-in window and sign in before using its shell.
+    $oldProcess = $p
+    $oldId = $p.Id
+    $login = $null
+    $deadline = (Get-Date).AddSeconds(60)
+    while ((Get-Date) -lt $deadline) {
+        $candidate = Find-WindowById 'LoginWindow'
+        if ($candidate -and $candidate.Current.ProcessId -ne $oldId) {
+            $replacement = Get-Process -Id $candidate.Current.ProcessId -ErrorAction SilentlyContinue
+            if ($replacement -and $replacement.Path -and
+                [string]::Equals($replacement.Path, (Get-Item -LiteralPath $exe).FullName, [StringComparison]::OrdinalIgnoreCase)) {
+                $login = $candidate
+                $p = $replacement
+                break
+            }
+        }
+        Start-Sleep -Milliseconds 400
+    }
+    if (-not $login -or -not $oldProcess.WaitForExit(15000)) {
+        throw 'the replacement application and exit of the old process were not observed after restore'
+    }
+    Write-Output ('replacement pid=' + $p.Id + ' after restore')
+    $edits = Get-EditBoxes $login
+    if ($edits.Count -ge 1) { Set-EditValue $edits[0] 'owner' | Out-Null }
+    Fill-Password $login $password $false | Out-Null
+    Invoke-ById $login 'Login.SignIn' | Out-Null
+    $shell = Wait-Shell $p.Id 40
+    if (-not $shell -or $shell.Current.ProcessId -ne $p.Id) {
+        throw 'the replacement shell never appeared after restore'
+    }
+    Invoke-ById $shell 'Backup' | Out-Null
+    if (-not (Wait-ById $shell 'Backup.Grid' 30)) {
+        throw 'the backup screen never appeared in the replacement shell'
+    }
     # --- The recovery wizard --------------------------------------------------------------------
     Write-Output ('  open the recovery wizard: ' + (Invoke-ById $shell 'Backup.Recover'))
     Start-Sleep -Seconds 4
@@ -1282,7 +1317,6 @@ try {
         Write-Output ('  the wizard says: ' + $recoveryStatus)
         Check ($recoveryStatus -and $recoveryStatus.Contains('Choose a backup first')) 'the wizard will not put the shop back without a copy to put back'
 
-        Save-Shot 'RecoveryWizardWindow' 'recovery-wizard.png'
 
         Invoke-ById $recovery 'Recovery.Close' | Out-Null
         Start-Sleep -Seconds 2
@@ -1318,6 +1352,17 @@ try {
         Write-Output ('shell: "' + $shell.Current.Name + '"')
     }
 
+    # The self-restarted process has no capture pipe. Photograph the same English recovery
+    # screen in this fresh instrumented session, using the application's own capture path.
+    Invoke-ById $shell 'Backup' | Out-Null
+    if (-not (Wait-ById $shell 'Backup.Grid' 30)) { throw 'the backup screen never appeared for the recovery picture' }
+    Invoke-ById $shell 'Backup.Recover' | Out-Null
+    $recoveryPicture = Wait-WindowById 'RecoveryWizardWindow' 30
+    if (-not $recoveryPicture) { Fail 'the recovery wizard never appeared for its picture' }
+    else {
+        Save-Shot 'RecoveryWizardWindow' 'recovery-wizard.png'
+        Invoke-ById $recoveryPicture 'Recovery.Close' | Out-Null
+    }
     # The schedule was in the copy, so it comes back with the shop.
     Write-Output ('  open the backup screen: ' + (Invoke-ById $shell 'Backup'))
     Start-Sleep -Seconds 4
