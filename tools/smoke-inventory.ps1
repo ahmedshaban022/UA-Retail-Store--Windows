@@ -1,3 +1,9 @@
+param(
+    [string] $ExePath = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+)
+
+# Pass -ExePath to drive another StoreFlow executable; the default is the development build.
+
 $ErrorActionPreference = 'Continue'
 
 # Drives the purchase and inventory screens through UI Automation against the real application, in
@@ -13,7 +19,7 @@ $ErrorActionPreference = 'Continue'
 # picture taken from outside the process comes back mirrored for a right-to-left window and shows a
 # frame that is not the one the owner sees, so it is not used.
 
-$exe = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+$exe = $ExePath
 $outDir = 'D:\Coding\UA Retail Store\docs\phases\phase2-screens'
 $runRoot = Join-Path $env:TEMP ('storeflow-phase2-' + [Guid]::NewGuid().ToString('N'))
 $pipeName = 'storeflow-phase2-capture-' + [Guid]::NewGuid().ToString('N')

@@ -1,3 +1,9 @@
+param(
+    [string] $ExePath = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+)
+
+# Pass -ExePath to drive another StoreFlow executable; the default is the development build.
+
 $ErrorActionPreference = 'Continue'
 
 # Drives the reports of the shop and the approvals through UI Automation against the real
@@ -24,7 +30,7 @@ $ErrorActionPreference = 'Continue'
 # The run tells one story: a product is bought, three units of it are sold at the till, and then the
 # shop looks at itself from every side the reports and the dashboard offer.
 
-$exe = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+$exe = $ExePath
 $outDir = 'D:\Coding\UA Retail Store\docs\phases\phase5-screens'
 $runRoot = Join-Path $env:TEMP ('storeflow-phase5-' + [Guid]::NewGuid().ToString('N'))
 $pipeName = 'storeflow-phase5-capture-' + [Guid]::NewGuid().ToString('N')

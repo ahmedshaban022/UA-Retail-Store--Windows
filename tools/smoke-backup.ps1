@@ -1,3 +1,9 @@
+param(
+    [string] $ExePath = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+)
+
+# Pass -ExePath to drive another StoreFlow executable; the default is the development build.
+
 $ErrorActionPreference = 'Continue'
 
 # Drives the backup and cloud screen, the restore wizard and the recovery wizard through UI
@@ -23,7 +29,7 @@ $ErrorActionPreference = 'Continue'
 # is found whole again after the shop is started afresh, and the same copy is put into a second,
 # empty shop folder on the same machine, which is what a new computer would be.
 
-$exe = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+$exe = $ExePath
 $outDir = 'D:\Coding\UA Retail Store\docs\phases\phase6-screens'
 $runRoot = Join-Path $env:TEMP ('storeflow-phase6-' + [Guid]::NewGuid().ToString('N'))
 $runRootTwo = Join-Path $env:TEMP ('storeflow-phase6-other-' + [Guid]::NewGuid().ToString('N'))

@@ -1,3 +1,9 @@
+param(
+    [string] $ExePath = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+)
+
+# Pass -ExePath to drive another StoreFlow executable; the default is the development build.
+
 $ErrorActionPreference = 'Continue'
 
 # Drives the point of sale through UI Automation against the real application, in Arabic and then
@@ -18,7 +24,7 @@ $ErrorActionPreference = 'Continue'
 # The time between the Enter and the line appearing on the cart is measured, because a till that
 # takes a second to answer is a queue that grows.
 
-$exe = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+$exe = $ExePath
 $outDir = 'D:\Coding\UA Retail Store\docs\phases\phase3-screens'
 $runRoot = Join-Path $env:TEMP ('storeflow-phase3-' + [Guid]::NewGuid().ToString('N'))
 $pipeName = 'storeflow-phase3-capture-' + [Guid]::NewGuid().ToString('N')

@@ -1,3 +1,9 @@
+param(
+    [string] $ExePath = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+)
+
+# Pass -ExePath to drive another StoreFlow executable; the default is the development build.
+
 $ErrorActionPreference = 'Continue'
 
 # Measures how long the till takes to answer a scan.
@@ -10,7 +16,9 @@ $ErrorActionPreference = 'Continue'
 # cart is emptied between the scans, so every scan is the first one of its kind and none of them
 # is helped by the one before it.
 
-$exe = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+# Preserve the original positional scan count, such as scan-latency.ps1 20.
+if ($ExePath -match '^\d+$' -and $args.Count -eq 0) { $args = @($ExePath); $ExePath = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe' }
+$exe = $ExePath
 $runRoot = Join-Path $env:TEMP ('storeflow-latency-' + [Guid]::NewGuid().ToString('N'))
 $pipeName = 'storeflow-latency-capture-' + [Guid]::NewGuid().ToString('N')
 

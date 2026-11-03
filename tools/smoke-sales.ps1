@@ -1,3 +1,9 @@
+param(
+    [string] $ExePath = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+)
+
+# Pass -ExePath to drive another StoreFlow executable; the default is the development build.
+
 $ErrorActionPreference = 'Continue'
 
 # Drives the sales register and the returns through UI Automation against the real application, in
@@ -17,7 +23,7 @@ $ErrorActionPreference = 'Continue'
 # The run tells one story: a sale is made at the till, one of the three units comes back, the stock
 # goes back on the shelf, and then a second sale is reversed. The register has to show all of it.
 
-$exe = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+$exe = $ExePath
 $outDir = 'D:\Coding\UA Retail Store\docs\phases\phase4-screens'
 $runRoot = Join-Path $env:TEMP ('storeflow-phase4-' + [Guid]::NewGuid().ToString('N'))
 $pipeName = 'storeflow-phase4-capture-' + [Guid]::NewGuid().ToString('N')

@@ -1,3 +1,9 @@
+param(
+    [string] $ExePath = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+)
+
+# Pass -ExePath to drive another StoreFlow executable; the default is the development build.
+
 $ErrorActionPreference = 'Continue'
 
 # Signs in to an already-configured StoreFlow and captures the shell.
@@ -6,7 +12,7 @@ $ErrorActionPreference = 'Continue'
 # capture. A screen capture needs an unlocked desktop, and PrintWindow draws a right-to-left
 # window mirrored - both of which make the result useless for checking the layout.
 
-$exe = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+$exe = $ExePath
 $outDir = 'C:\Users\ahmed\.minimax\v2\sessions\2026\10\25\15-42-28-262-session_bXZzX2RhYzY2YzI3Zjg3MjQ4N2E5YTMxZTNlZDYzYWVhZGJh\artifacts'
 $capture = Join-Path $outDir 'phase0-shell.png'
 

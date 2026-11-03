@@ -1,3 +1,9 @@
+param(
+    [string] $ExePath = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+)
+
+# Pass -ExePath to drive another StoreFlow executable; the default is the development build.
+
 $ErrorActionPreference = 'Continue'
 
 # Drives the catalogue screens through UI Automation against the real application, in Arabic and then
@@ -10,7 +16,7 @@ $ErrorActionPreference = 'Continue'
 # The screens are captured by asking each window to draw itself, rather than by photographing the
 # screen. That keeps the evidence faithful when the desktop is locked or another window is in front.
 
-$exe = 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\bin\Debug\net10.0-windows\StoreFlow.Desktop.exe'
+$exe = $ExePath
 $outDir = 'C:\Users\ahmed\.minimax\v2\sessions\2026\10\27\14-05-08-826-session_bXZzXzU4Yjk5ODYyYzUwMDQxNGJiODIwNjY0MDc0ZTk2ZTU0\artifacts\phase1'
 $runRoot = Join-Path $env:TEMP ('storeflow-phase1-' + [Guid]::NewGuid().ToString('N'))
 
