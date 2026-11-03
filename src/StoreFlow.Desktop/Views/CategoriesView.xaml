@@ -52,7 +52,7 @@
     </Border>
 
     <Grid Grid.Row="1">
-      <DataGrid x:Name="CategoriesGrid" AutomationProperties.AutomationId="Categories.Grid" EnableColumnVirtualization="False"
+      <DataGrid x:Name="CategoriesGrid" AutomationProperties.AutomationId="Categories.Grid" AutomationProperties.Name="{Binding Title}" EnableColumnVirtualization="False"
                 ItemsSource="{Binding Categories}"
                 SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
                 Margin="0,12,0,0">

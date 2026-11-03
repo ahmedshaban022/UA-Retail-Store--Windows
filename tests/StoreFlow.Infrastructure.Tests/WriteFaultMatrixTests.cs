@@ -88,6 +88,7 @@ public sealed class WriteFaultMatrixTests : IAsyncLifetime
     [Theory]
     [InlineData(WritePoint.PostSaleInvoice)]
     [InlineData(WritePoint.PostSaleStockMovement)]
+    [InlineData(WritePoint.PostSaleAudit)]
     [InlineData(WritePoint.PostSaleCommit)]
     public async Task A_failure_while_posting_a_sale_leaves_the_shop_as_it_was(WritePoint point)
     {
@@ -499,52 +500,53 @@ public sealed class WriteFaultMatrixTests : IAsyncLifetime
                 StoreSettings.Defaults with { PrintCopies = 2 }), CancellationToken.None));
     }
 
-    /// <summary>
-    /// An audit failure happens after the sale commits, so the whole sale survives without an
-    /// audit row; this records the boundary honestly instead of claiming the sale rolled back.
-    /// </summary>
+    /// <summary>A standalone audit write failure leaves the database unchanged.</summary>
     [Theory]
     [InlineData(WritePoint.WriteAuditEntry)]
-    public async Task A_failure_writing_the_audit_leaves_a_complete_sale_without_its_audit_row(WritePoint point)
+    public async Task A_failure_writing_a_standalone_audit_leaves_no_entry(WritePoint point)
+    {
+        await ProveRollbackAsync(point, () => AuditWriter.WriteAsync(
+            new AuditEntry("test.action", "Test"), CancellationToken.None));
+    }
+
+    /// <summary>A committed sale has one audit row even when the checkout is replayed.</summary>
+    [Fact]
+    public async Task A_committed_sale_and_its_replay_have_one_audit_entry()
     {
         int productId = await PrepareShopAsync();
         PostSaleCommand command = SaleCommand(productId);
-        Dictionary<string, string[]> before = await ReadSnapshotAsync();
-
-        await ProveFaultReachedAsync(point, () => SaleHandler().HandleAsync(command, CancellationToken.None));
-
+        Result<SaleReceipt> sale = await SaleHandler().HandleAsync(command, CancellationToken.None);
+        Result<SaleReceipt> replay = await SaleHandler().HandleAsync(command, CancellationToken.None);
+        sale.IsSuccess.ShouldBeTrue();
+        replay.IsSuccess.ShouldBeTrue();
+        replay.Value.WasReplay.ShouldBeTrue();
         await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
         SalesInvoice invoice = await context.SalesInvoices.AsNoTracking().SingleAsync();
         invoice.Status.ShouldBe(DocumentStatus.Posted);
         invoice.ClientOperationId.ShouldBe(command.ClientOperationId);
         invoice.Total.ShouldBe(new Money(200m));
         invoice.Paid.ShouldBe(new Money(200m));
-
         SalesInvoiceLine line = await context.SalesInvoiceLines.AsNoTracking().SingleAsync();
         line.SalesInvoiceId.ShouldBe(invoice.Id);
         line.ProductId.ShouldBe(productId);
         line.QuantityScaled.ShouldBe(2);
         line.Total.ShouldBe(new Money(200m));
         line.UnitCostSnapshot.ShouldBe(new Money(50m));
-
         Payment payment = await context.Payments.AsNoTracking().SingleAsync();
         payment.SalesInvoiceId.ShouldBe(invoice.Id);
         payment.Amount.ShouldBe(new Money(200m));
         payment.IsRefund.ShouldBeFalse();
-
         StockMovement movement = await context.StockMovements.AsNoTracking()
             .SingleAsync(candidate => candidate.MovementType == StockMovementType.Sale);
         movement.DocumentId.ShouldBe(invoice.Id);
         movement.ProductId.ShouldBe(productId);
         movement.QuantityDeltaScaled.ShouldBe(-2);
         (await context.StockMovements.CountAsync()).ShouldBe(2);
-
         StockBalance balance = await context.StockBalances.AsNoTracking().SingleAsync();
         balance.ProductId.ShouldBe(productId);
         balance.QuantityOnHandScaled.ShouldBe(8);
         balance.AverageUnitCost.ShouldBe(new Money(50m));
         balance.DamagedQuantityScaled.ShouldBe(0);
-
         RequestOutcome outcome = await context.RequestOutcomes.AsNoTracking().SingleAsync();
         outcome.ClientOperationId.ShouldBe(command.ClientOperationId.ToString("D"));
         outcome.Status.ShouldBe(RequestOutcomeStatus.Committed);
@@ -553,26 +555,9 @@ public sealed class WriteFaultMatrixTests : IAsyncLifetime
         SaleReceipt? stored = JsonSerializer.Deserialize<SaleReceipt>(outcome.ResultJson, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         stored.ShouldNotBeNull();
         stored.InvoiceId.ShouldBe(invoice.Id);
-        (await context.AuditLogs.AnyAsync(log => log.Action == "sale.post")).ShouldBeFalse();
-
-        Dictionary<string, string[]> after = await ReadSnapshotAsync();
-        string[] saleTables =
-        [
-            TableName<SalesInvoice>(context), TableName<SalesInvoiceLine>(context), TableName<Payment>(context),
-            TableName<StockMovement>(context), TableName<StockBalance>(context), TableName<RequestOutcome>(context),
-        ];
-        foreach (string table in before.Keys.Except(saleTables, StringComparer.Ordinal))
-        {
-            after[table].ShouldBe(before[table], $"The audit failure must not change {table}.");
-        }
-
-        // The caller received an exception, but a repeated checkout recovers the committed answer.
-        _fixture.Faults.FailAt = null;
-        Result<SaleReceipt> replay = await SaleHandler().HandleAsync(command, CancellationToken.None);
-        replay.IsSuccess.ShouldBeTrue();
-        replay.Value.WasReplay.ShouldBeTrue();
         replay.Value.InvoiceId.ShouldBe(invoice.Id);
-        ShouldMatchSnapshot(await ReadSnapshotAsync(), after);
+        AuditLog audit = await context.AuditLogs.SingleAsync(log => log.Action == "sale.post");
+        audit.EntityId.ShouldBe(invoice.Id.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     private async Task ProveRollbackAsync(WritePoint point, Func<Task> command)

@@ -15,6 +15,7 @@ using StoreFlow.Domain.Enumerations;
 using StoreFlow.Domain.Money;
 using StoreFlow.Domain.Pricing;
 using StoreFlow.Infrastructure.Persistence;
+using StoreFlow.Infrastructure.Services;
 
 namespace StoreFlow.Infrastructure.Pos;
 
@@ -265,10 +266,8 @@ public sealed class PostSaleCommandHandler(
             await context.BeforeWriteAsync(WritePoint.PostSaleStockMovement, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
 
-            await context.BeforeCommitAsync(WritePoint.PostSaleCommit, cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
-            await auditWriter.WriteAsync(
+            EfAuditWriter.AddEntry(
+                context,
                 new AuditEntry(
                     PosAudit.SalePost,
                     nameof(SalesInvoice),
@@ -276,7 +275,13 @@ public sealed class PostSaleCommandHandler(
                     null,
                     $"{invoice.Number} for {invoice.Total.Amount.ToString("0.00", CultureInfo.InvariantCulture)}",
                     session.Current?.UserId),
-                cancellationToken);
+                session.Current?.UserId,
+                clock.UtcNow);
+            await context.BeforeWriteAsync(WritePoint.PostSaleAudit, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+
+            await context.BeforeCommitAsync(WritePoint.PostSaleCommit, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
 
             if (command.ApprovalRequestId is int approvalRequestId)
             {

@@ -33,7 +33,7 @@
           <!-- Search -->
           <Grid Width="220" Margin="0,0,16,0" VerticalAlignment="Center">
             <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     AutomationProperties.AutomationId="SalesSearch"
+                     AutomationProperties.AutomationId="SalesSearch" AutomationProperties.Name="{Binding SearchPlaceholder}"
                      VerticalAlignment="Center" />
             <TextBlock Text="{Binding SearchPlaceholder}"
                        IsHitTestVisible="False"
@@ -47,12 +47,12 @@
             <TextBlock Text="{Binding FromLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0" />
             <TextBox Text="{Binding FromDateText, UpdateSourceTrigger=PropertyChanged}"
                      Width="110"
-                     AutomationProperties.AutomationId="SalesFrom" />
+                     AutomationProperties.AutomationId="SalesFrom" AutomationProperties.Name="{Binding FromLabel}" />
 
             <TextBlock Text="{Binding ToLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="12,0,6,0" />
             <TextBox Text="{Binding ToDateText, UpdateSourceTrigger=PropertyChanged}"
                      Width="110"
-                     AutomationProperties.AutomationId="SalesTo" />
+                     AutomationProperties.AutomationId="SalesTo" AutomationProperties.Name="{Binding ToLabel}" />
           </StackPanel>
 
           <!-- Cashier -->
@@ -62,7 +62,7 @@
                       DisplayMemberPath="DisplayName"
                       SelectedValuePath="Id"
                       MinWidth="160"
-                      AutomationProperties.AutomationId="SalesCashier">
+                      AutomationProperties.AutomationId="SalesCashier" AutomationProperties.Name="{Binding CashierLabel}">
               <ComboBox.SelectedValue>
                 <Binding Path="CashierId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
               </ComboBox.SelectedValue>
@@ -109,7 +109,7 @@
 
       <DataGrid x:Name="SalesRegister"
                 Grid.Column="0"
-                AutomationProperties.AutomationId="SalesRegister"
+                AutomationProperties.AutomationId="SalesRegister" AutomationProperties.Name="{Binding Title}"
                 ItemsSource="{Binding Documents}"
                 SelectedItem="{Binding SelectedDocument, Mode=TwoWay}"
                 EnableColumnVirtualization="False"

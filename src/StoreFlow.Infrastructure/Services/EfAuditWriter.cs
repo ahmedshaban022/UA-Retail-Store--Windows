@@ -21,18 +21,23 @@ public sealed class EfAuditWriter(
 
         await using StoreFlowDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
+        AddEntry(context, entry, entry.ActorUserId ?? session.Current?.UserId, clock.UtcNow);
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntry, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    internal static void AddEntry(StoreFlowDbContext context, AuditEntry entry, int? actorUserId, DateTimeOffset timestampUtc)
+    {
         context.AuditLogs.Add(new AuditLog
         {
-            ActorUserId = entry.ActorUserId ?? session.Current?.UserId,
+            ActorUserId = actorUserId,
             Action = entry.Action,
             EntityType = entry.EntityType,
             EntityId = entry.EntityId,
             BeforeHash = entry.BeforeHash,
             AfterSummary = entry.AfterSummary,
-            TimestampUtc = clock.UtcNow,
+            TimestampUtc = timestampUtc,
         });
-
-        await context.BeforeWriteAsync(WritePoint.WriteAuditEntry, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
     }
 }

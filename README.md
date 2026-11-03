@@ -422,19 +422,9 @@ Every phase wrote down what it left rough. This is where all of that comes to. E
 
 ### Still open
 
-Three things are known to be unfinished and are written down here rather than left to be found.
-
-- **Ninety-six controls have an identifier but no accessible name.** They are the search boxes,
-  the date boxes and the grids on the list screens. The full list, screen by screen, is in
-  [`docs/ACCESSIBILITY-REVIEW.md`](docs/ACCESSIBILITY-REVIEW.md).
-- **The backup archive is not encrypted.** PRD §8.5 asks for a passphrase-encrypted archive. This is
-  the largest thing Phase 7 did not finish.
-- **The audit row for a sale is written after the sale has been committed, not inside its
-  transaction.** A sale is therefore complete and permanent a moment before its audit row exists.
-  Nothing is lost in practice — the write-fault matrix proves that replaying the command writes the
-  row and changes nothing else — but there is a window, and closing it means moving the audit
-  writer inside the caller's transaction, which is a larger change than this phase took on. The
-  matrix says so in the test rather than leaving it to be found later.
+- **Backup archives are not encrypted: a `.sfb` holds the shop's data in the clear and must be kept on a protected disk.** Restrict access to local and cloud copies. PRD §8.5 recommends passphrase encryption. It remains open because scheduled backup, verification, retention, recovery on another PC and lost-passphrase handling need a complete design and tests together; introducing encryption without proving that old and new copies remain recoverable could leave the shop without a usable backup.
+- **Accessible names remain incomplete: 87 of the controls listed in the review still lack a declared accessible name.** The original review called its list 96, but the list actually enumerated 107; 20 controls on six complete screens have now been named. A screen-reader user may be unable to identify and use the remaining controls independently. The source guard finds 88 candidates in all, including one outside the original list which has child text and needs runtime verification. See [`docs/ACCESSIBILITY-REVIEW.md`](docs/ACCESSIBILITY-REVIEW.md). The remaining screens need correctly localised labels and runtime checks rather than guessed names.
+- **Sale posting now saves its sale audit entry inside the same transaction as the invoice, stock, payment and request outcome.** An audit-write or commit failure rolls back the sale as well; retrying a committed sale does not duplicate its audit entry. The separate approval-applied audit and other commands still use the independent audit writer and can fail after their business commit.
 
 ---
 

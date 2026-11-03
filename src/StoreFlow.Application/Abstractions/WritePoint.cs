@@ -18,6 +18,9 @@ public enum WritePoint
     /// <summary>The stock movements a sale causes, and the invoice being marked committed.</summary>
     PostSaleStockMovement,
 
+    /// <summary>The sale audit entry saved inside the sale transaction.</summary>
+    PostSaleAudit,
+
     /// <summary>The commit that makes a sale permanent.</summary>
     PostSaleCommit,
 

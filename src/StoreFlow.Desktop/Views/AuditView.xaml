@@ -25,7 +25,7 @@
 
         <Grid Grid.Column="0" Width="280" VerticalAlignment="Center">
           <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="Audit.Search"
+                   AutomationProperties.AutomationId="Audit.Search" AutomationProperties.Name="{Binding SearchPlaceholder}"
                    VerticalAlignment="Center" />
           <TextBlock Text="{Binding SearchPlaceholder}"
                      IsHitTestVisible="False"
@@ -43,7 +43,7 @@
                     ItemsSource="{Binding EntityTypes}"
                     SelectedItem="{Binding SelectedEntityType}"
                     DisplayMemberPath="DisplayName"
-                    AutomationProperties.AutomationId="Audit.EntityType" />
+                    AutomationProperties.AutomationId="Audit.EntityType" AutomationProperties.Name="{Binding EntityTypeLabel}" />
         </StackPanel>
 
         <!-- The days the trail is narrowed to, and who did it -->
@@ -55,7 +55,7 @@
           <TextBox Width="120"
                    Text="{Binding FromText, UpdateSourceTrigger=PropertyChanged}"
                    VerticalAlignment="Center"
-                   AutomationProperties.AutomationId="Audit.From" />
+                   AutomationProperties.AutomationId="Audit.From" AutomationProperties.Name="{Binding FromLabel}" />
 
           <TextBlock Text="{Binding ToLabel}"
                      Style="{StaticResource Type.Caption}"
@@ -64,7 +64,7 @@
           <TextBox Width="120"
                    Text="{Binding ToText, UpdateSourceTrigger=PropertyChanged}"
                    VerticalAlignment="Center"
-                   AutomationProperties.AutomationId="Audit.To" />
+                   AutomationProperties.AutomationId="Audit.To" AutomationProperties.Name="{Binding ToLabel}" />
 
           <TextBlock Text="{Binding ActorLabel}"
                      Style="{StaticResource Type.Caption}"
@@ -73,13 +73,13 @@
           <TextBox Width="140"
                    Text="{Binding ActorText, UpdateSourceTrigger=PropertyChanged}"
                    VerticalAlignment="Center"
-                   AutomationProperties.AutomationId="Audit.Actor" />
+                   AutomationProperties.AutomationId="Audit.Actor" AutomationProperties.Name="{Binding ActorLabel}" />
         </StackPanel>
       </Grid>
     </Border>
 
     <Grid Grid.Row="1">
-      <DataGrid x:Name="AuditGrid" AutomationProperties.AutomationId="Audit.Grid" EnableColumnVirtualization="False"
+      <DataGrid x:Name="AuditGrid" AutomationProperties.AutomationId="Audit.Grid" AutomationProperties.Name="{Binding Title}" EnableColumnVirtualization="False"
                 ItemsSource="{Binding Entries}"
                 Margin="0,12,0,0">
         <DataGrid.Columns>

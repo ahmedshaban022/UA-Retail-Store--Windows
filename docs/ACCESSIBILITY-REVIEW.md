@@ -73,19 +73,28 @@ It now carries identifiers as well as names: `Settings.ProductNameEn`, `Settings
 | `Pos.CashReceived` | `CashReceivedLabel` |
 | `Pos.InvoiceDiscount` | `InvoiceDiscountLabel` |
 
-### 3.2 Still to do, and exactly how
+### 3.2 Stage D decision and remaining debt
 
-Ninety-six controls have an identifier but no accessible name. They are the search boxes, the
-date boxes, the filter boxes and the grids on the list screens. The fix is one attribute each,
-bound to a label the view model already has in most cases.
+The Phase 7 text said 96, but its list actually enumerated **107** identified controls (including
+three dynamically identified reference-editor fields). Stage D named 20 on six complete screens:
+all six Audit controls, the Categories and Units grids, both Suppliers controls, and all five
+controls on each of Sales and Purchases. It also named the Approvals grid, outside the original list. The names use
+their existing localised labels or page titles; automation identifiers and visible text are unchanged.
+**The remaining 87 listed controls are accepted release debt: screen-reader users may be unable to
+identify and use them independently.** Their labels and grid contexts need screen-by-screen localised
+work and runtime verification; guessed names are not a safe substitute.
 
-The list, by screen:
+A conservative source guard counts **88** identified interactive elements with no explicit name,
+label association, content attribute or header attribute. Its scope includes the 87 listed controls,
+plus `Pos.AddSearchResult`, which contains child text, so this is a candidate
+count rather than a claim of 88 runtime UI Automation names missing. The guard is not a screen-reader
+test and does not cover controls without identifiers. It fails if its count rises above 88.
+
+Remaining list, by screen:
 
 | Screen | Controls |
 |---|---|
-| `AuditView.xaml` | `Audit.Search`, `Audit.EntityType`, `Audit.From`, `Audit.To`, `Audit.Actor`, `Audit.Grid` |
 | `BackupView.xaml` | `Backup.TargetPicker`, `Backup.DailyTime`, `Backup.DailyRetention`, `Backup.WeeklyDay`, `Backup.WeeklyTime`, `Backup.WeeklyRetention`, `Backup.Directory`, `Backup.FilterTarget`, `Backup.FilterResult`, `Backup.From`, `Backup.To`, `Backup.Grid` |
-| `CategoriesView.xaml` | `Categories.Grid` |
 | `CsvImportWindow.xaml` | `CsvImport.FilePath`, `CsvImport.Grid` |
 | `DashboardView.xaml` | `Dashboard.Date` |
 | `InventoryView.xaml` | `Inventory.AsOfDate`, `Inventory.Search`, `Inventory.Balances`, `Inventory.MovementProduct`, `Inventory.MovementFrom`, `Inventory.MovementTo`, `Inventory.Movements`, `Inventory.Counts` |
@@ -94,7 +103,6 @@ The list, by screen:
 | `ProductEditorWindow.xaml` | `ProductEditor.Sku`, `.Name`, `.NameAr`, `.Description`, `.Category`, `.Unit`, `.TaxCategory`, `.SalePrice`, `.CostPrice`, `.ReorderLevel`, `.Barcode`, `.NewBarcode` |
 | `ProductsView.xaml` | `Products.Search`, `Products.Grid` |
 | `PurchaseEditorWindow.xaml` | `PurchaseEditor.Supplier`, `.Date`, `.Discount`, `.Notes`, `.Lines`, `.Line.Product`, `.Line.Quantity`, `.Line.UnitCost`, `.Line.Tax` |
-| `PurchasesView.xaml` | `Purchases.Search`, `.From`, `.To`, `.Supplier`, `.Grid` |
 | `ReasonPromptWindow.xaml` | `ReasonPrompt.Reason` |
 | `RecoveryWizardWindow.xaml` | `Recovery.Path` |
 | `ReferenceEditorWindow.xaml` | the three bound fields (`name`, `nameAr`, `phone`) |
@@ -102,11 +110,8 @@ The list, by screen:
 | `RestoreWizardWindow.xaml` | `Restore.Artifact` |
 | `ReturnDialogWindow.xaml` | `ReturnDialogLines`, `.Quantity`, `.Reason`, `.Method` |
 | `ReverseDialogWindow.xaml` | `ReverseDialogReason`, `.Method` |
-| `SalesView.xaml` | `SalesSearch`, `SalesFrom`, `SalesTo`, `SalesCashier`, `SalesRegister` |
 | `StockAdjustmentWindow.xaml` | `StockAdjustment.Product`, `.Quantity`, `.UnitCost`, `.Reason` |
 | `StockCountWindow.xaml` | `StockCount.Date`, `StockCount.Lines`, `StockCount.Line.Product`, `StockCount.Line.Counted` |
-| `SuppliersView.xaml` | `Suppliers.Search`, `Suppliers.Grid` |
-| `UnitsView.xaml` | `Units.Grid` |
 | `UsersView.xaml` | `Users.Grid`, `Users.Roles`, `Users.ChangeRolePicker`, `Users.NewUsername`, `Users.NewDisplayName`, `Users.NewPassword`, `Users.NewRole` |
 
 Nine data-grid columns have no header at all, which is both a visual and an accessibility fault:
@@ -114,8 +119,7 @@ Nine data-grid columns have no header at all, which is both a visual and an acce
 user count), and the action columns in `OpeningStockWindow.xaml:114`, `PosView.xaml:230`,
 `ProductsView.xaml:100`, `PurchaseEditorWindow.xaml:166`, `StockCountWindow.xaml:88`.
 
-This work was not done in this phase. It is the largest remaining piece of NFR-11 and it is
-listed here rather than left to be found.
+The remaining naming and column-header work is accepted release debt, not a claim of NFR-11 conformance.
 
 ## 4. Keyboard
 

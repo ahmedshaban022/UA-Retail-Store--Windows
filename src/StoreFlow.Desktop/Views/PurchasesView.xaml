@@ -32,7 +32,7 @@
           <!-- Search -->
           <Grid Width="220" Margin="0,0,16,0" VerticalAlignment="Center">
             <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     AutomationProperties.AutomationId="Purchases.Search"
+                     AutomationProperties.AutomationId="Purchases.Search" AutomationProperties.Name="{Binding SearchPlaceholder}"
                      VerticalAlignment="Center" />
             <TextBlock Text="{Binding SearchPlaceholder}"
                        IsHitTestVisible="False"
@@ -46,12 +46,12 @@
             <TextBlock Text="{Binding FromLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0" />
             <TextBox Text="{Binding FromDateText, UpdateSourceTrigger=PropertyChanged}"
                      Width="110"
-                     AutomationProperties.AutomationId="Purchases.From" />
+                     AutomationProperties.AutomationId="Purchases.From" AutomationProperties.Name="{Binding FromLabel}" />
 
             <TextBlock Text="{Binding ToLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="12,0,6,0" />
             <TextBox Text="{Binding ToDateText, UpdateSourceTrigger=PropertyChanged}"
                      Width="110"
-                     AutomationProperties.AutomationId="Purchases.To" />
+                     AutomationProperties.AutomationId="Purchases.To" AutomationProperties.Name="{Binding ToLabel}" />
           </StackPanel>
 
           <!-- Supplier -->
@@ -61,7 +61,7 @@
                       DisplayMemberPath="DisplayName"
                       SelectedValuePath="Id"
                       MinWidth="160"
-                      AutomationProperties.AutomationId="Purchases.Supplier">
+                      AutomationProperties.AutomationId="Purchases.Supplier" AutomationProperties.Name="{Binding SupplierFilterLabel}">
                 <ComboBox.SelectedValue>
                     <Binding Path="SupplierId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
                 </ComboBox.SelectedValue>
@@ -110,7 +110,7 @@
     <!-- The register -->
     <Grid Grid.Row="1">
       <DataGrid x:Name="PurchasesGrid"
-                AutomationProperties.AutomationId="Purchases.Grid"
+                AutomationProperties.AutomationId="Purchases.Grid" AutomationProperties.Name="{Binding Title}"
                 ItemsSource="{Binding Purchases}"
                 SelectedItem="{Binding SelectedPurchase, Mode=TwoWay}"
                 EnableColumnVirtualization="False"
