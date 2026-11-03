@@ -309,6 +309,7 @@ public sealed class BackupRunner(
             Message = message.Length > 2000 ? message[..2000] : message,
         });
 
+        await context.BeforeWriteAsync(WritePoint.WriteBackupLog, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 }

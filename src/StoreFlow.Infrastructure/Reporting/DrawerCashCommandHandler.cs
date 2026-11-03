@@ -169,6 +169,7 @@ public sealed class RecordDrawerCashCommandHandler(
             clock,
             cancellationToken);
 
+        await context.BeforeWriteAsync(WritePoint.RecordDrawerCash, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(

@@ -184,6 +184,7 @@ public sealed class SavePurchaseCommandHandler(
             context.PurchaseDocuments.Add(document);
         }
 
+        await context.BeforeWriteAsync(WritePoint.SavePurchase, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -306,7 +307,9 @@ public sealed class PostPurchaseCommandHandler(
         document.PostedUtc = now;
         document.UserId = session.Current?.UserId;
 
+        await context.BeforeWriteAsync(WritePoint.PostPurchaseStock, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.PostPurchaseCommit, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -435,6 +438,7 @@ public sealed class ReversePurchaseCommandHandler(
 
         // The reversing document and its lines are written first, so every movement can point at the
         // line that caused it.
+        await context.BeforeWriteAsync(WritePoint.ReversePurchaseDocument, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         foreach (PurchaseLine line in document.Lines.OrderBy(candidate => candidate.Id))
@@ -477,7 +481,9 @@ public sealed class ReversePurchaseCommandHandler(
 
         document.Status = DocumentStatus.Reversed;
 
+        await context.BeforeWriteAsync(WritePoint.ReversePurchaseStock, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.ReversePurchaseCommit, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         await auditWriter.WriteAsync(

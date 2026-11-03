@@ -74,6 +74,10 @@ public static class ServiceRegistration
         services.AddSingleton<SqlitePragmaInterceptor>();
         services.AddSingleton<DatabaseInitializer>();
 
+        // The seam a test uses to fail one write on purpose. The one registered here does
+        // nothing, so the running shop behaves exactly as it always has.
+        services.AddSingleton<IWriteFaultInjector, NullWriteFaultInjector>();
+
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IUserSession, InMemoryUserSession>();
         services.AddSingleton<IAuditWriter, EfAuditWriter>();

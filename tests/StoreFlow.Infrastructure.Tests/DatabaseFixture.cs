@@ -17,6 +17,12 @@ public sealed class DatabaseFixture : IAsyncLifetime
     /// <summary>Creates contexts against the database under test.</summary>
     public IDbContextFactory<StoreFlowDbContext> Factory { get; private set; } = null!;
 
+    /// <summary>
+    /// The fault injector the contexts carry. A test arms it to fail one write on purpose, so that
+    /// the command can be shown to have committed everything or nothing.
+    /// </summary>
+    public ControllableWriteFaultInjector Faults { get; } = new();
+
     /// <inheritdoc />
     public async Task InitializeAsync()
     {
@@ -30,7 +36,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
             .AddInterceptors(new SqlitePragmaInterceptor())
             .Options;
 
-        Factory = new TestContextFactory(options);
+        Factory = new TestContextFactory(options, Faults);
 
         var initializer = new DatabaseInitializer(Factory, new TestClock());
         await initializer.InitializeAsync();
@@ -55,10 +61,12 @@ public sealed class DatabaseFixture : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    private sealed class TestContextFactory(DbContextOptions<StoreFlowDbContext> options)
+    private sealed class TestContextFactory(
+        DbContextOptions<StoreFlowDbContext> options,
+        ControllableWriteFaultInjector faults)
         : IDbContextFactory<StoreFlowDbContext>
     {
-        public StoreFlowDbContext CreateDbContext() => new(options);
+        public StoreFlowDbContext CreateDbContext() => new(options, faults);
     }
 }
 

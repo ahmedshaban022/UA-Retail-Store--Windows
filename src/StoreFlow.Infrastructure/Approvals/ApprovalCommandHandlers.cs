@@ -132,6 +132,7 @@ public sealed class RequestDiscountApprovalCommandHandler(
 
         context.ApprovalRequests.Add(request);
 
+        await context.BeforeWriteAsync(WritePoint.RequestDiscountApproval, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -210,6 +211,7 @@ public sealed class DecideApprovalRequestCommandHandler(
         request.DecisionReason = command.Reason;
         request.DecidedUtc = clock.UtcNow;
 
+        await context.BeforeWriteAsync(WritePoint.DecideApprovalRequest, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(

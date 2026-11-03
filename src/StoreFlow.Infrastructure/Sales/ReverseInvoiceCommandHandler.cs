@@ -201,6 +201,7 @@ public sealed class ReverseInvoiceCommandHandler(
             IsRefund = true,
         });
 
+        await context.BeforeWriteAsync(WritePoint.ReverseInvoiceDocuments, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         foreach (PlannedReversalLine plan in planned)
@@ -237,7 +238,9 @@ public sealed class ReverseInvoiceCommandHandler(
 
         invoice.Status = DocumentStatus.Reversed;
 
+        await context.BeforeWriteAsync(WritePoint.ReverseInvoiceStockMovement, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.ReverseInvoiceCommit, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         var receipt = new RefundReceipt(

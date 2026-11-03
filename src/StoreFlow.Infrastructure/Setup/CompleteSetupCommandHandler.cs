@@ -108,6 +108,7 @@ public sealed class CompleteSetupCommandHandler(
             settingsSetting.UpdatedUtc = clock.UtcNow;
         }
 
+        await context.BeforeWriteAsync(WritePoint.CompleteSetup, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry("setup.complete", nameof(StoreDetails)), cancellationToken);

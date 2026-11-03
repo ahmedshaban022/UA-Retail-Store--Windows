@@ -221,6 +221,7 @@ public sealed class PostSaleCommandHandler(
 
             context.RequestOutcomes.Add(outcome);
 
+            await context.BeforeWriteAsync(WritePoint.PostSaleInvoice, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
 
             foreach (CartLine line in cart.Lines)
@@ -261,8 +262,10 @@ public sealed class PostSaleCommandHandler(
             outcome.ResultJson = JsonSerializer.Serialize(receipt, ReceiptJson);
             outcome.CompletedUtc = clock.UtcNow;
 
+            await context.BeforeWriteAsync(WritePoint.PostSaleStockMovement, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
 
+            await context.BeforeCommitAsync(WritePoint.PostSaleCommit, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
             await auditWriter.WriteAsync(

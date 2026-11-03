@@ -180,6 +180,7 @@ public sealed class SaveProductCommandHandler(
 
         SynchroniseBarcodes(product, additionalBarcodes);
 
+        await context.BeforeWriteAsync(WritePoint.SaveProduct, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -309,6 +310,7 @@ public sealed class SetProductActiveCommandHandler(
         product.IsActive = command.IsActive;
         product.UpdatedUtc = clock.UtcNow;
 
+        await context.BeforeWriteAsync(WritePoint.SetProductActive, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(

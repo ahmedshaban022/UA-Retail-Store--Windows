@@ -203,6 +203,7 @@ public sealed class PostReturnCommandHandler(
             IsRefund = true,
         });
 
+        await context.BeforeWriteAsync(WritePoint.PostReturnDocuments, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         foreach (PlannedReturnLine plan in planned)
@@ -237,7 +238,9 @@ public sealed class PostReturnCommandHandler(
             }
         }
 
+        await context.BeforeWriteAsync(WritePoint.PostReturnRestock, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.PostReturnCommit, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         var receipt = new RefundReceipt(

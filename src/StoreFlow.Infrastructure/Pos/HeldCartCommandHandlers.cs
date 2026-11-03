@@ -86,6 +86,7 @@ public sealed class HoldCartCommandHandler(
 
         context.HeldCarts.Add(cart);
 
+        await context.BeforeWriteAsync(WritePoint.HoldCart, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         HeldCartSummary summary = Summarise(cart, command.Lines);
@@ -165,6 +166,7 @@ public sealed class ResumeHeldCartCommandHandler(
         // The cart is on the till now, so it is no longer waiting.
         context.HeldCarts.Remove(cart);
 
+        await context.BeforeWriteAsync(WritePoint.ResumeHeldCart, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -215,6 +217,7 @@ public sealed class ClearHeldCartCommandHandler(
 
         context.HeldCarts.Remove(cart);
 
+        await context.BeforeWriteAsync(WritePoint.ClearHeldCart, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(

@@ -94,6 +94,7 @@ public sealed class SaveCategoryCommandHandler(
             context.Categories.Add(category);
         }
 
+        await context.BeforeWriteAsync(WritePoint.SaveCategory, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -155,6 +156,7 @@ public sealed class SetCategoryActiveCommandHandler(
         category.IsActive = command.IsActive;
         category.UpdatedUtc = clock.UtcNow;
 
+        await context.BeforeWriteAsync(WritePoint.SetCategoryActive, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -268,6 +270,7 @@ public sealed class SaveUnitCommandHandler(
             context.Units.Add(unit);
         }
 
+        await context.BeforeWriteAsync(WritePoint.SaveUnit, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -327,6 +330,7 @@ public sealed class SetUnitActiveCommandHandler(
 
         unit.IsActive = command.IsActive;
 
+        await context.BeforeWriteAsync(WritePoint.SetUnitActive, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -431,6 +435,7 @@ public sealed class SaveSupplierCommandHandler(
             context.Suppliers.Add(supplier);
         }
 
+        await context.BeforeWriteAsync(WritePoint.SaveSupplier, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -492,6 +497,7 @@ public sealed class SetSupplierActiveCommandHandler(
         supplier.IsActive = command.IsActive;
         supplier.UpdatedUtc = clock.UtcNow;
 
+        await context.BeforeWriteAsync(WritePoint.SetSupplierActive, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(

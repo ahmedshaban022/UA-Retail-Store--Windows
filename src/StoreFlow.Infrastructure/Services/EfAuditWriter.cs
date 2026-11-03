@@ -32,6 +32,7 @@ public sealed class EfAuditWriter(
             TimestampUtc = clock.UtcNow,
         });
 
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntry, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 }

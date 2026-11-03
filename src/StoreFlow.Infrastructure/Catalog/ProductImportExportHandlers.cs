@@ -210,6 +210,7 @@ public sealed class ImportProductsCommandHandler(
             productsToUpdate.Add(product);
         }
 
+        await context.BeforeWriteAsync(WritePoint.ImportProducts, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(

@@ -164,6 +164,7 @@ public sealed class BackupSettingsStore(
             existing.UpdatedUtc = clock.UtcNow;
         }
 
+        await context.BeforeWriteAsync(WritePoint.SaveBackupSchedule, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 }

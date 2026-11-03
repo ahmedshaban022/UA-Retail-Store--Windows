@@ -1,3 +1,4 @@
+using StoreFlow.Application.Abstractions;
 using StoreFlow.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,7 +8,15 @@ namespace StoreFlow.Infrastructure.Persistence;
 /// The application database. One context per unit of work; the write path always runs inside a
 /// single explicit transaction.
 /// </summary>
-public sealed class StoreFlowDbContext(DbContextOptions<StoreFlowDbContext> options) : DbContext(options)
+/// <param name="options">The provider options.</param>
+/// <param name="writeFaultInjector">
+/// The seam a test uses to fail one write on purpose. It is optional so that a context built
+/// outside the application's container still works; in the container the injector is always
+/// resolved from DI, and the one registered there does nothing.
+/// </param>
+public sealed class StoreFlowDbContext(
+    DbContextOptions<StoreFlowDbContext> options,
+    IWriteFaultInjector? writeFaultInjector = null) : DbContext(options)
 {
     public DbSet<Category> Categories => Set<Category>();
 
@@ -68,4 +77,24 @@ public sealed class StoreFlowDbContext(DbContextOptions<StoreFlowDbContext> opti
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(StoreFlowDbContext).Assembly);
     }
+
+    /// <summary>
+    /// Announces that the side effects of <paramref name="point"/> are about to be written.
+    ///
+    /// The call does nothing in the running shop. A test replaces the injector and the write then
+    /// fails at exactly this point, which is what proves that the command either committed
+    /// everything or committed nothing.
+    /// </summary>
+    /// <param name="point">Which write is about to happen.</param>
+    /// <param name="cancellationToken">The token the write was asked to honour.</param>
+    public Task BeforeWriteAsync(WritePoint point, CancellationToken cancellationToken) =>
+        writeFaultInjector?.BeforeWriteAsync(point, cancellationToken) ?? Task.CompletedTask;
+
+    /// <summary>
+    /// Announces that the transaction holding <paramref name="point"/> is about to be committed.
+    /// </summary>
+    /// <param name="point">Which write is about to be committed.</param>
+    /// <param name="cancellationToken">The token the commit was asked to honour.</param>
+    public Task BeforeCommitAsync(WritePoint point, CancellationToken cancellationToken) =>
+        writeFaultInjector?.BeforeCommitAsync(point, cancellationToken) ?? Task.CompletedTask;
 }

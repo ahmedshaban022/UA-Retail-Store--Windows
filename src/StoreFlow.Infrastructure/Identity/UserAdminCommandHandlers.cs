@@ -212,6 +212,7 @@ public sealed class CreateUserCommandHandler(
 
         context.Users.Add(user);
 
+        await context.BeforeWriteAsync(WritePoint.CreateUser, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -295,6 +296,7 @@ public sealed class ChangeUserRoleCommandHandler(
         user.RoleId = role.Id;
         user.UpdatedUtc = clock.UtcNow;
 
+        await context.BeforeWriteAsync(WritePoint.ChangeUserRole, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -376,6 +378,7 @@ public sealed class SetUserActiveCommandHandler(
         user.IsActive = command.IsActive;
         user.UpdatedUtc = clock.UtcNow;
 
+        await context.BeforeWriteAsync(WritePoint.SetUserActive, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(

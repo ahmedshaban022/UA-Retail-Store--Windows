@@ -138,7 +138,9 @@ public sealed class RecordOpeningStockCommandHandler(
             movements += 1;
         }
 
+        await context.BeforeWriteAsync(WritePoint.RecordOpeningStock, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.RecordOpeningStockCommit, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -239,6 +241,7 @@ public sealed class PostStockAdjustmentCommandHandler(
             };
 
             context.ApprovalRequests.Add(request);
+            await context.BeforeWriteAsync(WritePoint.RequestStockAdjustmentApproval, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
 
             await auditWriter.WriteAsync(
@@ -281,6 +284,7 @@ public sealed class PostStockAdjustmentCommandHandler(
             return Result<StockAdjustmentOutcome>.Failure(errorCode!, errorMessage!);
         }
 
+        await context.BeforeWriteAsync(WritePoint.PostStockAdjustment, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -413,6 +417,7 @@ public sealed class ApproveStockAdjustmentCommandHandler(
         request.DecidedUtc = now;
         request.DecisionReason = string.IsNullOrWhiteSpace(command.Reason) ? null : command.Reason.Trim();
 
+        await context.BeforeWriteAsync(WritePoint.ApproveStockAdjustment, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(

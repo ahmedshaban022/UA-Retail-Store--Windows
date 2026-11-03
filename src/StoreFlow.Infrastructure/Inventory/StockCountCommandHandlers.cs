@@ -174,6 +174,7 @@ public sealed class SaveStockCountCommandHandler(
             context.StockCounts.Add(count);
         }
 
+        await context.BeforeWriteAsync(WritePoint.SaveStockCount, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -244,6 +245,7 @@ public sealed class SubmitStockCountCommandHandler(
 
         count.Status = StockCountStatus.AwaitingApproval;
 
+        await context.BeforeWriteAsync(WritePoint.SubmitStockCount, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -335,6 +337,7 @@ public sealed class ApproveStockCountCommandHandler(
         count.ApprovedUtc = clock.UtcNow;
         count.Reason = command.Reason.Trim();
 
+        await context.BeforeWriteAsync(WritePoint.ApproveStockCount, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -460,7 +463,9 @@ public sealed class PostStockCountCommandHandler(
 
         count.Status = StockCountStatus.Posted;
 
+        await context.BeforeWriteAsync(WritePoint.PostStockCountMovements, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.PostStockCountCommit, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         await auditWriter.WriteAsync(
@@ -519,6 +524,7 @@ public sealed class CancelStockCountCommandHandler(
 
         count.Status = StockCountStatus.Cancelled;
 
+        await context.BeforeWriteAsync(WritePoint.CancelStockCount, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(

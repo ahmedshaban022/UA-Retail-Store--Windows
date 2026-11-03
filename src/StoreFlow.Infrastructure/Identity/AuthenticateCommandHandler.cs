@@ -76,6 +76,7 @@ public sealed class AuthenticateCommandHandler(
         }
 
         user.LastLoginUtc = clock.UtcNow;
+        await context.BeforeWriteAsync(WritePoint.Authenticate, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         var permissions = user.Role?.RolePermissions
