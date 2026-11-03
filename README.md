@@ -83,13 +83,13 @@ On a machine with a normal .NET 10 installation, plain `dotnet` works and nothin
 & 'D:\dotnet\dotnet.exe' run --project 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\StoreFlow.Desktop.csproj'
 ```
 
-Current state of the suite — **423 tests, all passing**:
+Current state of the suite — **424 tests, all passing**:
 
 | Project | Tests | Before | Covers |
 |---|---|---|---|
 | `StoreFlow.Domain.Tests` | 25 | 25 | money maths and rounding, moving weighted average, tax inclusive/exclusive, discounts, unit quantities |
 | `StoreFlow.Application.Tests` | 137 | 110 | password hashing (Argon2id + PBKDF2), permission matrix, scan buffer, CSV reading and writing, WCAG theme contrast validation, the catalogue's validation rules and its spreadsheet mapper, the inventory's validation rules and its approval thresholds, **the till's pricing core**: the tax on a price that carries it and on one that does not, the whole-sale discount spread across the lines, a quantity the selling unit cannot express, and **the reports' money**: the net sales without the tax, the cost of the goods, what a return takes off the profit, and the CSV file that opens in Excel and reads back without a doubled byte-order mark, and **the backup's rules**: the manifest that describes every part, the part that was changed or added after the archive was written, the file name that says which copy it is, the retention that keeps seven dailies and four weeklies and never the newest, and the schedule that is due once its time has passed and catches up once after a missed day |
-| `StoreFlow.Infrastructure.Tests` | 140 | 88 | real SQLite file: migrations, pragmas, immutability triggers, negative-stock trigger, integrity check, theme store round-trip, the catalogue handlers and their barcode triggers, the purchase and inventory handlers, the ledger reconciling to the balance, **the sale handler**: one transaction, one sale for one key, the stock off the shelf exactly once, the change the invoice and the payment row agree on, and a cart that is put aside reserving nothing, and **the reports**: every figure worked out by hand against real documents, the shelf valued at the moving average on a day before a receipt, the dashboard agreeing with the daily sales report, the returns report and the cashier's reconciliation, **the approvals**: a discount over the limit held for a manager with no invoice written, the sale going through only once the request is given, nobody approving their own request, and the request list the manager opens, and **the users**: the last administrator that cannot be deactivated, and **the backup**: the copy taken with SQLite's own online backup, the pictures in the archive, the copy that was changed afterwards refused, the restore refused without the permission and while a sale is being posted, **the same shop restored into a different one**, the data a restore replaced kept recoverable, the copy written to the log with the checksum that proves it, the local folder target and the S3 target against a local S3 stub, the migration that nobody has reviewed taking a copy first, the scheduler catching up once, and **the shop's settings and details surviving a restart** |
+| `StoreFlow.Infrastructure.Tests` | 141 | 88 | real SQLite file: migrations, pragmas, immutability triggers, negative-stock trigger, integrity check, theme store round-trip, the catalogue handlers and their barcode triggers, the purchase and inventory handlers, the ledger reconciling to the balance, **the sale handler**: one transaction, one sale for one key, the stock off the shelf exactly once, the change the invoice and the payment row agree on, and a cart that is put aside reserving nothing, and **the reports**: every figure worked out by hand against real documents, the shelf valued at the moving average on a day before a receipt, the dashboard agreeing with the daily sales report, the returns report and the cashier's reconciliation, **the approvals**: a discount over the limit held for a manager with no invoice written, the sale going through only once the request is given, nobody approving their own request, and the request list the manager opens, and **the users**: the last administrator that cannot be deactivated, and **the backup**: the copy taken with SQLite's own online backup, the pictures in the archive, the copy that was changed afterwards refused, the restore refused without the permission and while a sale is being posted, a restore point that cannot be kept not stopping the restore, **the same shop restored into a different one**, the data a restore replaced kept recoverable, the copy written to the log with the checksum that proves it, the local folder target and the S3 target against a local S3 stub, the migration that nobody has reviewed taking a copy first, the scheduler catching up once, and **the shop's settings and details surviving a restart** |
 | `StoreFlow.Desktop.Tests` | 121 | 110 | AR/EN resource parity, theme engine resource generation, value converters, the shell's contrast and the tables' headings, the localised messages of the import preview, how a code is laid out in an Arabic cell, the inventory screens' error messages and number reading, the editor flows against a real database, the column heading finding its words, the rules that keep a table readable — a cell's margin, the trimming of text that does not fit, a heading that wraps, a box with room for the line it holds, and **every column measured against the value it has to hold** — and **the till**: the money on the screen is the money the cart priced, the change from the cash that was typed, a scan that arrives during a lookup is not lost, every error code having a message of its own, and the receipt carrying the same numbers as the screen, and **the backup screen**: the size written the way a person reads it, the outcome and the destination written in the shop's language, and the two languages genuinely different |
 
 ### Useful commands
@@ -347,14 +347,16 @@ Two things are worth knowing on a support call:
 - **Two solution files exist in this working copy.** `StoreFlow.sln` (classic format, authoritative) and
   `StoreFlow.slnx` (created by the initial `dotnet new sln` before the format was corrected). A bare
   `dotnet build` in the repository root is ambiguous — **always pass `StoreFlow.sln` explicitly**. The
-  `.slnx` file is deliberately **not tracked** and should be deleted from the working copy by hand; the
-  local file-safety policy on this machine refuses to perform deletions.
+  `.slnx` file is **not tracked** and is now ignored by `.gitignore`; it is still on disk and should be
+  deleted from the working copy by hand, because the local file-safety policy on this machine refuses to
+  perform deletions.
 - **`src/StoreFlow.Domain/Quantity/Quantity.cs`** held the `QuantityScale` type and was renamed to
   `QuantityScale.cs` to match its contents. The `UnitQuantity` type lives in `UnitQuantity.cs` beside it.
 - **Four scratch files were left in the working copy by the Phase 6 work** — `.tmp-add-resx.ps1`,
   `.tmp-backup-strings-en.xml`, `.tmp-backup-strings-ar.xml` and `tools\add-backup-destination-string.ps1`.
-  They are **not tracked** and should be deleted from the working copy by hand; the local file-safety
-  policy on this machine refuses to perform deletions.
+  They are **not tracked** and are now ignored by `.gitignore` so the tree reads clean. They are still on
+  disk and should be deleted from the working copy by hand; the local file-safety policy on this machine
+  refuses to perform deletions.
 
 ---
 
@@ -400,7 +402,7 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [`docs/phases/phase4-screens/`](docs/phases/phase4-screens/) | The pictures of the running sales register that the Phase 4 report leans on |
 | [`docs/phases/PHASE-5-REPORTS-AND-ADMIN.md`](docs/phases/PHASE-5-REPORTS-AND-ADMIN.md) | The Phase 5 report: the eleven reports, the money rules behind them, the discount that waits for a manager, the users and the roles, and what running it found |
 | [`docs/phases/phase5-screens/`](docs/phases/phase5-screens/) | The pictures of the running reports screen that the Phase 5 report leans on |
-| [`docs/phases/PHASE-6-BACKUP-AND-CLOUD.md`](docs/phases/PHASE-6-BACKUP-AND-CLOUD.md) | The Phase 6 report: the `.sfb` file and what proves it, the destinations, the schedule and the retention, the restore and the restore point, the recovery wizard, and the five defects that running it found |
+| [`docs/phases/PHASE-6-BACKUP-AND-CLOUD.md`](docs/phases/PHASE-6-BACKUP-AND-CLOUD.md) | The Phase 6 report: the `.sfb` file and what proves it, the destinations, the schedule and the retention, the restore and the restore point, the recovery wizard, the ten defects that running it found, and the phase gate |
 | [`docs/phases/phase6-screens/`](docs/phases/phase6-screens/) | The pictures of the running backup screen, the restore wizard and the recovery wizard that the Phase 6 report leans on |
 
 ---

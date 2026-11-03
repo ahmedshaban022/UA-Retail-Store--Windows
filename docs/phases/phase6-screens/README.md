@@ -48,3 +48,9 @@ What these pictures were taken to prove:
 - **The same copy restores into another shop** — `restore-wizard-other-profile.png` is the wizard in
   the second, empty shop folder, and after that restore the second shop held the first shop's
   product.
+
+**One flaw in the pictures themselves:** in `restore-wizard-other-profile.png` and
+`restore-wizard-arabic.png` the "Choose a backup" line is cut off at the top, because those two
+windows were captured shorter than their content and the label went under the header. It is a flaw
+in the evidence, not in the screen — the same line is whole in `restore-wizard-checked.png`, and the
+wizard is the same window in all three.
