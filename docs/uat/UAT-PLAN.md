@@ -450,40 +450,24 @@ machine, before the release candidate is accepted (PRD §12.1 definition of done
 
 ### 4.1 Which cases this build can reach
 
-The catalogue, the inventory, the point of sale and the sales register are built, so these cases can
-be executed end to end on this build:
+**All twenty cases are reachable on this build.** Every screen they need is built, and every screen
+was driven by the smoke harnesses while it was built. What is left is a person walking the steps
+and signing the row.
 
-| Case | Reaches |
-|---|---|
-| UAT-01, UAT-02, UAT-18 | The catalogue screens and the till. A product is found by its barcode at the till, so the till half of UAT-01 and UAT-18 can now be run. |
-| UAT-03, UAT-14 | The purchase and inventory screens. Both are fully implementable now. |
-| UAT-19 | The purchase and the valuation are implementable now; **step 4 (the sale and its COGS snapshot) needs Phase 5**, so the case cannot be signed off before then. |
-| UAT-04, UAT-05, UAT-06, UAT-07, UAT-08 | The point of sale. Every one of these is implemented and proved in substance by the Phase 3 gate table; the manual steps are still waiting for a person to walk them. |
-| UAT-10, UAT-11, UAT-12, UAT-20 | The sales register and the returns. The register, the return and the reversal are implemented and proved in substance by the Phase 4 gate table; **the gross-profit reading behind UAT-12 and UAT-20 needs Phase 5**, so those two cannot be signed off before then. |
-| UAT-13, UAT-15 | The reports, the approvals and the users screens, all built in Phase 5 and proved in substance by the Phase 5 gate table. |
-| UAT-16, UAT-17 | The backup, the restore and the recovery screens, built in Phase 6 and proved in substance by the Phase 6 gate table. **UAT-16 still needs a second, clean machine** — the same-PC run proves the copy and the restore, not the hardware. |
+| Case | Reaches | Needs |
+|---|---|---|
+| UAT-01, UAT-02, UAT-18 | The catalogue screens and the till | A barcode scanner for UAT-01 |
+| UAT-03, UAT-14 | The purchase and inventory screens | Nothing |
+| UAT-04, UAT-05, UAT-06, UAT-07, UAT-08 | The point of sale | A scanner for UAT-04 and UAT-05; a printer for UAT-04 and UAT-08 |
+| UAT-09 | The point of sale | A machine where the process can be killed mid-posting |
+| UAT-10, UAT-11, UAT-12, UAT-20 | The sales register, the returns and the reversal | Nothing |
+| UAT-13, UAT-15 | The reports, the approvals and the users screens | Nothing |
+| UAT-16 | The backup, the restore and the recovery screens | A second, clean machine |
+| UAT-17 | The till, with the network down | Nothing |
 
-Each phase says in its own report which of these rows it proved and which it could not reach, and
-this plan and that report must not disagree. The gate table in
-[`docs/phases/PHASE-2-INVENTORY.md`](../phases/PHASE-2-INVENTORY.md) is the Phase 2 answer: it
-proves UAT-03 and UAT-14, proves the shelf half of UAT-19, and says plainly that the till half of
-UAT-01 and UAT-18 waits for Phase 3. The gate table in
-[`docs/phases/PHASE-3-POS.md`](../phases/PHASE-3-POS.md) is the Phase 3 answer: it proves UAT-01
-for the till, UAT-06, UAT-07 and UAT-08 for the document, and UAT-13 for the block, and it says
-plainly that UAT-09 — killing the application in the middle of a posting — belongs to Phase 7,
-and that the register behind UAT-18 and UAT-19 is Phase 4 or later. The gate table in
-[`docs/phases/PHASE-4-SALES-AND-RETURNS.md`](../phases/PHASE-4-SALES-AND-RETURNS.md) is the
-Phase 4 answer: it proves UAT-10 and UAT-11 outright, proves the invoice half of UAT-12 and
-UAT-20, and says plainly that the gross-profit reading behind them is Phase 5.
-
-The `Status` column above stays `Not run` until a person executes the manual step, because rule 4
-of §2.3 requires both the automated counterpart to be green **and** the manual step to have been
-executed. A phase report is evidence that the automated half is green; it is not a sign-off.
-
-The reports, the approvals, the users, the backup and the recovery screens are built — the reports, the
-approvals and the users in Phase 5, the backup and the recovery in Phase 6 — so the cases that depend on them
-can now be executed. Their rail entries are live in both languages. The **Point of sale** rail entry is live
-from Phase 3, in both languages, and the **Sales** rail entry is live from Phase 4, in both languages.
+Nothing in the list is blocked by the product any more. UAT-19 needed the cost-of-goods snapshot
+that Phase 5 built, and the gross-profit readings behind UAT-12 and UAT-20 needed the reports that
+Phase 5 built. Both are behind us.
 
 ### 4.2 What to look at while running these cases
 
@@ -530,6 +514,38 @@ Two more things are worth a glance, because they are new and not defects:
   does not carry the tax the customer saves a little more than the discount that was granted.
 - **A cart that is put aside reserves no stock.** The goods are still on the shelf, because they
   have not been sold. The cart is a note, not a movement.
+
+### 4.3 The hardware the shop has to lend
+
+This is the list to hand to whoever supplies the shop. Nothing here is optional: each line names a
+case that cannot be signed off without it.
+
+| What | Why | Cases |
+|---|---|---|
+| A USB barcode scanner that behaves as a keyboard | The till reads a barcode as a typed code followed by a suffix. A scanner that behaves as a keyboard is what the till expects; one that speaks a serial port is not. | UAT-01, UAT-04, UAT-05 |
+| An 80 mm thermal receipt printer | The receipt is drawn for an 80 mm roll. A 58 mm printer will not take it. | UAT-04, UAT-08 |
+| An A4 printer | The purchase document and the stock count are A4. | UAT-08 |
+| The ability to take a printer offline | A printer that is unplugged is the only honest test of what happens when the paper does not come out. | UAT-08 |
+| A second, clean Windows machine | The same machine proves that the copy was taken and that the restore works. It does not prove that the copy survives a different machine or a dead disk. | UAT-16 |
+| A USB drive or an external disk for the backup | The copy has to live somewhere that is not the till. | UAT-16 |
+| Permission to kill the process while it is posting | UAT-09 is about what the shop's ledger looks like after a hard stop. | UAT-09 |
+
+**Two things this build does not have and the plan should not ask for:** a scale on the keyboard
+(selling by weight from the till is not in v1.0), and a second till (a sale is one till and one
+currency in v1.0).
+
+### 4.4 What the plan cannot prove
+
+Three things no amount of testing on this machine will settle, and the shop has to decide them:
+
+1. **Whether the till is fast enough on the shop's own hardware.** The performance numbers in
+   [`../PERFORMANCE-REPORT.md`](../PERFORMANCE-REPORT.md) were taken on a development machine. A
+   shop till is often slower.
+2. **Whether the screen is big enough.** The shell was sized for a 1366 × 768 screen. A till with
+   a smaller one will have the bottom of the window below the taskbar.
+3. **Whether the shop's own way of working fits the screens.** The daily routine in the user guide
+   is the one this product was built around; a shop that works differently needs to be told, not
+   to find out.
 
 ## 5. Sign-off
 | Field | Value |

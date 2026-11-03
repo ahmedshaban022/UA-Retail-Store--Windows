@@ -73,15 +73,21 @@ On a machine with a normal .NET 10 installation, plain `dotnet` works and nothin
 ## Build and test
 
 ```powershell
-# Build (must name the .sln explicitly — see "Known papercuts" below)
-& 'D:\dotnet\dotnet.exe' build 'D:\Coding\UA Retail Store\StoreFlow.sln' --nologo -v q
+# The build script names the solution for you
+& 'D:\Coding\UA Retail Store\tools\build.ps1' -Test
 
-# Test
+# Or the commands underneath it
+& 'D:\dotnet\dotnet.exe' build 'D:\Coding\UA Retail Store\StoreFlow.sln' --nologo -v q
 & 'D:\dotnet\dotnet.exe' test  'D:\Coding\UA Retail Store\StoreFlow.sln' --nologo -v q
 
 # Run the desktop application
 & 'D:\dotnet\dotnet.exe' run --project 'D:\Coding\UA Retail Store\src\StoreFlow.Desktop\StoreFlow.Desktop.csproj'
 ```
+
+There is one solution file in the repository root, `StoreFlow.sln`. A stray `StoreFlow.slnx` from the
+first `dotnet new sln` used to sit beside it and made a bare `dotnet build` ambiguous; it has been
+moved to `build\legacy\`, and `tools\build.ps1` names the solution so that the question never comes
+up again.
 
 Current state of the suite — **424 tests, all passing**:
 
@@ -342,21 +348,93 @@ Two things are worth knowing on a support call:
 
 ---
 
-## Known papercuts
+## What v1.0 is, and what it deliberately is not
 
-- **Two solution files exist in this working copy.** `StoreFlow.sln` (classic format, authoritative) and
-  `StoreFlow.slnx` (created by the initial `dotnet new sln` before the format was corrected). A bare
-  `dotnet build` in the repository root is ambiguous — **always pass `StoreFlow.sln` explicitly**. The
-  `.slnx` file is **not tracked** and is now ignored by `.gitignore`; it is still on disk and should be
-  deleted from the working copy by hand, because the local file-safety policy on this machine refuses to
-  perform deletions.
-- **`src/StoreFlow.Domain/Quantity/Quantity.cs`** held the `QuantityScale` type and was renamed to
-  `QuantityScale.cs` to match its contents. The `UnitQuantity` type lives in `UnitQuantity.cs` beside it.
-- **Four scratch files were left in the working copy by the Phase 6 work** — `.tmp-add-resx.ps1`,
-  `.tmp-backup-strings-en.xml`, `.tmp-backup-strings-ar.xml` and `tools\add-backup-destination-string.ps1`.
-  They are **not tracked** and are now ignored by `.gitignore` so the tree reads clean. They are still on
-  disk and should be deleted from the working copy by hand; the local file-safety policy on this machine
-  refuses to perform deletions.
+Every phase wrote down what it left rough. This is where all of that comes to. Each item is either
+**done**, **in v1.0 on purpose**, or **not in v1.0**, with the reason.
+
+### Done in Phase 7
+
+- **The bare `dotnet build` in the repository root is unambiguous.** The stray `StoreFlow.slnx` has
+  been moved to `build\legacy\` — the file-safety policy on this machine refuses deletions, so it
+  was moved rather than removed — and `tools\build.ps1` names the solution for you. The four
+  scratch files the Phase 6 work left in the root have been moved to `build\scratch\` for the same
+  reason.
+- **The programme restarts itself after a restore.** A restore replaces the database on disk; the
+  running programme was still holding the old one, so every sale after a restore would have been
+  written to a file that was no longer the shop's. The wizards now restart the programme and say
+  so, in the language the shop is using.
+- **There is an installer.** `installer\build-installer.ps1` builds a per-user MSI that installs
+  into `%LOCALAPPDATA%\Programs\StoreFlow` without an administrator account, and
+  `installer\verify-installer.ps1` checks that installing, upgrading over the top and removing it
+  all leave the shop's data where it was. The shop's data lives in `%APPDATA%\StoreFlow`, outside
+  the installation, so an upgrade keeps the ledger and an uninstall keeps it too.
+- **The fields have names, the dialogs answer to Escape, and the contrast validator checks
+  thirty-five role pairs instead of sixteen.** See
+  [`docs/ACCESSIBILITY-REVIEW.md`](docs/ACCESSIBILITY-REVIEW.md) for what was fixed and what is
+  still outstanding.
+- **Every write in the application can be failed on purpose, and every one of them is proved.**
+  Fifty-three named write points, one scenario each, and a test that fails the build if a write
+  point is not covered. Writing the matrix found two write points that named a commit the code
+  never made, and one that was doing three jobs at once; all three are fixed.
+- **The shop survives the power going off.** A test kills a process in the middle of a sale and
+  checks that the ledger is either whole or untouched, and that the till starts again on the
+  database it was left with.
+- **A shop with a hundred thousand invoices works.** The harness fills one and measures it. It
+  found that the sales register, the sales-by-product report and the stock lists were each
+  sending one SQL parameter per row, which SQLite refuses once the shop is busy; they no longer
+  do, and a test keeps them honest.
+
+### In v1.0 on purpose, with the reason
+
+- **A reversal is a document of its own.** The register shows two rows for one sale. That is
+  honest: the original invoice is never edited or deleted, and the books always add up.
+- **A return cannot be undone.** A return posted by mistake is corrected by a second return. The
+  first return stays on the record.
+- **A count and a correction are two documents.** One job for the shopkeeper, two documents on the
+  record.
+- **A count is not blind.** The book quantity is on the screen while the counter works. The
+  separation of duties is an approval, not a second pair of eyes at the shelf.
+- **The scheduler is the application's own timer.** It runs while the application is open. A
+  Windows Scheduled Task would put the shop's Windows account in the middle of the shop's data
+  protection, and that trade was taken deliberately.
+- **The pictures show the interface and not the window frame.** A picture taken from outside the
+  process comes back mirrored for a right-to-left window, and a mirrored picture of a till is
+  worse than no picture at all.
+- **The theme's live dictionary is written to the log at start-up.** A missing colour role shows
+  up as a control quietly falling back to another colour, and on a shop PC there is no debugger.
+- **The day's takings count a reversal as a day with no invoice.** A reversal undoes an invoice;
+  it is not an invoice.
+- **The returns report groups by product, not by return.** That is what the PRD asks for.
+
+### Not in v1.0, and why
+
+| Left out | Why |
+|---|---|
+| A price override that asks a manager | A till price that is not the catalogue price needs a second pair of hands at the till, and the flow needs a manager prompt of its own. In v1.0 the till refuses the sale instead, which is safe and unhelpful; it is not wrong. |
+| Selling by weight from a till | It needs a scale on the keyboard. |
+| A customer on the sale | The PRD does not ask for one, and a till that asks for a name on every sale is a till that slows down. |
+| More than one tender on one sale | The PRD does not ask for it, and a split-tender sale is a bigger change to the sale document than it looks. |
+| A second pair of eyes on a stock count | The count is approved, but it is not blind. |
+| A supplier statement to reconcile against, and foreign currency | A purchase is one supplier, one currency and one document in v1.0. |
+| More backup destinations | The S3-compatible target covers the object store most shops already have. Google Drive, OneDrive and WebDAV are each a separate integration. |
+| Incremental backups | Every copy carries the whole shop, so the archive grows with the pictures rather than with the changes. A copy that carried only what had changed would be a different kind of file. |
+
+### Still open
+
+Three things are known to be unfinished and are written down here rather than left to be found.
+
+- **Ninety-six controls have an identifier but no accessible name.** They are the search boxes,
+  the date boxes and the grids on the list screens. The full list, screen by screen, is in
+  [`docs/ACCESSIBILITY-REVIEW.md`](docs/ACCESSIBILITY-REVIEW.md).
+- **The backup archive is not encrypted.** PRD §8.5 asks for a passphrase-encrypted archive. This is
+  the largest thing Phase 7 did not finish.
+- **The audit row for a sale is written after the sale has been committed, not inside its
+  transaction.** A sale is therefore complete and permanent a moment before its audit row exists.
+  Nothing is lost in practice — the write-fault matrix proves that replaying the command writes the
+  row and changes nothing else — but there is a window, and closing it means moving the audit
+  writer inside the caller's transaction, which is a larger change than this phase took on. The
+  matrix says so in the test rather than leaving it to be found later.
 
 ---
 
