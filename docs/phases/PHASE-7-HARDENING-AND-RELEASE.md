@@ -28,7 +28,7 @@ await context.BeforeWriteAsync(WritePoint.PostSaleInvoice, cancellationToken);
 await context.BeforeCommitAsync(WritePoint.PostSaleCommit, cancellationToken);
 ```
 
-Each of the fifty-three write points in the product announces itself. A transactional command
+Each of the fifty-four write points in the product announces itself. A transactional command
 announces each of its writes *and* the commit that makes them permanent, so a test can aim a failure
 at any one of them:
 
@@ -54,7 +54,7 @@ were thrown away together.
 ### The matrix: a failure aimed at every single write
 
 A seam nobody tests is a comment. `WriteFaultMatrixTests` is the proof: one scenario for every
-write point in the catalogue, fifty-three of them, each one arming the injector at exactly one
+write point in the catalogue, fifty-four of them, each one arming the injector at exactly one
 point and then checking what the ledger is left holding.
 
 The scenarios do not check a row count. Each one photographs **every mapped table in the database**
@@ -86,6 +86,10 @@ committed, with no audit row beside it. The matrix asserts exactly that, and the
 shows the way out: replaying the command writes the audit row and changes nothing else, so no sale
 is ever un-audited in practice, only briefly un-audited in the moment between the commit and the
 audit row.
+
+**Phase 8 closed this window for sales.** The sale's audit entry is now written inside the sale's
+own transaction, so an audit failure rolls the sale back with it. The other commands still use the
+independent audit writer and can still fail after their business commit.
 
 ### The programme restarts itself after a restore
 
@@ -179,7 +183,7 @@ open, when a sale was interrupted, when the numbers do not add up, and how to mo
 another computer. In English and in Arabic.
 
 `docs/ACCESSIBILITY-REVIEW.md` — what was checked, what was found, what was fixed, and the
-ninety-six controls that still have no accessible name, listed screen by screen.
+remaining controls without an accessible name, listed screen by screen; the review explains the corrected original count and Phase 8 work.
 
 ### A harness that fills a shop and measures it
 
@@ -265,10 +269,11 @@ the same product and a new version is always a new product.
 
 ### The accessibility work that was not done is written down
 
-Ninety-six controls still have an identifier and no accessible name. They are listed one by one
-in the accessibility review, screen by screen, so that the next person does not have to find them
-again. Writing them down was not a decision to skip them; it was a decision to say which ones
-they are.
+The original review enumerated 107 controls, not ninety-six as first stated. Phase 8 named 20 of
+them on six complete screens; 87 from that list still have an identifier and no accessible name.
+They are listed one by one in the accessibility review, screen by screen, so that the next person
+does not have to find them again. Writing them down was not a decision to skip them; it was a
+decision to say which ones they are.
 
 ---
 
@@ -302,17 +307,15 @@ that had been flaky before were run five times each on their own.
 
 No run needed a retry, and no run was voided.
 
-At the end of the phase the suite is larger, because the write-fault matrix added fifty-four tests
-to the infrastructure project: 53 for the write points, one for the guard that keeps the catalogue
-and the matrix in step.
+The suite grew after those runs and stood at 483 at the end of Phase 7. The original write-fault matrix added 53 write-point cases and a catalogue guard; other tests also contributed to the growth. Phase 8 added a sale-audit write point and its matrix case.
 
 | Project | Tests | Result |
 |---|---|---|
 | `StoreFlow.Domain.Tests` | 25 | passed, 0 failed |
 | `StoreFlow.Application.Tests` | 137 | passed, 0 failed |
 | `StoreFlow.Desktop.Tests` | 121 | passed, 0 failed |
-| `StoreFlow.Infrastructure.Tests` | 195 | passed, 0 failed |
-| **Total** | **478** | **0 failed** |
+| `StoreFlow.Infrastructure.Tests` | 200 | passed, 0 failed |
+| **Total** | **483** | **0 failed** |
 
 ### The shop at full size
 
@@ -409,7 +412,7 @@ That was checked before anything was changed and it was checked again after.
 
 ### The application, driven
 
-The application was driven through the sign-in, the first-run wizard and the point of sale.
+The application was driven through sign-in and the point of sale. Phase 8 found that the first-run wizard had failed to open; its fix and regression coverage are recorded in the release-candidate report.
 
 ---
 
@@ -418,11 +421,8 @@ The application was driven through the sign-in, the first-run wizard and the poi
 - **The backup archive is not encrypted.** PRD §8.5 asks for a passphrase-encrypted archive. The
   Phase 6 report deferred it here with the reason written down. It is the largest thing this
   phase did not finish, and it is in the README's scope statement as open rather than hidden.
-- **Ninety-six controls have no accessible name.** The list is in the accessibility review.
-- **The audit row for a sale is written after the sale is committed.** A sale is complete and
-  permanent a moment before its audit row exists. Nothing is lost in practice — the matrix proves
-  that replaying the command writes the row and changes nothing else — but there is a window, and
-  closing it means moving the audit writer inside the caller's transaction.
+- **Accessible names remained incomplete.** The accessibility review records the corrected count and subsequent Phase 8 work.
+- **At the Phase 7 gate the sale audit was outside the transaction.** Phase 8 moved it inside; other commands still use the independent audit writer.
 - **A price override that asks a manager.** The till refuses the sale instead.
 - **A blind stock count.** The count is approved, but the book quantity is on the screen.
 - **More backup destinations, incremental backups, foreign currency, a customer on the sale.**
@@ -431,4 +431,4 @@ The application was driven through the sign-in, the first-run wizard and the poi
 
 ## The phase gate
 
-The work stops here, at the gate, and nothing starts without an explicit go-ahead.
+Phase 7 is complete. The Definition of Done is not fully met on this machine: the intended shop PC and its scanner and printer still need testing, including the hardware-dependent critical acceptance cases. The other Definition of Done lines are met. See the [release-candidate report and gate tables](PHASE-8-RELEASE-CANDIDATE.md).

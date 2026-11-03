@@ -8,7 +8,7 @@ append-only stock ledger that reconciles to the piastre, and is **rebrandable by
 name, logo, colours, receipt content, currency, tax and locale are data, so the same binary can be resold to
 another shop without a recompile.
 
-**Status: Phase 6 (Backup and cloud) complete.** The application builds, the database migrates, the theme switches
+**Status: Phase 7 (Hardening and release) complete.** The application builds, the database migrates, the theme switches
 live, the AR/EN switch works, login is enforced, and the automated test suite is green. The
 catalogue — products, categories, units and suppliers, with the product editor, the search, the
 spreadsheet import and export, product pictures and the audit trail — is built and proved by
@@ -26,8 +26,7 @@ the roles, and the audit trail read as a report. And the **backup**: the shop ta
 on a schedule as a single `.sfb` file that proves its own integrity, the copy goes to a local folder
 or to an S3-compatible object store, and the shop can be put back from it — on the same machine or
 on another one — with the recovery wizard as the way back in for the day the database will not open
-at all. Feature work (hardening and release) follows the phase plan below and stops at each phase
-boundary for review.
+at all. Phase 7 added the write-fault matrix, crash probe, per-user installer, performance harness, accessibility pass, user guide and recovery runbook. The release candidate is built, installed per user and driven against both the development build and the installed copy; the manual acceptance test still needs the shop's own hardware, and the tag and the release await the go-ahead.
 
 ---
 
@@ -89,14 +88,14 @@ first `dotnet new sln` used to sit beside it and made a bare `dotnet build` ambi
 moved to `build\legacy\`, and `tools\build.ps1` names the solution so that the question never comes
 up again.
 
-Current state of the suite — **424 tests, all passing**:
+Current state of the suite — **489 tests, 0 failing**:
 
-| Project | Tests | Before | Covers |
-|---|---|---|---|
-| `StoreFlow.Domain.Tests` | 25 | 25 | money maths and rounding, moving weighted average, tax inclusive/exclusive, discounts, unit quantities |
-| `StoreFlow.Application.Tests` | 137 | 110 | password hashing (Argon2id + PBKDF2), permission matrix, scan buffer, CSV reading and writing, WCAG theme contrast validation, the catalogue's validation rules and its spreadsheet mapper, the inventory's validation rules and its approval thresholds, **the till's pricing core**: the tax on a price that carries it and on one that does not, the whole-sale discount spread across the lines, a quantity the selling unit cannot express, and **the reports' money**: the net sales without the tax, the cost of the goods, what a return takes off the profit, and the CSV file that opens in Excel and reads back without a doubled byte-order mark, and **the backup's rules**: the manifest that describes every part, the part that was changed or added after the archive was written, the file name that says which copy it is, the retention that keeps seven dailies and four weeklies and never the newest, and the schedule that is due once its time has passed and catches up once after a missed day |
-| `StoreFlow.Infrastructure.Tests` | 141 | 88 | real SQLite file: migrations, pragmas, immutability triggers, negative-stock trigger, integrity check, theme store round-trip, the catalogue handlers and their barcode triggers, the purchase and inventory handlers, the ledger reconciling to the balance, **the sale handler**: one transaction, one sale for one key, the stock off the shelf exactly once, the change the invoice and the payment row agree on, and a cart that is put aside reserving nothing, and **the reports**: every figure worked out by hand against real documents, the shelf valued at the moving average on a day before a receipt, the dashboard agreeing with the daily sales report, the returns report and the cashier's reconciliation, **the approvals**: a discount over the limit held for a manager with no invoice written, the sale going through only once the request is given, nobody approving their own request, and the request list the manager opens, and **the users**: the last administrator that cannot be deactivated, and **the backup**: the copy taken with SQLite's own online backup, the pictures in the archive, the copy that was changed afterwards refused, the restore refused without the permission and while a sale is being posted, a restore point that cannot be kept not stopping the restore, **the same shop restored into a different one**, the data a restore replaced kept recoverable, the copy written to the log with the checksum that proves it, the local folder target and the S3 target against a local S3 stub, the migration that nobody has reviewed taking a copy first, the scheduler catching up once, and **the shop's settings and details surviving a restart** |
-| `StoreFlow.Desktop.Tests` | 121 | 110 | AR/EN resource parity, theme engine resource generation, value converters, the shell's contrast and the tables' headings, the localised messages of the import preview, how a code is laid out in an Arabic cell, the inventory screens' error messages and number reading, the editor flows against a real database, the column heading finding its words, the rules that keep a table readable — a cell's margin, the trimming of text that does not fit, a heading that wraps, a box with room for the line it holds, and **every column measured against the value it has to hold** — and **the till**: the money on the screen is the money the cart priced, the change from the cash that was typed, a scan that arrives during a lookup is not lost, every error code having a message of its own, and the receipt carrying the same numbers as the screen, and **the backup screen**: the size written the way a person reads it, the outcome and the destination written in the shop's language, and the two languages genuinely different |
+| Project | Tests | Covers |
+|---|---|---|
+| `StoreFlow.Domain.Tests` | 25 | money maths and rounding, moving weighted average, tax inclusive/exclusive, discounts, unit quantities |
+| `StoreFlow.Application.Tests` | 137 | password hashing (Argon2id + PBKDF2), permission matrix, scan buffer, CSV reading and writing, WCAG theme contrast validation, the catalogue's validation rules and its spreadsheet mapper, the inventory's validation rules and its approval thresholds, **the till's pricing core**: the tax on a price that carries it and on one that does not, the whole-sale discount spread across the lines, a quantity the selling unit cannot express, and **the reports' money**: the net sales without the tax, the cost of the goods, what a return takes off the profit, and the CSV file that opens in Excel and reads back without a doubled byte-order mark, and **the backup's rules**: the manifest that describes every part, the part that was changed or added after the archive was written, the file name that says which copy it is, the retention that keeps seven dailies and four weeklies and never the newest, and the schedule that is due once its time has passed and catches up once after a missed day |
+| `StoreFlow.Infrastructure.Tests` | 202 | real SQLite file: migrations, pragmas, immutability triggers, negative-stock trigger, integrity check, theme store round-trip, the catalogue handlers and their barcode triggers, the purchase and inventory handlers, the ledger reconciling to the balance, **the sale handler**: one transaction, one sale for one key, the stock off the shelf exactly once, the change the invoice and the payment row agree on, and a cart that is put aside reserving nothing, and **the reports**: every figure worked out by hand against real documents, the shelf valued at the moving average on a day before a receipt, the dashboard agreeing with the daily sales report, the returns report and the cashier's reconciliation, **the approvals**: a discount over the limit held for a manager with no invoice written, the sale going through only once the request is given, nobody approving their own request, and the request list the manager opens, and **the users**: the last administrator that cannot be deactivated, and **the backup**: the copy taken with SQLite's own online backup, the pictures in the archive, the copy that was changed afterwards refused, the restore refused without the permission and while a sale is being posted, a restore point that cannot be kept not stopping the restore, **the same shop restored into a different one**, the data a restore replaced kept recoverable, the copy written to the log with the checksum that proves it, the local folder target and the S3 target against a local S3 stub, the migration that nobody has reviewed taking a copy first, the scheduler catching up once, and **the shop's settings and details surviving a restart** |
+| `StoreFlow.Desktop.Tests` | 125 | AR/EN resource parity, theme engine resource generation, value converters, the shell's contrast and the tables' headings, the localised messages of the import preview, how a code is laid out in an Arabic cell, the inventory screens' error messages and number reading, the editor flows against a real database, the column heading finding its words, the rules that keep a table readable — a cell's margin, the trimming of text that does not fit, a heading that wraps, a box with room for the line it holds, and **every column measured against the value it has to hold** — and **the till**: the money on the screen is the money the cart priced, the change from the cash that was typed, a scan that arrives during a lookup is not lost, every error code having a message of its own, and the receipt carrying the same numbers as the screen, and **the backup screen**: the size written the way a person reads it, the outcome and the destination written in the shop's language, and the two languages genuinely different |
 
 ### Useful commands
 
@@ -111,9 +110,7 @@ Current state of the suite — **424 tests, all passing**:
 
 ### Driving the real application
 
-Seven harnesses drive the running desktop application through UI Automation. Six of them photograph
-it; they are the evidence behind the phase reports, and they are run against a throwaway data
-folder, so the shop's own data is never touched.
+Eleven smoke scripts and the scan-latency harness drive the running desktop application through UI Automation. They provide evidence for the phase reports and use throwaway data folders.
 
 ```powershell
 # The catalogue screens
@@ -138,8 +135,8 @@ folder, so the shop's own data is never touched.
 & '.\tools\scan-latency.ps1' 20
 ```
 
-Each script prints its checks, writes `failures: 0` or the first failure, and saves the pictures it
-took into `docs/phases/phaseN-screens/`. The latency harness prints two sets of numbers — the
+The phase smoke scripts print their checks, and some of them also save the pictures they took into the
+phase screens folders. The latency harness prints two sets of numbers — the
 wait the till itself took, from the till's own log, and the whole round trip including the
 automation watching the screen — and fails if the till's own 95th percentile is over fifty
 milliseconds.
@@ -420,11 +417,17 @@ Every phase wrote down what it left rough. This is where all of that comes to. E
 | More backup destinations | The S3-compatible target covers the object store most shops already have. Google Drive, OneDrive and WebDAV are each a separate integration. |
 | Incremental backups | Every copy carries the whole shop, so the archive grows with the pictures rather than with the changes. A copy that carried only what had changed would be a different kind of file. |
 
+### Done in Phase 8
+
+- **The first-run wizard opens.** Eight attributes were stranded outside their controls, causing WPF to throw while loading the window and preventing a new shop from completing first run. The same error appears in the Phase 1 through Phase 5 startup logs. It is fixed, with two regression tests.
+- **The sale's audit entry is written inside the sale's transaction.** The sale and its audit row commit together, and an audit failure rolls the sale back. The separate approval-applied audit and other commands still use the independent audit writer and can fail after their business commit.
+- **The desktop-driving harnesses accept -ExePath.** The smoke scripts and scan-latency harness can target an installed copy; the installed programme was driven this way for the first time.
+- **Twenty controls on six screens have accessible names**, bound to the labels the shopkeeper sees.
+
 ### Still open
 
 - **Backup archives are not encrypted: a `.sfb` holds the shop's data in the clear and must be kept on a protected disk.** Restrict access to local and cloud copies. PRD §8.5 recommends passphrase encryption. It remains open because scheduled backup, verification, retention, recovery on another PC and lost-passphrase handling need a complete design and tests together; introducing encryption without proving that old and new copies remain recoverable could leave the shop without a usable backup.
 - **Accessible names remain incomplete: 87 of the controls listed in the review still lack a declared accessible name.** The original review called its list 96, but the list actually enumerated 107; 20 controls on six complete screens have now been named. A screen-reader user may be unable to identify and use the remaining controls independently. The source guard finds 88 candidates in all, including one outside the original list which has child text and needs runtime verification. See [`docs/ACCESSIBILITY-REVIEW.md`](docs/ACCESSIBILITY-REVIEW.md). The remaining screens need correctly localised labels and runtime checks rather than guessed names.
-- **Sale posting now saves its sale audit entry inside the same transaction as the invoice, stock, payment and request outcome.** An audit-write or commit failure rolls back the sale as well; retrying a committed sale does not duplicate its audit entry. The separate approval-applied audit and other commands still use the independent audit writer and can fail after their business commit.
 
 ---
 
@@ -442,7 +445,7 @@ boundary** for an explicit go-ahead.
 | 4 — Sales & Returns ✅ | Invoice history and detail, partial and full returns, resellable vs damaged, refund recording, reversal policy | UAT-10/11/12/20 |
 | 5 — Reports & Admin ✅ | All 11 PRD reports with filters and CSV export, plus the valuation, the cashier's takings and the audit trail as a report, dashboard, users and roles UI, audit browser | UAT-13/15; figures match hand-computed values |
 | 6 — Backup & Cloud ✅ | `.sfb` engine, local and S3-compatible targets, scheduler with retention, restore wizard, recovery wizard — **per-entity export/import is deferred**; see the Phase 6 report for the reason | UAT-16; restore into a different profile verified |
-| 7 — Hardening & Release | Performance harness, crash recovery, fault injection on every write point, MSI installer, user guide, recovery runbook, accessibility pass, final design review | Definition of Done fully met |
+| 7 — Hardening & Release ✅ | Performance harness, crash recovery, fault injection on every write point, MSI installer, user guide, recovery runbook, accessibility pass, final design review | Definition of Done met here except the shop-hardware-dependent lines; see the [release-candidate gate tables](docs/phases/PHASE-8-RELEASE-CANDIDATE.md) |
 
 The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN.md).
 
@@ -472,6 +475,18 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [`docs/phases/phase5-screens/`](docs/phases/phase5-screens/) | The pictures of the running reports screen that the Phase 5 report leans on |
 | [`docs/phases/PHASE-6-BACKUP-AND-CLOUD.md`](docs/phases/PHASE-6-BACKUP-AND-CLOUD.md) | The Phase 6 report: the `.sfb` file and what proves it, the destinations, the schedule and the retention, the restore and the restore point, the recovery wizard, the ten defects that running it found, and the phase gate |
 | [`docs/phases/phase6-screens/`](docs/phases/phase6-screens/) | The pictures of the running backup screen, the restore wizard and the recovery wizard that the Phase 6 report leans on |
+| [Phase 7 report](docs/phases/PHASE-7-HARDENING-AND-RELEASE.md) | Hardening, release work and verification |
+| [User guide](docs/USER-GUIDE.md) | The shop's short guide |
+| [Recovery runbook](docs/RECOVERY-RUNBOOK.md) | Local diagnosis and recovery |
+| [Accessibility review](docs/ACCESSIBILITY-REVIEW.md) | Accessibility work and outstanding names |
+| [Build installer](installer/build-installer.ps1) and [verify installer](installer/verify-installer.ps1) | Per-user MSI creation and verification |
+| [Performance harness](tools/performance-harness.ps1) | Fills a shop and measures its queries |
+| [Volume tool](tools/StoreFlow.VolumeTool/StoreFlow.VolumeTool.csproj) | Project that fills and measures a shop |
+| [Crash probe](tests/StoreFlow.CrashProbe/StoreFlow.CrashProbe.csproj) | Checks interrupted-sale recovery |
+| [Performance report](docs/PERFORMANCE-REPORT.md) | Performance results for the shop owner |
+| [Release notes](docs/RELEASE-NOTES.md) | v1.0 scope, open items, installation and installer SHA-256 |
+| [Hardware sheet](docs/uat/HARDWARE-SHEET.md) | Printable hardware acceptance checklist |
+| [Release-candidate report](docs/phases/PHASE-8-RELEASE-CANDIDATE.md) | Release candidate and Definition of Done and UAT gate tables |
 
 ---
 
