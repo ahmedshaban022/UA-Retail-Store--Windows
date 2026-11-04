@@ -350,9 +350,10 @@ be revisited with the next version.
   empty and can be deleted by hand.
 - **The picture destinations** are unified, as described above.
 - **The release and its commit are recorded** in [`docs/RELEASES.md`](../RELEASES.md), so that
-  "the tag is one commit behind `main`" is a fact in the repository rather than a surprise. The
-  tag names the commit that was built; `main` may carry documentation and pipeline changes that
-  were never part of the shipped binary.
+  "the tag is behind `main`" is a fact in the repository rather than a surprise. The tag names the
+  commit that was built; `main` may carry documentation and pipeline changes that were never part of
+  the shipped binary. It does here: the tag `v1.0.1` names `ab02c6e`, and `main` is seven commits
+  ahead of it, carrying this report and the tools that proved the cycle.
 - **The v1.0.0 release notes are archived** in
   [`docs/RELEASE-NOTES-v1.0.0.md`](../RELEASE-NOTES-v1.0.0.md); the current notes are the ones
   the release workflow publishes.
