@@ -659,7 +659,12 @@ $cost = '50.00'
 $arStoreNameAr = A @(0x0645,0x062A,0x062C,0x0631,0x0020,0x0645,0x0635,0x0631,0x064A,0x0629)
 $password = 'StoreFlow!2026'
 $backupFolder = Join-Path $runRoot 'backups'
-$dailyTime = '03:45'
+
+# The daily time is a minute that has already passed today, so that the daily copy is due whenever
+# the harness runs. A hard-coded time only works in the hours after it, and a check that only works
+# in the afternoon is a check that fails at midnight for no reason.
+$now = Get-Date
+$dailyTime = if ($now.Minute -eq 0) { $now.ToString('HH:mm') } else { $now.AddMinutes(-1).ToString('HH:mm') }
 $dailyRetention = '5'
 $localTargetName = 'Local folder'
 
@@ -846,11 +851,14 @@ try {
             Check ((Get-Item $archiveFile).Length -gt 0) 'the file is not empty'
         }
 
-        # The scheduler takes its own copy without being asked.
-        $daily = @($files | Where-Object { $_.Name.StartsWith('storeflow-daily-') })
+        # The scheduler takes its own copies without being asked. What it has taken by now is only
+        # reported here: the scheduler looks every half hour and takes its copy twenty seconds
+        # after the shop opens, so the copy that belongs to the schedule the owner saved is
+        # checked further down, where the shop has been opened again.
+        $own = @($files | Where-Object { $_.Name -notlike 'storeflow-manual-*' })
 
-        Write-Output ('  the scheduler took ' + $daily.Count + ' daily copies of its own')
-        Check ($daily.Count -ge 1) 'the scheduler took its own copy without being asked'
+        Write-Output ('  the scheduler has taken ' + $own.Count + ' copies of its own so far')
+        foreach ($file in $own) { Write-Output ('       ' + $file.Name) }
     } else {
         Fail ('the backup folder was not written to: ' + $backupFolder)
     }
@@ -1143,6 +1151,26 @@ try {
     } else {
         Fail 'the recovery wizard never appeared in Arabic'
     }
+
+    # --- The scheduler's own copy ------------------------------------------------------------------
+    # The scheduler takes a copy of the shop when a backup is due and the shop opens, and it looks
+    # every half hour. The shop has just been opened again for the Arabic run, so the copy that
+    # belongs to the schedule the owner saved is twenty seconds away. The check waits for the
+    # value instead of looking once: a check that looks once reports a failure for a copy that is
+    # on its way.
+    $dailyOwn = @()
+    $deadline = (Get-Date).AddSeconds(120)
+
+    while ((Get-Date) -lt $deadline) {
+        $dailyOwn = @(Get-ChildItem -Path $backupFolder -Filter 'storeflow-daily-*.sfb' -File -ErrorAction SilentlyContinue)
+
+        if ($dailyOwn.Count -ge 1) { break }
+
+        Start-Sleep -Milliseconds 500
+    }
+
+    Write-Output ('  the daily schedule took ' + $dailyOwn.Count + ' copies of its own')
+    Check ($dailyOwn.Count -ge 1) 'the scheduler took its own copy without being asked'
 
     Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 3
