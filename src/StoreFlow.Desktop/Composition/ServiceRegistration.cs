@@ -18,6 +18,7 @@ using StoreFlow.Application.Setup;
 using StoreFlow.Application.Theming;
 using StoreFlow.Application.Settings;
 using StoreFlow.Application.Sales;
+using StoreFlow.Application.Updates;
 using StoreFlow.Desktop.Localization;
 using StoreFlow.Desktop.Printing;
 using StoreFlow.Desktop.Services;
@@ -38,6 +39,7 @@ using StoreFlow.Infrastructure.Services;
 using StoreFlow.Infrastructure.Settings;
 using StoreFlow.Infrastructure.Setup;
 using StoreFlow.Infrastructure.Theming;
+using StoreFlow.Infrastructure.Updates;
 
 namespace StoreFlow.Desktop.Composition;
 
@@ -85,6 +87,12 @@ public static class ServiceRegistration
         services.AddSingleton<IScanBuffer, ScanBuffer>();
         services.AddSingleton<IExportService, CsvExportService>();
         services.AddSingleton<IDashboardReader, EfDashboardReader>();
+
+        // The update check. It reaches the public release feed over the internet, which the shop's
+        // programme does not need for anything else, so a feed that cannot be reached is simply
+        // "no update today".
+        services.AddSingleton<IUpdateService>(_ =>
+            new GitHubReleaseUpdateService(ApplicationVersion.Current));
 
         services.AddSingleton<IThemeStore>(_ => new FileThemeStore(paths.ThemesDirectory));
         services.AddSingleton<ITokenVault>(_ => new DpapiTokenVault(paths.TokensDirectory));

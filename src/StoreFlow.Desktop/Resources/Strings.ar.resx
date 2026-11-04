@@ -2193,4 +2193,40 @@
   <data name="Backup.RestoreRestartNotice" xml:space="preserve">
     <value>تمت استعادة المتجر. سيعيد البرنامج التشغيل الآن.</value>
   </data>
+  <data name="Update.About" xml:space="preserve">
+    <value>عن البرنامج</value>
+  </data>
+  <data name="Update.Available" xml:space="preserve">
+    <value>يتوفّر الإصدار {0}. هل تريد تثبيته الآن؟</value>
+  </data>
+  <data name="Update.CheckNow" xml:space="preserve">
+    <value>البحث عن تحديثات</value>
+  </data>
+  <data name="Update.Checking" xml:space="preserve">
+    <value>جارٍ البحث عن تحديثات…</value>
+  </data>
+  <data name="Update.Downloading" xml:space="preserve">
+    <value>جارٍ تنزيل التحديث… {0}%</value>
+  </data>
+  <data name="Update.Failed" xml:space="preserve">
+    <value>لم يتم تثبيت التحديث، ولم يتغيّر البرنامج الذي تستخدمه.</value>
+  </data>
+  <data name="Update.Installing" xml:space="preserve">
+    <value>بدأ التثبيت، وسيُغلق البرنامج.</value>
+  </data>
+  <data name="Update.Later" xml:space="preserve">
+    <value>لاحقًا</value>
+  </data>
+  <data name="Update.Now" xml:space="preserve">
+    <value>تحديث الآن</value>
+  </data>
+  <data name="Update.Unavailable" xml:space="preserve">
+    <value>تعذّر الوصول إلى خدمة التحديث الآن.</value>
+  </data>
+  <data name="Update.UpToDate" xml:space="preserve">
+    <value>أنت تستخدم أحدث إصدار ({0}).</value>
+  </data>
+  <data name="Update.Version" xml:space="preserve">
+    <value>الإصدار المثبَّت</value>
+  </data>
 </root>

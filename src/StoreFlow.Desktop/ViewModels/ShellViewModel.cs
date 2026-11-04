@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StoreFlow.Application.Abstractions;
+using StoreFlow.Application.Updates;
+using StoreFlow.Desktop.Composition;
 using StoreFlow.Desktop.Localization;
 
 namespace StoreFlow.Desktop.ViewModels;
@@ -23,6 +25,7 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     private readonly LanguageService _languageService;
     private readonly IUserSession _session;
     private readonly IThemeService _themeService;
+    private readonly IUpdateService _updateService;
 
     private string _currentKey = "Dashboard";
 
@@ -42,25 +45,44 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private LanguageOption? _selectedLanguage;
 
+    /// <summary>True when a newer release is waiting to be installed.</summary>
+    [ObservableProperty]
+    private bool _isUpdateVisible;
+
+    /// <summary>True while the update is being downloaded and started.</summary>
+    [ObservableProperty]
+    private bool _isUpdateBusy;
+
+    /// <summary>What the shopkeeper is told about the update.</summary>
+    [ObservableProperty]
+    private string _updateMessage = string.Empty;
+
+    /// <summary>How much of the update has been downloaded, as a percentage.</summary>
+    [ObservableProperty]
+    private int _updateProgress;
+
     /// <summary>Creates the shell.</summary>
     public ShellViewModel(
         IServiceProvider services,
         IStrings strings,
         LanguageService languageService,
         IUserSession session,
-        IThemeService themeService)
+        IThemeService themeService,
+        IUpdateService updateService)
     {
         _services = services;
         _strings = strings;
         _languageService = languageService;
         _session = session;
         _themeService = themeService;
+        _updateService = updateService;
 
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(strings);
         ArgumentNullException.ThrowIfNull(languageService);
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(themeService);
+        ArgumentNullException.ThrowIfNull(updateService);
 
         _languageService.LanguageChanged += OnLanguageChanged;
 
@@ -244,6 +266,120 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
 
         CurrentUserName = current?.DisplayName ?? string.Empty;
         CurrentRoleName = current?.Username ?? string.Empty;
+    }
+
+    /// <summary>The label on the update command.</summary>
+    public string UpdateNowLabel => _strings[StringKeys.UpdateNow];
+
+    /// <summary>The label on the command that puts the update off.</summary>
+    public string UpdateLaterLabel => _strings[StringKeys.UpdateLater];
+
+    /// <summary>
+    /// Looks for a newer release. The check runs in the background and the shop's programme never
+    /// waits for it: a shop that is offline simply sees no banner.
+    /// </summary>
+    public async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            UpdateCheckResult result = await _updateService.CheckAsync(CancellationToken.None);
+
+            if (!result.HasUpdate)
+            {
+                return;
+            }
+
+            UpdateMessage = _strings.Format(
+                StringKeys.UpdateAvailable,
+                result.LatestVersion ?? string.Empty);
+
+            IsUpdateVisible = true;
+        }
+#pragma warning disable CA1031 // A failed update check must never take the shop's programme down.
+        catch (Exception ex)
+        {
+            // The update is optional. Whatever went wrong, the shop carries on.
+            StartupDiagnostics.Write("The update check could not be made.", ex);
+        }
+#pragma warning restore CA1031
+    }
+
+    /// <summary>
+    /// Downloads the newer release, checks it, and starts its installer. The programme closes
+    /// afterwards, because the installer cannot replace files that are still open.
+    /// </summary>
+    [RelayCommand]
+    private async Task UpdateNowAsync(CancellationToken cancellationToken)
+    {
+        if (IsUpdateBusy)
+        {
+            return;
+        }
+
+        IsUpdateBusy = true;
+
+        try
+        {
+            UpdateCheckResult update = await _updateService.CheckAsync(cancellationToken);
+
+            if (!update.HasUpdate)
+            {
+                UpdateMessage = _strings[StringKeys.UpdateUpToDate];
+                IsUpdateVisible = false;
+
+                return;
+            }
+
+            UpdateProgress = 0;
+            UpdateMessage = _strings.Format(StringKeys.UpdateDownloading, 0);
+
+            var progress = new Progress<int>(percent =>
+            {
+                UpdateProgress = percent;
+                UpdateMessage = _strings.Format(StringKeys.UpdateDownloading, percent);
+            });
+
+            UpdateInstallResult result = await _updateService
+                .InstallAsync(update, progress, cancellationToken);
+
+            if (!result.Started)
+            {
+                StartupDiagnostics.Write("The update could not be installed: " + result.Reason);
+
+                UpdateMessage = _strings[StringKeys.UpdateFailed];
+
+                return;
+            }
+
+            UpdateMessage = _strings[StringKeys.UpdateInstalling];
+
+            // The installer cannot replace the programme's files while they are open, so the
+            // programme closes and the installer takes over.
+            System.Windows.Application.Current?.Shutdown();
+        }
+        catch (OperationCanceledException)
+        {
+            UpdateMessage = _strings[StringKeys.UpdateFailed];
+        }
+#pragma warning disable CA1031 // A failed update must never take the shop's programme down.
+        catch (Exception ex)
+        {
+            StartupDiagnostics.Write("The update could not be installed.", ex);
+
+            UpdateMessage = _strings[StringKeys.UpdateFailed];
+        }
+#pragma warning restore CA1031
+        finally
+        {
+            IsUpdateBusy = false;
+        }
+    }
+
+    /// <summary>Puts the update off. The shop can ask again from the settings screen.</summary>
+    [RelayCommand]
+    private void Later()
+    {
+        IsUpdateVisible = false;
     }
 
     /// <summary>Signs the user out and closes the shell.</summary>

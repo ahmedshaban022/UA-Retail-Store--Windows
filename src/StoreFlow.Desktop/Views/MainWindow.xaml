@@ -52,11 +52,48 @@
     <Grid Grid.Column="1">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
       </Grid.RowDefinitions>
 
-      <!-- Command bar -->
+      <!-- The update banner. It is in view only when a newer release has been published. The
+           update is the shopkeeper's decision: the banner says what is there and waits. -->
       <Border Grid.Row="0"
+              Background="{DynamicResource Surface.Raised}"
+              BorderBrush="{DynamicResource Border.Subtle}"
+              BorderThickness="0,0,0,1"
+              Visibility="{Binding IsUpdateVisible, Converter={StaticResource BooleanToVisibility}}"
+              AutomationProperties.AutomationId="Shell.UpdateBanner">
+        <Grid Margin="24,10">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <TextBlock Grid.Column="0"
+                     VerticalAlignment="Center"
+                     Text="{Binding UpdateMessage}"
+                     Style="{StaticResource Type.Body}" />
+
+          <Button Grid.Column="1"
+                  Content="{Binding UpdateNowLabel}"
+                  Command="{Binding UpdateNowCommand}"
+                  Style="{StaticResource Button.Primary}"
+                  Margin="0,0,8,0"
+                  IsEnabled="{Binding IsUpdateBusy, Converter={StaticResource InverseBoolean}}"
+                  AutomationProperties.AutomationId="Shell.UpdateNow" />
+
+          <Button Grid.Column="2"
+                  Content="{Binding UpdateLaterLabel}"
+                  Command="{Binding LaterCommand}"
+                  Style="{StaticResource Button.Ghost}"
+                  AutomationProperties.AutomationId="Shell.UpdateLater" />
+        </Grid>
+      </Border>
+
+      <!-- Command bar -->
+      <Border Grid.Row="1"
               Background="{DynamicResource Surface.Raised}"
               BorderBrush="{DynamicResource Border.Subtle}"
               BorderThickness="0,0,0,1">
@@ -112,7 +149,7 @@
       </Border>
 
       <!-- Page -->
-      <ContentControl Grid.Row="1"
+      <ContentControl Grid.Row="2"
                       Content="{Binding CurrentContent}"
                       Margin="24" />
     </Grid>

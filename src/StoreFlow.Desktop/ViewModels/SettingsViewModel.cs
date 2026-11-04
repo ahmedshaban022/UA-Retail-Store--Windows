@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StoreFlow.Application.Abstractions;
 using StoreFlow.Application.Theming;
+using StoreFlow.Application.Updates;
+using StoreFlow.Desktop.Composition;
 using StoreFlow.Desktop.Localization;
 using StoreFlow.Desktop.Theming;
 
@@ -17,6 +19,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly IThemeService _themeService;
     private readonly LanguageService _languageService;
     private readonly IStrings _strings;
+    private readonly IUpdateService _updateService;
 
     [ObservableProperty]
     private string _productNameEn = string.Empty;
@@ -33,17 +36,28 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    [ObservableProperty]
+    private string _updateStatusMessage = string.Empty;
+
     /// <summary>Creates the settings screen.</summary>
     public SettingsViewModel(
         IThemeStore themeStore,
         IThemeService themeService,
         LanguageService languageService,
-        IStrings strings)
+        IStrings strings,
+        IUpdateService updateService)
     {
         _themeStore = themeStore;
         _themeService = themeService;
         _languageService = languageService;
         _strings = strings;
+        _updateService = updateService;
+
+        ArgumentNullException.ThrowIfNull(themeStore);
+        ArgumentNullException.ThrowIfNull(themeService);
+        ArgumentNullException.ThrowIfNull(languageService);
+        ArgumentNullException.ThrowIfNull(strings);
+        ArgumentNullException.ThrowIfNull(updateService);
 
         ThemeDefinition theme = _themeService.Current;
 
@@ -76,6 +90,55 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     /// <summary>The label on the save command.</summary>
     public string SaveLabel => _strings[StringKeys.CommonSave];
+
+    /// <summary>The label of the section that says which version is installed.</summary>
+    public string AboutLabel => _strings[StringKeys.UpdateAbout];
+
+    /// <summary>The label of the installed version.</summary>
+    public string VersionLabel => _strings[StringKeys.UpdateVersion];
+
+    /// <summary>The version of the running build.</summary>
+    public string InstalledVersion => _updateService.RunningVersion;
+
+    /// <summary>The label on the command that looks for a newer release.</summary>
+    public string CheckForUpdatesLabel => _strings[StringKeys.UpdateCheckNow];
+
+    /// <summary>
+    /// Looks for a newer release and says what was found. The shop decides whether to install it.
+    /// </summary>
+    [RelayCommand]
+    private async Task CheckForUpdatesAsync(CancellationToken cancellationToken)
+    {
+        UpdateStatusMessage = _strings[StringKeys.UpdateChecking];
+
+        try
+        {
+            UpdateCheckResult result = await _updateService.CheckAsync(cancellationToken);
+
+            UpdateStatusMessage = result.Status switch
+            {
+                UpdateStatus.UpdateAvailable => _strings.Format(
+                    StringKeys.UpdateAvailable,
+                    result.LatestVersion ?? string.Empty),
+                UpdateStatus.UpToDate => _strings.Format(
+                    StringKeys.UpdateUpToDate,
+                    _updateService.RunningVersion),
+                _ => _strings[StringKeys.UpdateUnavailable],
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            UpdateStatusMessage = _strings[StringKeys.UpdateUnavailable];
+        }
+#pragma warning disable CA1031 // A failed check must never take the settings screen down.
+        catch (Exception ex)
+        {
+            StartupDiagnostics.Write("The update check could not be made.", ex);
+
+            UpdateStatusMessage = _strings[StringKeys.UpdateUnavailable];
+        }
+#pragma warning restore CA1031
+    }
 
     /// <summary>The available appearance modes.</summary>
     public IReadOnlyList<ThemeModeOption> Modes { get; }

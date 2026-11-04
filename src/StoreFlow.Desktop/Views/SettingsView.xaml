@@ -57,5 +57,34 @@
                    Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
       </StackPanel>
     </Border>
+
+    <!-- About this programme: the version that is installed, and the way to ask whether there is a
+         newer one. The update is never installed without the shop asking for it. -->
+    <Border Style="{StaticResource Surface.Card}" Margin="0,16,0,0">
+      <StackPanel>
+        <TextBlock Text="{Binding AboutLabel}" Style="{StaticResource Type.Title}" />
+
+        <TextBlock Text="{Binding VersionLabel}"
+                   Style="{StaticResource Type.SectionLabel}"
+                   Margin="0,16,0,6" />
+        <TextBlock Text="{Binding InstalledVersion}"
+                   Style="{StaticResource Type.Body}"
+                   AutomationProperties.AutomationId="Settings.Version" />
+
+        <Button Content="{Binding CheckForUpdatesLabel}"
+                Command="{Binding CheckForUpdatesCommand}"
+                Style="{StaticResource Button.Primary}"
+                Margin="0,20,0,0"
+                MinHeight="36"
+                AutomationProperties.AutomationId="Settings.CheckForUpdates" />
+
+        <TextBlock Text="{Binding UpdateStatusMessage}"
+                   Style="{StaticResource Type.Caption}"
+                   Foreground="{DynamicResource Text.Muted}"
+                   Margin="0,12,0,0"
+                   AutomationProperties.AutomationId="Settings.UpdateStatus"
+                   Visibility="{Binding UpdateStatusMessage, Converter={StaticResource StringToVisibility}}" />
+      </StackPanel>
+    </Border>
   </StackPanel>
 </UserControl>

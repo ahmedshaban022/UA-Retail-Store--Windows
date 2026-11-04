@@ -2193,4 +2193,40 @@
   <data name="Backup.RestoreRestartNotice" xml:space="preserve">
     <value>The shop has been restored. The program will restart now.</value>
   </data>
+  <data name="Update.About" xml:space="preserve">
+    <value>About this programme</value>
+  </data>
+  <data name="Update.Available" xml:space="preserve">
+    <value>Version {0} is available. Install it now?</value>
+  </data>
+  <data name="Update.CheckNow" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Update.Checking" xml:space="preserve">
+    <value>Checking for updates…</value>
+  </data>
+  <data name="Update.Downloading" xml:space="preserve">
+    <value>Downloading the update… {0}%</value>
+  </data>
+  <data name="Update.Failed" xml:space="preserve">
+    <value>The update could not be installed. The programme you have has not been changed.</value>
+  </data>
+  <data name="Update.Installing" xml:space="preserve">
+    <value>The installer is starting. The programme will close.</value>
+  </data>
+  <data name="Update.Later" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Update.Now" xml:space="preserve">
+    <value>Update now</value>
+  </data>
+  <data name="Update.Unavailable" xml:space="preserve">
+    <value>The update service could not be reached right now.</value>
+  </data>
+  <data name="Update.UpToDate" xml:space="preserve">
+    <value>You are on the latest version ({0}).</value>
+  </data>
+  <data name="Update.Version" xml:space="preserve">
+    <value>Installed version</value>
+  </data>
 </root>

@@ -218,6 +218,10 @@ public sealed class AppHost : IAsyncDisposable
         if (Shell?.DataContext is ShellViewModel shell)
         {
             shell.NavigateCommand.Execute("Dashboard");
+
+            // The update check runs in the background. The shop's programme never waits for the
+            // internet, and a shop that is offline simply sees no banner.
+            _ = shell.CheckForUpdatesAsync();
         }
 
         // The scheduler starts once the shop is open, so that the backups it takes are taken from

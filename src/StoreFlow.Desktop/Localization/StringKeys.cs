@@ -372,6 +372,20 @@ public static class StringKeys
     public const string UnitsProducts = "Units.Products";
     public const string UnitsTitle = "Units.Title";
 
+    // The update: the banner in the shell and the screen in the settings.
+    public const string UpdateAbout = "Update.About";
+    public const string UpdateAvailable = "Update.Available";
+    public const string UpdateCheckNow = "Update.CheckNow";
+    public const string UpdateChecking = "Update.Checking";
+    public const string UpdateDownloading = "Update.Downloading";
+    public const string UpdateFailed = "Update.Failed";
+    public const string UpdateInstalling = "Update.Installing";
+    public const string UpdateLater = "Update.Later";
+    public const string UpdateNow = "Update.Now";
+    public const string UpdateUnavailable = "Update.Unavailable";
+    public const string UpdateUpToDate = "Update.UpToDate";
+    public const string UpdateVersion = "Update.Version";
+
     public const string PosTitle = "Pos.Title";
     public const string PosScan = "Pos.Scan";
     public const string PosScanPlaceholder = "Pos.ScanPlaceholder";
