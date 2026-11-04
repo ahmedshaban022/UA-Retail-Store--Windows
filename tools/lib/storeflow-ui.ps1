@@ -408,6 +408,27 @@ function Sign-In($login, [string]$userName = 'owner', [string]$password = 'Store
     return (Invoke-ById $login 'Login.SignIn')
 }
 
+# A button that carries a name the shopkeeper sees. It is found by that name rather than by an
+# identifier, because a control's identifier is the one thing a view is free not to give.
+function Find-ButtonByText($scope, [string]$name) {
+    $cond = New-Object System.Windows.Automation.AndCondition(
+        (New-Object System.Windows.Automation.PropertyCondition($AE::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)),
+        (New-Object System.Windows.Automation.PropertyCondition($AE::NameProperty, $name)))
+
+    return $scope.FindFirst($TS::Subtree, $cond)
+}
+
+# Presses a control that has been found already, wherever it was found.
+function Invoke-Element($element) {
+    if (-not $element) { return $false }
+
+    try {
+        $element.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+        return $true
+    } catch {
+        return $false
+    }
+}
 function Find-Text($window, [string]$needle) {
     $deadline = (Get-Date).AddSeconds(10)
 
