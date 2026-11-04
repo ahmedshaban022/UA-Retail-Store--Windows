@@ -1,0 +1,143 @@
+name: Release
+
+# A release is made by pushing a tag. The workflow builds the programme, runs the tests, builds
+# the installer, and publishes the release that the installed programme looks for when it checks
+# for an update.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build the installer and publish it
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore StoreFlow.sln
+
+      - name: Build
+        shell: pwsh
+        run: dotnet build StoreFlow.sln -c Release --nologo -v q
+
+      # The gate. Nothing is published unless the whole suite is green.
+      - name: Test
+        shell: pwsh
+        run: dotnet test StoreFlow.sln -c Release --nologo --no-build -v q
+
+      - name: Work out the version
+        id: version
+        shell: pwsh
+        run: |
+          $project = 'src/StoreFlow.Desktop/StoreFlow.Desktop.csproj'
+          $text = Get-Content $project -Raw
+
+          if ($text -notmatch '<Version>([^<]+)</Version>') {
+            throw 'The project does not say which version it is.'
+          }
+
+          $version = $Matches[1].Trim()
+
+          # A tag that was pushed by hand has to name the version that is being built.
+          $tag = $env:GITHUB_REF_NAME
+          if ($tag -like 'v*') { $tag = $tag.Substring(1) }
+
+          if ($tag -and $tag -ne $version) {
+            throw "The tag $env:GITHUB_REF_NAME does not match the version $version in the project."
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=v$version" >> $env:GITHUB_OUTPUT
+
+          Write-Output "building version $version"
+
+      - name: Build the installer
+        id: installer
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $name = "StoreFlow-$version-x64"
+
+          & '.\installer\build-installer.ps1' -Version $version
+          if ($LASTEXITCODE -ne 0) { throw ('The installer build failed with exit code ' + $LASTEXITCODE) }
+
+          $msi = "artifacts/installer/$version/$name.msi"
+          if (-not (Test-Path $msi)) { throw "The installer was not produced: $msi" }
+
+          # The checksum is published beside the installer. The installed programme downloads both
+          # and refuses an installer whose hash does not match.
+          $hash = (Get-FileHash $msi -Algorithm SHA256).Hash
+          "$hash *$name.msi" | Out-File -FilePath "$msi.sha256" -Encoding ascii
+
+          "msi=$msi" >> $env:GITHUB_OUTPUT
+          "checksum=$msi.sha256" >> $env:GITHUB_OUTPUT
+          "hash=$hash" >> $env:GITHUB_OUTPUT
+
+          Write-Output "installer: $msi"
+          Write-Output "sha256: $hash"
+
+      - name: Make sure the tag exists
+        shell: pwsh
+        run: |
+          $tag = '${{ steps.version.outputs.tag }}'
+
+          # A tag that was pushed by hand is already there. A workflow that was run by hand has to
+          # make its own, or the release cannot point at one.
+          $remote = git ls-remote --tags origin "refs/tags/$tag"
+          if (-not $remote) {
+            git tag $tag
+            git push origin $tag
+            Write-Output "pushed the tag $tag"
+          }
+
+      - name: Publish the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = '${{ steps.version.outputs.tag }}'
+          $msi = '${{ steps.version.outputs.msi }}'
+          $checksum = '${{ steps.version.outputs.checksum }}'
+
+          $name = [System.IO.Path]::GetFileName($msi)
+          $checksumName = [System.IO.Path]::GetFileName($checksum)
+          $hash = '${{ steps.installer.outputs.hash }}'
+
+          $body = Get-Content 'docs/RELEASE-NOTES.md' -Raw
+
+          # The hash of the installer that was actually built, so the notes can never quote a
+          # hash that belongs to a different file.
+          $body += "`n`n## The installer's SHA-256`n`n"
+          $body += ('The installer published with this release is "{0}".' -f $name) + "`n`n"
+          $body += ('`' + $hash + '`') + "`n`n"
+          $body += ('The same hash is in the file published beside it, "{0}".' -f $checksumName) + "`n"
+
+          # The release has to be published, not a draft: the programme looks for the newest
+          # published release, and a draft is invisible to it.
+          gh release view $tag 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag $msi $checksum --clobber
+            gh release edit $tag --title "StoreFlow Desktop $tag" --notes $body
+          }
+          else {
+            gh release create $tag $msi $checksum --verify-tag --title "StoreFlow Desktop $tag" --notes $body
+          }
+
+          Write-Output "published $tag"

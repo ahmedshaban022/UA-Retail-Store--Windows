@@ -10,7 +10,7 @@ Phases 0-7 were built, committed and pushed. This phase closed their record, bui
 - **Accessible names remain an accepted debt.** Twenty controls on six screens now have names bound to visible labels. The [accessibility review](../ACCESSIBILITY-REVIEW.md) lists the rest: 87 controls from the original list remain unnamed. That list actually had 107 entries, not the 96 first reported; the source guard finds 88 candidates, including one outside that list with child text needing runtime verification. The remaining screens need localised names and runtime checks, not guessed labels. A screen-reader user may not be able to use them independently. `tests/StoreFlow.Desktop.Tests/AccessibleNameDebtTests.cs` guards the source-level work.
 - **Backup archives are not encrypted. A `.sfb` contains shop data in the clear; keep local and cloud copies on protected storage and restrict access.** PRD §8.5 recommends passphrase encryption. It remains open because scheduled backup, verification, retention, recovery on another PC and a lost passphrase need a complete design and tests together. Adding encryption without proving recovery of old and new copies could cost the shop its backup.
 - **The gate tables live in this file.** The final decision needs the evidence and its limits beside each PRD line. The Phase 7 gate points here, so a reader has one closing record to consult. The cost is maintaining this report if the acceptance evidence changes.
-- **The tag and release were not pushed.** Publishing waits for the go-ahead. The installed candidate can be examined, but there is no published release or tag from this phase.
+- **The tag and the release are published.** `v1.0.0` was pushed and the release carries the installer, its SHA-256 and these notes. The programme's automated evidence is in this report; the shop's own acceptance still has to be walked through on its hardware.
 
 ## How it was verified
 
@@ -18,7 +18,7 @@ The orchestrator reports a solution build with **0 warnings and 0 errors**. At t
 
 ### The installer
 
-Version **1.0.0** is **55,949,584 bytes**, SHA-256 **`13879A7237429097D8BD933CA994534612B6FED2870F1DBF71516EADB07E5ABD`**. The build script writes the MSI under `artifacts/installer/<version>/`. On the development laptop, `msiexec` installed it per user with exit code 0 and without an administrator account, into `%LOCALAPPDATA%\Programs\StoreFlow`. The data is in `%APPDATA%\StoreFlow`, outside the installation. A marker and the database SHA-256 were identical before and after uninstall, and again after reinstall. Phase 7's `installer/verify-installer.ps1` also checks upgrade and data preservation; the candidate's marker and hash comparison is the uninstall/reinstall evidence, not a new upgrade run.
+Version **1.0.0** was built on the development laptop and installed from there. The published release carries the installer GitHub's runner built, and publishes that installer's SHA-256 twice: in the release notes and in a file beside the installer itself. The build script writes the MSI under `artifacts/installer/<version>/`. On the development laptop, `msiexec` installed it per user with exit code 0 and without an administrator account, into `%LOCALAPPDATA%\Programs\StoreFlow`. The data is in `%APPDATA%\StoreFlow`, outside the installation. A marker and the database SHA-256 were identical before and after uninstall, and again after reinstall. Phase 7's `installer/verify-installer.ps1` also checks upgrade and data preservation; the candidate's marker and hash comparison is the uninstall/reinstall evidence, not a new upgrade run.
 
 ### The application, driven
 
@@ -136,4 +136,4 @@ The PRD also requires at least 1,000 mixed stock operations with zero balance-to
 
 ## Where the programme stands
 
-A shop gets an installable offline retail application, its guide and recovery procedure. The candidate, automated suite, simulated smoke flows and data preservation across uninstall and reinstall are proved on the development laptop. Manual acceptance, the intended till, scanner, both printers, second PC, unplugged conditions and a real posting interruption remain for the shop. The tag and release await a go-ahead before publication.
+A shop gets an installable offline retail application, its guide and recovery procedure. The candidate, automated suite, simulated smoke flows and data preservation across uninstall and reinstall are proved on the development laptop. Manual acceptance, the intended till, scanner, both printers, second PC, unplugged conditions and a real posting interruption remain for the shop. Version 1.0.0 is published with its installer; what waits is the shop's own walk-through, not a release.

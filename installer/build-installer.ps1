@@ -38,11 +38,31 @@ $md5 = [System.Security.Cryptography.MD5]::Create()
 $hash = $md5.ComputeHash([System.Text.Encoding]::UTF8.GetBytes('StoreFlow-' + $Version))
 $productCode = '{' + [guid]::new($hash).ToString().ToUpperInvariant() + '}'
 
-$env:PATH = 'D:\dotnet;' + $env:PATH
-$env:DOTNET_ROOT = 'D:\dotnet'
-$env:DOTNET_NOLOGO = '1'
+# The .NET SDK. The machine this script was written on keeps it in D:\dotnet, but the build also
+# runs on GitHub's runner, where the SDK is on PATH. So the SDK is looked for rather than assumed.
+$localSdk = 'D:\dotnet'
+$localDotnet = Join-Path $localSdk 'dotnet.exe'
 
-$dotnet = 'D:\dotnet\dotnet.exe'
+if (Test-Path -LiteralPath $localDotnet) {
+    $dotnet = $localDotnet
+    $env:DOTNET_ROOT = $localSdk
+    $env:PATH = $localSdk + ';' + $env:PATH
+}
+else {
+    $onPath = Get-Command 'dotnet' -ErrorAction SilentlyContinue
+
+    if ($null -eq $onPath) {
+        throw 'The .NET SDK was not found. Install the .NET 10 SDK, or put it in D:\dotnet.'
+    }
+
+    $dotnet = $onPath.Source
+    $sdkFolder = Split-Path -Parent $dotnet
+    $env:DOTNET_ROOT = $sdkFolder
+    $env:PATH = $sdkFolder + ';' + $env:PATH
+}
+
+$env:DOTNET_NOLOGO = '1'
+$env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
 
 if (-not $SkipPublish) {
     Write-Output '--- publish ---'

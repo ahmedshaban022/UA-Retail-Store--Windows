@@ -26,7 +26,7 @@ the roles, and the audit trail read as a report. And the **backup**: the shop ta
 on a schedule as a single `.sfb` file that proves its own integrity, the copy goes to a local folder
 or to an S3-compatible object store, and the shop can be put back from it — on the same machine or
 on another one — with the recovery wizard as the way back in for the day the database will not open
-at all. Phase 7 added the write-fault matrix, crash probe, per-user installer, performance harness, accessibility pass, user guide and recovery runbook. The release candidate is built, installed per user and driven against both the development build and the installed copy; the manual acceptance test still needs the shop's own hardware, and the tag and the release await the go-ahead.
+at all. Phase 7 added the write-fault matrix, crash probe, per-user installer, performance harness, accessibility pass, user guide and recovery runbook. Version 1.0.0 is built, installed per user and driven against both the development build and the installed copy, and published with its installer; the manual acceptance test still needs the shop's own hardware. The programme also updates itself from GitHub Releases: it notices a newer version in the background and asks the shopkeeper before anything is installed — see [`docs/UPDATER.md`](docs/UPDATER.md).
 
 ---
 
@@ -487,6 +487,7 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [Release notes](docs/RELEASE-NOTES.md) | v1.0 scope, open items, installation and installer SHA-256 |
 | [Hardware sheet](docs/uat/HARDWARE-SHEET.md) | Printable hardware acceptance checklist |
 | [Release-candidate report](docs/phases/PHASE-8-RELEASE-CANDIDATE.md) | Release candidate and Definition of Done and UAT gate tables |
+| [Auto-update](docs/UPDATER.md) | How the programme updates itself from GitHub Releases, and how a release is made |
 
 ---
 

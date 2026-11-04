@@ -2,7 +2,7 @@
 
 StoreFlow is an offline shop programme for keeping a catalogue, tracking stock and purchases, making sales and returns, reviewing reports, and taking backups. It can be used in Arabic or English.
 
-**Release candidate.** Backup and recovery checks passed against both the development programme and the installed copy. In an earlier development run, the restore confirmation did not appear; the cause has not been established, so this should be investigated before the programme is handed to a shop.
+**Version 1.0.0.** Backup and recovery checks passed against both the development programme and the installed copy. In an earlier development run, the restore confirmation did not appear; the cause has not been established, so this should be investigated before the programme is handed to a shop.
 
 ## What v1.0 does not do
 
@@ -28,8 +28,6 @@ Once you have completed setup and signed in, open **Backup**, choose the backup 
 
 ## Check the installer
 
-The SHA-256 of this release candidate's installer is:
-
-`13879A7237429097D8BD933CA994534612B6FED2870F1DBF71516EADB07E5ABD`
+The installer is published together with a file that holds its SHA-256, and the same hash is printed at the end of these notes. Compare the two before you install: if they are not the same, the file you were given was changed on the way.
 
 For help, contact the person who supplied or supports your StoreFlow installation.
