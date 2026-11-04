@@ -1,0 +1,127 @@
+name: Build and test
+
+# Every push and every pull request is built and tested here.
+#
+# Until now this repository had ONE workflow, and it ran only when a tag was pushed — which
+# means a push to `main` was never compiled and never tested, in a programme that publishes
+# an installer that shops install. This workflow is the gate for that.
+#
+# The UI harnesses in `tools/` are deliberately NOT part of this gate. They drive the real
+# application through UI Automation, which needs an interactive desktop session; a build
+# runner has none, and a harness that cannot reach its window would fail here for a reason
+# that has nothing to do with the programme. Those runs happen on a developer machine, where
+# `tools\smoke-*.ps1` and `tools\build.ps1` are the way in.
+#
+# The release workflow (.github/workflows/release.yml) keeps its own gate: a release is
+# published only when the whole suite is green there too.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore StoreFlow.sln
+
+      # Analyzers are on and warnings are errors, so a new warning fails this build here
+      # rather than in somebody's terminal.
+      - name: Build
+        shell: pwsh
+        run: dotnet build StoreFlow.sln -c Release --nologo -v q
+
+      # The gate. Nothing is published and nothing is merged while this is red.
+      - name: Test
+        shell: pwsh
+        run: dotnet test StoreFlow.sln -c Release --nologo --no-build -v q
+
+      - name: The test counts
+        shell: pwsh
+        run: |
+          $results = Get-ChildItem -Path . -Recurse -Filter '*.trx' -ErrorAction SilentlyContinue
+          if ($results) {
+            foreach ($r in $results) {
+              Write-Output ("{0}: {1}" -f $r.FullName, (Select-String -Path $r.FullName -Pattern 'total="\d+"' | Select-Object -First 1).Line)
+            }
+          }
+          else {
+            Write-Output 'No .trx files were produced; the counts are in the test step above.'
+          }
+
+  installer:
+    name: The installer still builds
+    runs-on: windows-latest
+    timeout-minutes: 60
+    needs: build-and-test
+
+    # A pull request proves the code; the packaging is proved on the branch it lands on.
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore StoreFlow.sln
+
+      # The packaging path is part of the programme: a change that breaks the installer
+      # would break every shop's next upgrade. This job builds it on a clean machine and
+      # hands it over as an artefact. It does NOT publish anything.
+      - name: Build the installer
+        shell: pwsh
+        run: |
+          $project = 'src/StoreFlow.Desktop/StoreFlow.Desktop.csproj'
+          $text = Get-Content $project -Raw
+          if ($text -notmatch '<Version>([^<]+)</Version>') {
+            throw 'The project does not say which version it is.'
+          }
+          $version = $Matches[1].Trim()
+
+          & '.\installer\build-installer.ps1' -Version $version
+          if ($LASTEXITCODE -ne 0) { throw ('The installer build failed with exit code ' + $LASTEXITCODE) }
+
+          $msi = "artifacts/installer/$version/StoreFlow-$version-x64.msi"
+          if (-not (Test-Path $msi)) { throw "The installer was not produced: $msi" }
+
+          $hash = (Get-FileHash $msi -Algorithm SHA256).Hash
+          "$hash *StoreFlow-$version-x64.msi" | Out-File -FilePath "$msi.sha256" -Encoding ascii
+
+          Write-Output "built $msi"
+          Write-Output "sha256 $hash"
+
+      - name: Hand the installer over
+        uses: actions/upload-artifact@v4
+        with:
+          name: StoreFlow-installer-${{ github.run_number }}
+          path: artifacts/installer/**
+          retention-days: 14

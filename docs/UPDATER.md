@@ -23,6 +23,28 @@ Nothing is ever installed silently.
 
 The check runs **in the background** once the shell is open. The programme does not wait for it.
 
+### What the request carries
+
+The check asks one question of the public release list: *is there a release newer than the one
+running?* The request is anonymous. It carries no shop name, no licence, no counter, no
+identifier and no file names, so the request cannot single a shop out. Nothing is downloaded
+until the shopkeeper presses **Update now**.
+
+### Turning it off
+
+Nothing is ever installed without the shopkeeper pressing the button — that is the switch, and it
+is why a shop that never wants an update never gets one. To stop even the single background
+check, block `api.github.com` in the shop's firewall or proxy. The programme then carries on
+working exactly as before: a check that cannot reach the release list is not an error, so no
+message appears and nothing is written.
+
+There is no switch in the programme itself, and that is a decision rather than an oversight. A
+switch would mean a new setting in the shop's settings, a new control on a screen that has never
+had one, and a rule for the shops whose settings were written before the setting existed. The
+check carries nothing about the shop, so the honest answer — block the host — is enough. The
+decision is recorded in the [Phase 9 report](phases/PHASE-9-V1.0.1.md) so that it can be
+revisited with the next version.
+
 ---
 
 ## 2. How a release is made
