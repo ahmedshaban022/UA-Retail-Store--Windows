@@ -7,7 +7,8 @@ param(
 $ErrorActionPreference = 'Continue'
 
 $exe = $ExePath
-$outDir = 'C:\Users\ahmed\.minimax\v2\sessions\2026\10\25\15-42-28-262-session_bXZzX2RhYzY2YzI3Zjg3MjQ4N2E5YTMxZTNlZDYzYWVhZGJh\artifacts'
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$outDir = Join-Path $repoRoot 'docs\phases\phase0-screens'
 
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing
 

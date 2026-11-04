@@ -13,7 +13,8 @@ $ErrorActionPreference = 'Continue'
 # window mirrored - both of which make the result useless for checking the layout.
 
 $exe = $ExePath
-$outDir = 'C:\Users\ahmed\.minimax\v2\sessions\2026\10\25\15-42-28-262-session_bXZzX2RhYzY2YzI3Zjg3MjQ4N2E5YTMxZTNlZDYzYWVhZGJh\artifacts'
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$outDir = Join-Path $repoRoot 'docs\phases\phase0-screens'
 $capture = Join-Path $outDir 'phase0-shell.png'
 
 Add-Type -AssemblyName UIAutomationClient

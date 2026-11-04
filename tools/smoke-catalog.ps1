@@ -17,7 +17,8 @@ $ErrorActionPreference = 'Continue'
 # screen. That keeps the evidence faithful when the desktop is locked or another window is in front.
 
 $exe = $ExePath
-$outDir = 'C:\Users\ahmed\.minimax\v2\sessions\2026\10\27\14-05-08-826-session_bXZzXzU4Yjk5ODYyYzUwMDQxNGJiODIwNjY0MDc0ZTk2ZTU0\artifacts\phase1'
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$outDir = Join-Path $repoRoot 'docs\phases\phase1-screens'
 $runRoot = Join-Path $env:TEMP ('storeflow-phase1-' + [Guid]::NewGuid().ToString('N'))
 
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null

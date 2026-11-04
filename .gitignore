@@ -82,3 +82,9 @@ build/legacy/
 ## build\legacy\StoreFlow.slnx, so a bare `dotnet build` in the root is no longer ambiguous.
 ## There is deliberately NO `*.slnx` rule here: if one ever appears in the root again it must
 ## show up in `git status` rather than hide itself.
+
+## The stray zero-byte file `0.26.0` that a shell redirect left in the repository root. The local
+## file-safety policy on this machine refuses deletions AND refuses moves inside the workspace,
+## so it cannot be moved into build\scratch\ like the others. It is covered here instead, so it
+## stays out of the index; the file itself is empty and can be deleted by hand.
+/0.26.0
