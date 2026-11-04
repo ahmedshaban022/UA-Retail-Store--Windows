@@ -55,12 +55,11 @@ jobs:
 
           $version = $Matches[1].Trim()
 
-          # A tag that was pushed by hand has to name the version that is being built.
-          $tag = $env:GITHUB_REF_NAME
-          if ($tag -like 'v*') { $tag = $tag.Substring(1) }
-
-          if ($tag -and $tag -ne $version) {
-            throw "The tag $env:GITHUB_REF_NAME does not match the version $version in the project."
+          # A tag that was pushed by hand has to name the version that is being built. A run
+          # that was started by hand has a branch in its ref, not a tag, and makes its own.
+          $ref = $env:GITHUB_REF_NAME
+          if ($ref -like 'v*' -and $ref.Substring(1) -ne $version) {
+            throw "The tag $ref does not match the version $version in the project."
           }
 
           "version=$version" >> $env:GITHUB_OUTPUT
@@ -113,8 +112,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $tag = '${{ steps.version.outputs.tag }}'
-          $msi = '${{ steps.version.outputs.msi }}'
-          $checksum = '${{ steps.version.outputs.checksum }}'
+          $msi = '${{ steps.installer.outputs.msi }}'
+          $checksum = '${{ steps.installer.outputs.checksum }}'
+
+          # An empty path here would fail later inside gh with a message about a file that
+          # cannot be found, which says nothing about the real cause.
+          if (-not $msi -or -not $checksum) {
+            throw 'The installer step did not give the publish step the installer and its checksum.'
+          }
 
           $name = [System.IO.Path]::GetFileName($msi)
           $checksumName = [System.IO.Path]::GetFileName($checksum)
