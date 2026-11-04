@@ -86,6 +86,26 @@ internal static class Program
         return 0;
     }
 
+    /// <summary>Opens the database without the possibility of writing to it.</summary>
+    /// <param name="databasePath">The database file.</param>
+    /// <returns>An open connection.</returns>
+    private static SqliteConnection OpenReadOnly(string databasePath)
+    {
+        // The tool measures a shop's data; it must never change it. A read-only connection is
+        // also the reason the tool can be pointed at a shop's own database without being asked
+        // first.
+        var builder = new SqliteConnectionStringBuilder
+        {
+            DataSource = databasePath,
+            Mode = SqliteOpenMode.ReadOnly,
+        };
+
+        var connection = new SqliteConnection(builder.ToString());
+        connection.Open();
+
+        return connection;
+    }
+
     /// <summary>Reads the database and returns its canonical text, the table count and the row count.</summary>
     /// <param name="databasePath">The database file.</param>
     /// <returns>The canonical text, the number of tables and the number of rows.</returns>
@@ -93,8 +113,7 @@ internal static class Program
     {
         var builder = new StringBuilder();
 
-        using SqliteConnection connection = new("Data Source=" + databasePath);
-        connection.Open();
+        using SqliteConnection connection = OpenReadOnly(databasePath);
 
         List<string> tables = ReadTableNames(connection);
 
@@ -130,8 +149,7 @@ internal static class Program
     /// <returns>The number of tables and the number of rows.</returns>
     private static (int Tables, long Rows) PrintTableHashes(string databasePath)
     {
-        using SqliteConnection connection = new("Data Source=" + databasePath);
-        connection.Open();
+        using SqliteConnection connection = OpenReadOnly(databasePath);
 
         List<string> tables = ReadTableNames(connection);
 
