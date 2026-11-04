@@ -63,12 +63,16 @@ Here is exactly what the updater does, so that a shop can decide what it thinks 
   **Install now**, the updater downloads two files: the installer, and the small `.sha256` file
   published beside it that holds the installer's SHA-256. It then computes the SHA-256 of what it
   downloaded and compares it with the published hash. **If they differ, the download is thrown away
-  and the update is refused.** The files are kept in a temporary folder and deleted afterwards.
+  and the update is refused.** The files are kept in a temporary folder (`%TEMP%\StoreFlow`) so that
+  the installer can run from it. A download that does not match is deleted at once; a download that
+  does match is left there until Windows clears the temporary folder.
 - **What is not touched.** The updater never writes inside the shop's data folder. It does not
   open the ledger, the catalogue, the backups or the settings. The upgrade replaces the
   *programme*; `%APPDATA%\StoreFlow` is not part of the programme and is left exactly as it was.
-  This was measured on a real upgrade: the database's SHA-256 was the same before and after, and
-  the shop's folder held the same files with the same contents.
+  This was measured on a real upgrade: the shop's database held the same tables with the same rows
+  before and after, and the shop's folder held the same files with the same contents. The *content*
+  is what was compared, because the bytes of a database file move when the programme closes even
+  when nothing was written to it.
 - **How to turn it off.** Nothing is ever installed unless the shop presses the button — that is
   the switch the shop already has, and it is the reason a shop that never wants an update never
   gets one. To stop even the single background check, block `api.github.com` in the shop's

@@ -428,8 +428,8 @@ Every phase wrote down what it left rough. This is where all of that comes to. E
 
 - **Every business change writes its audit entry in the same write as the change.** Thirty-three commands across the catalogue, the stock, the purchases, the counts, the till, the approvals, the accounts, the setup and the drawer count now add their entry to their own transaction, so the entry and the change are made permanent together or not at all. A new write point, `WriteAuditEntryInTransaction`, and six new tests prove it: a failure writing the entry leaves neither the change nor the entry behind. Two places still write their entry separately — a restore, which replaces the whole database file, and the backup schedule, whose settings store owns its own write — and both are named in the release notes.
 - **All 88 controls without an accessible name have one.** The guard's threshold is zero, and the pinned table names the file, the control and the binding for every one of them.
-- **The restore-confirmation failure was the harness's fault, not the programme's.** The click landed on a button that was still disabled, and WPF throws a click on a disabled control away without a word. The harness now waits for the button to become usable.
-- **The updater's first real cycle.** v1.0.1 was published and an installed v1.0.0 was driven through find → download → checksum → upgrade, with the shop's data measured before and after. `tools/update-cycle.ps1` is that run, and it can be run again for every release.
+- **The restore-confirmation failure was the harness's fault, not the programme's.** The click landed on a button that was still disabled, and WPF throws a click on a disabled control away without a word. The harness now waits for the button to become usable. Two more checks of the same kind were found and fixed while this phase ran — the checksum the restore wizard shows, and the scheduler's own copy in the backup folder — and the rule is written down: **a wait is for a value the screen must reach, never for a single look.**
+- **The updater's first real cycle.** v1.0.1 was published and an installed v1.0.0 was driven through find → download → checksum → upgrade. The shop's data is measured by **what it holds** — the same tables with the same rows before and after — because the bytes of a SQLite file move when the programme closes even when nothing was written to it. `tools/update-cycle.ps1` is that run, and it can be run again for every release.
 - **CI on every push and pull request**, and every smoke harness writes its pictures into the repository's phase folders instead of a session's temporary folder.
 
 ### Still open
@@ -493,6 +493,9 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [Build installer](installer/build-installer.ps1) and [verify installer](installer/verify-installer.ps1) | Per-user MSI creation and verification |
 | [Performance harness](tools/performance-harness.ps1) | Fills a shop and measures its queries |
 | [Volume tool](tools/StoreFlow.VolumeTool/StoreFlow.VolumeTool.csproj) | Project that fills and measures a shop |
+| [Release-cycle harness](tools/update-cycle.ps1) | Installs a published release and drives it through the next upgrade, and proves the shop's data came through it |
+| [Shop digest](tools/ShopDigest/ShopDigest.csproj) | Prints what a shop's database holds, and hashes it, so that "nothing changed" can be proved |
+| [Update probe](tools/StoreFlow.UpdateProbe/StoreFlow.UpdateProbe.csproj) | Asks the updater's own service to fetch a published release, and times it |
 | [Crash probe](tests/StoreFlow.CrashProbe/StoreFlow.CrashProbe.csproj) | Checks interrupted-sale recovery |
 | [Performance report](docs/PERFORMANCE-REPORT.md) | Performance results for the shop owner |
 | [Release notes](docs/RELEASE-NOTES.md) | v1.0 scope, open items, installation and installer SHA-256 |

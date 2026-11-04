@@ -6,6 +6,7 @@ the commit, so this table is a record of what a shop actually received — not a
 
 | Release | Tag | Commit | Published | Installer | SHA-256 |
 |---|---|---|---|---|---|
+| v1.0.1 | `v1.0.1` | `ab02c6e` | 2026-11-04T12:59:23Z | `StoreFlow-1.0.1-x64.msi` (55,990,559 bytes) | `b119cdb140957ed77db2c01bf039db74a5db3f1c1b12d3782ec4b72435abc1bc` |
 | v1.0.0 | `v1.0.0` | `0cb5663` | 2026-11-04T06:59:47Z | `StoreFlow-1.0.0-x64.msi` (55,961,887 bytes) | `69aa3e5ec9403ee8308f21acd243a1c27e3641aab72b96df2c36a9bd59363c9b` |
 
 ## How a release is made
