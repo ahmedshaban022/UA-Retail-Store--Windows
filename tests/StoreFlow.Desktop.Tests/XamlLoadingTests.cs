@@ -69,6 +69,8 @@ public sealed class XamlLoadingTests
         };
         start.ArgumentList.Add("test");
         start.ArgumentList.Add(Path.Combine("tests", "StoreFlow.Desktop.Tests", "StoreFlow.Desktop.Tests.csproj"));
+        start.ArgumentList.Add("--configuration");
+        start.ArgumentList.Add(Configuration);
         start.ArgumentList.Add("--no-build");
         start.ArgumentList.Add("--nologo");
         start.ArgumentList.Add("--filter");
@@ -80,6 +82,17 @@ public sealed class XamlLoadingTests
         await process.WaitForExitAsync();
         process.ExitCode.ShouldBe(0, await output + await error);
     }
+
+    /// <summary>
+    /// The configuration this test was built in. The child process has to run the same one: a
+    /// build that produced only Release has no Debug binaries for the child to run, and the child
+    /// would fail for a reason that has nothing to do with the markup.
+    /// </summary>
+#if DEBUG
+    private const string Configuration = "Debug";
+#else
+    private const string Configuration = "Release";
+#endif
 
     private static DirectoryInfo FindRoot()
     {
