@@ -99,6 +99,8 @@ rather than pretending the hash is more than it is.
 | The download does not match its checksum | The download is discarded, the installer is **not** started, and the shop is told that the update could not be installed. The installed programme is untouched. |
 | The download is interrupted | The partial file is discarded. The installed programme is untouched. |
 | The installer cannot be started | The download is discarded and the shop is told. The installed programme is untouched. |
+| The till has no administrator account | The install does not need one. The package is a per-user install, and Windows marks it "capable of being installed without elevation", so the updater's `msiexec /i … /qb /norestart` works on a till that has no administrator. |
+| The shopkeeper runs the **same** version again by hand | Windows Installer refuses it with error 1638 ("another version of this product is already installed") and changes nothing. The updater never does this: it only ever offers a version that is strictly newer than the one that is running, and a newer version is a new product, so it upgrades rather than collides. |
 | The shop's data | Never touched. The ledger, the catalogue and the backups live in `%APPDATA%\StoreFlow`, which the installer and the updater both leave alone. |
 
 ---
