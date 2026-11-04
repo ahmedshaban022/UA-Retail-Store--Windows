@@ -6,8 +6,13 @@ using Microsoft.EntityFrameworkCore;
 namespace StoreFlow.Infrastructure.Services;
 
 /// <summary>
-/// Writes to the audit trail. It uses its own short-lived context so an audit entry never joins —
-/// or accidentally rolls back with — the business transaction that produced it.
+/// Writes to the audit trail.
+///
+/// An entry can be written on its own, or added to the write that is already open. A command that
+/// changes the shop's data adds its entry to its own write, so the entry and the change it
+/// describes are made permanent together or not at all. An entry that is written on its own
+/// stands for something that did NOT change the shop's data — a refused sign-in, a refused
+/// restore, a file that was exported — and has nothing to be atomic with.
 /// </summary>
 public sealed class EfAuditWriter(
     IDbContextFactory<StoreFlowDbContext> contextFactory,
@@ -27,17 +32,24 @@ public sealed class EfAuditWriter(
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    internal static void AddEntry(StoreFlowDbContext context, AuditEntry entry, int? actorUserId, DateTimeOffset timestampUtc)
+    /// <inheritdoc />
+    public void AddTo(IAuditTrail trail, AuditEntry entry)
     {
-        context.AuditLogs.Add(new AuditLog
-        {
-            ActorUserId = actorUserId,
-            Action = entry.Action,
-            EntityType = entry.EntityType,
-            EntityId = entry.EntityId,
-            BeforeHash = entry.BeforeHash,
-            AfterSummary = entry.AfterSummary,
-            TimestampUtc = timestampUtc,
-        });
+        ArgumentNullException.ThrowIfNull(trail);
+        ArgumentNullException.ThrowIfNull(entry);
+
+        AddEntry(trail, entry, entry.ActorUserId ?? session.Current?.UserId, clock.UtcNow);
+    }
+
+    /// <summary>
+    /// Puts the entry on the trail. The trail is the write that is already open, so the entry is
+    /// saved with everything else in that write.
+    /// </summary>
+    internal static void AddEntry(IAuditTrail trail, AuditEntry entry, int? actorUserId, DateTimeOffset timestampUtc)
+    {
+        ArgumentNullException.ThrowIfNull(trail);
+        ArgumentNullException.ThrowIfNull(entry);
+
+        trail.Append(entry, actorUserId, timestampUtc);
     }
 }

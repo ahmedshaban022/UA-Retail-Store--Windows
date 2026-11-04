@@ -132,10 +132,15 @@ public sealed class RequestDiscountApprovalCommandHandler(
 
         context.ApprovalRequests.Add(request);
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         await context.BeforeWriteAsync(WritePoint.RequestDiscountApproval, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        await auditWriter.WriteAsync(
+        // A new request has no id until its row has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the request it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 ApprovalAudit.Requested,
                 nameof(ApprovalRequest),
@@ -143,8 +148,11 @@ public sealed class RequestDiscountApprovalCommandHandler(
                 null,
                 $"{percent.ToString("0.##", CultureInfo.InvariantCulture)}% on a cart of " +
                 $"{cart.Totals.Total.Amount.ToString("0.00", CultureInfo.InvariantCulture)}",
-                userId),
-            cancellationToken);
+                userId));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         string requestedByName = await ApprovalReaders.ReadUserNameAsync(context, userId, cancellationToken);
 
@@ -211,18 +219,19 @@ public sealed class DecideApprovalRequestCommandHandler(
         request.DecisionReason = command.Reason;
         request.DecidedUtc = clock.UtcNow;
 
-        await context.BeforeWriteAsync(WritePoint.DecideApprovalRequest, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 command.Approve ? ApprovalAudit.Approved : ApprovalAudit.Rejected,
                 nameof(ApprovalRequest),
                 request.Id.ToString(CultureInfo.InvariantCulture),
                 null,
                 command.Reason,
-                approverId),
-            cancellationToken);
+                approverId));
+
+        await context.BeforeWriteAsync(WritePoint.DecideApprovalRequest, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         string requestedByName = await ApprovalReaders.ReadUserNameAsync(
             context, request.RequestedByUserId, cancellationToken);

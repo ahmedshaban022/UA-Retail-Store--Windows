@@ -168,8 +168,16 @@ public enum WritePoint
     /// <summary>The first-run setup being completed.</summary>
     CompleteSetup,
 
-    /// <summary>An audit entry being written.</summary>
+    /// <summary>An audit entry being written on its own.</summary>
     WriteAuditEntry,
+
+    /// <summary>
+    /// An audit entry being written inside the write of the change it describes.
+    ///
+    /// The entry and the change are made permanent together or not at all, so a failure here
+    /// leaves neither of them behind (PRD §3).
+    /// </summary>
+    WriteAuditEntryInTransaction,
 
     /// <summary>A backup log row being written.</summary>
     WriteBackupLog,

@@ -76,7 +76,15 @@ public sealed class AuthenticateCommandHandler(
         }
 
         user.LastLoginUtc = clock.UtcNow;
+
+        // The sign-in is written down in the same write that records the last sign-in, so the
+        // trail cannot claim a sign-in the database does not have.
+        auditWriter.AddTo(
+            context,
+            new AuditEntry("auth.sign_in", nameof(User), user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+
         await context.BeforeWriteAsync(WritePoint.Authenticate, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         var permissions = user.Role?.RolePermissions
@@ -89,10 +97,6 @@ public sealed class AuthenticateCommandHandler(
             user.DisplayName,
             permissions,
             user.Role?.IsAdministrator ?? false);
-
-        await auditWriter.WriteAsync(
-            new AuditEntry("auth.sign_in", nameof(User), user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-            cancellationToken);
 
         return Result<UserSession>.Success(session);
     }

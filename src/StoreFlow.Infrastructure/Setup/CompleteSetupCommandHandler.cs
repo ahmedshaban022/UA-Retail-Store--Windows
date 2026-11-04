@@ -108,10 +108,11 @@ public sealed class CompleteSetupCommandHandler(
             settingsSetting.UpdatedUtc = clock.UtcNow;
         }
 
-        await context.BeforeWriteAsync(WritePoint.CompleteSetup, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        auditWriter.AddTo(context, new AuditEntry("setup.complete", nameof(StoreDetails)));
 
-        await auditWriter.WriteAsync(new AuditEntry("setup.complete", nameof(StoreDetails)), cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.CompleteSetup, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

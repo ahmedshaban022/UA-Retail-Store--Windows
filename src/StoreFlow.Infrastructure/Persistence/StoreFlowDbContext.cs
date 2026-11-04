@@ -16,7 +16,7 @@ namespace StoreFlow.Infrastructure.Persistence;
 /// </param>
 public sealed class StoreFlowDbContext(
     DbContextOptions<StoreFlowDbContext> options,
-    IWriteFaultInjector? writeFaultInjector = null) : DbContext(options)
+    IWriteFaultInjector? writeFaultInjector = null) : DbContext(options), IAuditTrail
 {
     public DbSet<Category> Categories => Set<Category>();
 
@@ -97,4 +97,27 @@ public sealed class StoreFlowDbContext(
     /// <param name="cancellationToken">The token the commit was asked to honour.</param>
     public Task BeforeCommitAsync(WritePoint point, CancellationToken cancellationToken) =>
         writeFaultInjector?.BeforeCommitAsync(point, cancellationToken) ?? Task.CompletedTask;
+
+    /// <summary>
+    /// Adds an audit entry to this write, so that the entry and everything else in the write are
+    /// made permanent together or not at all.
+    /// </summary>
+    /// <param name="entry">The entry to add.</param>
+    /// <param name="actorUserId">The actor, or null for a system action.</param>
+    /// <param name="timestampUtc">When the action happened.</param>
+    public void Append(AuditEntry entry, int? actorUserId, DateTimeOffset timestampUtc)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+
+        AuditLogs.Add(new AuditLog
+        {
+            ActorUserId = actorUserId,
+            Action = entry.Action,
+            EntityType = entry.EntityType,
+            EntityId = entry.EntityId,
+            BeforeHash = entry.BeforeHash,
+            AfterSummary = entry.AfterSummary,
+            TimestampUtc = timestampUtc,
+        });
+    }
 }

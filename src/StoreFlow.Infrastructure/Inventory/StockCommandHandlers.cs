@@ -138,20 +138,21 @@ public sealed class RecordOpeningStockCommandHandler(
             movements += 1;
         }
 
-        await context.BeforeWriteAsync(WritePoint.RecordOpeningStock, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-        await context.BeforeCommitAsync(WritePoint.RecordOpeningStockCommit, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.OpeningStock,
                 nameof(StockMovement),
                 null,
                 null,
                 $"Recorded {movements} opening balances on {command.BusinessDate}",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.RecordOpeningStock, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.RecordOpeningStockCommit, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(movements);
     }
@@ -241,18 +242,27 @@ public sealed class PostStockAdjustmentCommandHandler(
             };
 
             context.ApprovalRequests.Add(request);
+
+            await using var approvalTransaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
             await context.BeforeWriteAsync(WritePoint.RequestStockAdjustmentApproval, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
 
-            await auditWriter.WriteAsync(
+            // A new request has no id until its row has been saved, so the audit entry joins the same
+            // transaction and is made permanent together with the request it describes.
+            auditWriter.AddTo(
+                context,
                 new AuditEntry(
                     InventoryAudit.AdjustmentRequest,
                     nameof(ApprovalRequest),
                     request.Id.ToString(),
                     null,
                     $"{product.Name}: {command.QuantityDelta} units, value {valueImpact}",
-                    actorId),
-                cancellationToken);
+                    actorId));
+
+            await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+            await approvalTransaction.CommitAsync(cancellationToken);
 
             return Result<StockAdjustmentOutcome>.Success(new StockAdjustmentOutcome(
                 false,
@@ -290,18 +300,23 @@ public sealed class PostStockAdjustmentCommandHandler(
 
         await context.BeforeWriteAsync(WritePoint.PostStockAdjustment, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
-        await context.BeforeCommitAsync(WritePoint.PostStockAdjustmentCommit, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
 
-        await auditWriter.WriteAsync(
+        // The movement only has an id once it has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the movement it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.AdjustmentPost,
                 nameof(StockMovement),
                 movement.Id.ToString(),
                 null,
                 $"{product.Name}: {command.QuantityDelta} units, value {valueImpact}, {command.Reason.Trim()}",
-                actorId),
-            cancellationToken);
+                actorId));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.PostStockAdjustmentCommit, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<StockAdjustmentOutcome>.Success(new StockAdjustmentOutcome(
             true,
@@ -429,18 +444,23 @@ public sealed class ApproveStockAdjustmentCommandHandler(
 
         await context.BeforeWriteAsync(WritePoint.ApproveStockAdjustment, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
-        await context.BeforeCommitAsync(WritePoint.ApproveStockAdjustmentCommit, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
 
-        await auditWriter.WriteAsync(
+        // The movement only has an id once it has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the movement it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.AdjustmentApprove,
                 nameof(StockMovement),
                 movement.Id.ToString(),
                 null,
                 $"{product.Name}: {payload.QuantityDelta} units approved and posted",
-                actorId),
-            cancellationToken);
+                actorId));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.ApproveStockAdjustmentCommit, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(movement.Id);
     }

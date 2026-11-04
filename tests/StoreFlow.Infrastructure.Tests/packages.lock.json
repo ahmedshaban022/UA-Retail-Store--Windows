@@ -437,6 +437,13 @@
           "StoreFlow.Domain": "[1.0.0, )"
         }
       },
+      "storeflow.crashprobe": {
+        "type": "Project",
+        "dependencies": {
+          "StoreFlow.Application": "[1.0.0, )",
+          "StoreFlow.Infrastructure": "[1.0.0, )"
+        }
+      },
       "storeflow.domain": {
         "type": "Project"
       },

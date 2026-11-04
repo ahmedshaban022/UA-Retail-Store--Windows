@@ -180,18 +180,26 @@ public sealed class SaveProductCommandHandler(
 
         SynchroniseBarcodes(product, additionalBarcodes);
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         await context.BeforeWriteAsync(WritePoint.SaveProduct, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        await auditWriter.WriteAsync(
+        // A new product has no id until its row has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the product it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 isNew ? CatalogAudit.ProductCreate : CatalogAudit.ProductUpdate,
                 nameof(Product),
                 product.Id.ToString(),
                 beforeHash,
                 $"{product.Name} ({product.Sku})",
-                null),
-            cancellationToken);
+                null));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(product.Id);
     }
@@ -310,18 +318,19 @@ public sealed class SetProductActiveCommandHandler(
         product.IsActive = command.IsActive;
         product.UpdatedUtc = clock.UtcNow;
 
-        await context.BeforeWriteAsync(WritePoint.SetProductActive, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 CatalogAudit.ProductActiveChanged,
                 nameof(Product),
                 product.Id.ToString(),
                 beforeHash,
                 command.IsActive ? "Active" : "Deactivated",
-                null),
-            cancellationToken);
+                null));
+
+        await context.BeforeWriteAsync(WritePoint.SetProductActive, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

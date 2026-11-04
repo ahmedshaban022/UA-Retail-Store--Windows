@@ -240,6 +240,21 @@ public sealed class PostReturnCommandHandler(
 
         await context.BeforeWriteAsync(WritePoint.PostReturnRestock, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+
+        // The return only has an id once it has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the return it describes.
+        auditWriter.AddTo(
+            context,
+            new AuditEntry(
+                SalesAudit.ReturnPost,
+                nameof(SalesReturn),
+                salesReturn.Id.ToString(CultureInfo.InvariantCulture),
+                null,
+                $"{salesReturn.Number} against {invoice.Number} for {refundTotal.Amount.ToString("0.00", CultureInfo.InvariantCulture)}",
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         await context.BeforeCommitAsync(WritePoint.PostReturnCommit, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
@@ -262,16 +277,6 @@ public sealed class PostReturnCommandHandler(
                     plan.IsResellable,
                     plan.Refund))
                 .ToList());
-
-        await auditWriter.WriteAsync(
-            new AuditEntry(
-                SalesAudit.ReturnPost,
-                nameof(SalesReturn),
-                salesReturn.Id.ToString(CultureInfo.InvariantCulture),
-                null,
-                $"{salesReturn.Number} against {invoice.Number} for {refundTotal.Amount.ToString("0.00", CultureInfo.InvariantCulture)}",
-                session.Current?.UserId),
-            cancellationToken);
 
         return Result<RefundReceipt>.Success(receipt);
     }

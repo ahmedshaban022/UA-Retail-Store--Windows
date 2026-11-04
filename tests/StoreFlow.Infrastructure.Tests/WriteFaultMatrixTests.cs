@@ -509,6 +509,224 @@ public sealed class WriteFaultMatrixTests : IAsyncLifetime
             new AuditEntry("test.action", "Test"), CancellationToken.None));
     }
 
+    /// <summary>
+    /// A failure writing the audit entry inside a command's own transaction leaves neither the
+    /// change nor the entry behind, so the shop is never left with a change that has no trail.
+    /// </summary>
+    [Theory]
+    [InlineData(WritePoint.WriteAuditEntryInTransaction)]
+    public async Task A_failure_writing_the_audit_entry_leaves_the_change_unmade(WritePoint point)
+    {
+        await PrepareShopAsync();
+
+        await ProveRollbackAsync(point, () => new SaveCategoryCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock)
+            .HandleAsync(new SaveCategoryCommand(null, "Groceries", "بقالة", true), CancellationToken.None));
+    }
+
+    /// <summary>
+    /// Every catalogue change that writes an audit trail leaves the catalogue exactly as it was
+    /// when that trail cannot be written, and leaves no entry without its change (PRD §3).
+    /// </summary>
+    [Fact]
+    public async Task A_failure_writing_an_audit_entry_leaves_the_catalogue_unchanged()
+    {
+        int productId = await PrepareShopAsync();
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+        Product product = await context.Products.AsNoTracking().SingleAsync();
+        var category = new Category { Name = "Groceries", CreatedUtc = _clock.UtcNow, UpdatedUtc = _clock.UtcNow };
+        var supplier = new Supplier { Name = "Supplier", CreatedUtc = _clock.UtcNow, UpdatedUtc = _clock.UtcNow };
+        context.Categories.Add(category);
+        context.Suppliers.Add(supplier);
+        await context.SaveChangesAsync();
+
+        string importPath = Path.Combine(Path.GetDirectoryName(_fixture.DatabasePath)
+            ?? throw new InvalidOperationException("The fixture needs a directory."), "audit-atomicity.csv");
+        await File.WriteAllTextAsync(importPath,
+            "SKU,Name,SalePrice,CostPrice,Barcode\nATOMIC,Atomic rice,100.00,50.00,6221000000099\n");
+
+        // A new row is saved first, and its entry is written into the same transaction.
+        await ProveAuditAtomicAsync(() => new SaveCategoryCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock)
+            .HandleAsync(new SaveCategoryCommand(null, "Bakery", "مخبزة", true), CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => new SaveSupplierCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock)
+            .HandleAsync(new SaveSupplierCommand(null, "New supplier", null, "01001234567", null, true),
+                CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => new SaveProductCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock, new TestImageStore())
+            .HandleAsync(new SaveProductCommand(null, "ATOMIC", "Atomic rice", null, null,
+                category.Id, product.UnitId, product.TaxCategoryId, new Money(120m), new Money(55m), 2m,
+                "6221000000099", [], null, true), CancellationToken.None));
+
+        // An existing row is changed in the same write as its entry.
+        await ProveAuditAtomicAsync(() => new SetProductActiveCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock)
+            .HandleAsync(new SetProductActiveCommand(productId, false), CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => new SetCategoryActiveCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock)
+            .HandleAsync(new SetCategoryActiveCommand(category.Id, false), CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => new SetSupplierActiveCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock)
+            .HandleAsync(new SetSupplierActiveCommand(supplier.Id, false), CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => new ImportProductsCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock)
+            .HandleAsync(new ImportProductsCommand(importPath, ProductImportMode.UpsertBySku,
+                new Dictionary<string, string> { [ProductCsvMapper.FieldSku] = "SKU" }), CancellationToken.None));
+    }
+
+    /// <summary>
+    /// An account change or a sign-in that cannot write its audit trail leaves the accounts
+    /// exactly as they were, and leaves no entry without its change (PRD §3).
+    /// </summary>
+    [Fact]
+    public async Task A_failure_writing_an_audit_entry_leaves_the_accounts_unchanged()
+    {
+        await PrepareShopAsync();
+        int userId = await CreateUserAsync("clerk");
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+        int cashierRoleId = await context.Roles.Where(role => role.Code == "cashier").Select(role => role.Id).SingleAsync();
+
+        await ProveAuditAtomicAsync(() => new CreateUserCommandHandler(
+            _fixture.Factory, _authorization, new PasswordHasher(), _clock, AuditWriter, _session)
+            .HandleAsync(new CreateUserCommand("new-clerk", "New clerk", Password, cashierRoleId),
+                CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => new ChangeUserRoleCommandHandler(
+            _fixture.Factory, _authorization, _clock, AuditWriter, _session)
+            .HandleAsync(new ChangeUserRoleCommand(userId, cashierRoleId), CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => new SetUserActiveCommandHandler(
+            _fixture.Factory, _authorization, _clock, AuditWriter, _session)
+            .HandleAsync(new SetUserActiveCommand(userId, false), CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => new AuthenticateCommandHandler(
+            _fixture.Factory, new PasswordHasher(), _clock, AuditWriter)
+            .HandleAsync(new AuthenticateCommand("clerk", Password), CancellationToken.None));
+    }
+
+    /// <summary>
+    /// A stock or purchase change that cannot write its audit trail leaves the shelf and the
+    /// ledger exactly as they were, and leaves no entry without its change (PRD §3).
+    /// </summary>
+    [Fact]
+    public async Task A_failure_writing_an_audit_entry_leaves_the_shelf_unchanged()
+    {
+        int productId = await PrepareShopAsync();
+
+        Result<int> count = await new SaveStockCountCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock, _session)
+            .HandleAsync(CountCommand(productId), CancellationToken.None);
+        count.IsSuccess.ShouldBeTrue();
+
+        int purchaseId = await SavePurchaseAsync(productId);
+        int unopenedProductId = await CreateProductAsync("UNOPENED");
+
+        // The count is saved first, and its entry is written into the same transaction.
+        await ProveAuditAtomicAsync(() => new SaveStockCountCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock, _session)
+            .HandleAsync(CountCommand(productId) with { StockCountId = count.Value },
+                CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => SubmitCountAsync(count.Value));
+
+        await ProveAuditAtomicAsync(() => OpeningStockAsync(unopenedProductId));
+
+        await ProveAuditAtomicAsync(() => new SavePurchaseCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock, _session)
+            .HandleAsync(PurchaseCommand(productId), CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => PostPurchaseAsync(purchaseId));
+    }
+
+    /// <summary>
+    /// A sale, a suspended cart or a discount approval that cannot write its audit trail leaves
+    /// the shop exactly as it was, and leaves no entry without its change (PRD §3).
+    /// </summary>
+    [Fact]
+    public async Task A_failure_writing_an_audit_entry_leaves_the_counter_unchanged()
+    {
+        int productId = await PrepareShopAsync();
+
+        var hold = new HoldCartCommand("Waiting customer", SaleCommand(productId).Lines, DiscountSpec.None);
+        var holdHandler = new HoldCartCommandHandler(_fixture.Factory, _authorization, AuditWriter, _clock, _session);
+        Result<HeldCartSummary> held = await holdHandler.HandleAsync(hold, CancellationToken.None);
+        held.IsSuccess.ShouldBeTrue();
+
+        var request = new RequestDiscountApprovalCommand(
+            SaleCommand(productId).Lines, new DiscountSpec(DiscountKind.Percent, 20m));
+        var requestHandler = new RequestDiscountApprovalCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock, _session);
+        Result<ApprovalRequestSummary> requested = await requestHandler.HandleAsync(request, CancellationToken.None);
+        requested.IsSuccess.ShouldBeTrue();
+        _session.UserId = await CreateUserAsync("approver");
+
+        await ProveAuditAtomicAsync(() => holdHandler.HandleAsync(hold with { Label = "Another customer" },
+            CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => new ClearHeldCartCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _session)
+            .HandleAsync(new ClearHeldCartCommand(held.Value.Id), CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => requestHandler.HandleAsync(request, CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => new DecideApprovalRequestCommandHandler(
+            _fixture.Factory, _authorization, AuditWriter, _clock, _session)
+            .HandleAsync(new DecideApprovalRequestCommand(requested.Value.Id, true, "Checked"),
+                CancellationToken.None));
+
+        await ProveAuditAtomicAsync(() => SaleHandler().HandleAsync(SaleCommand(productId), CancellationToken.None));
+    }
+
+    /// <summary>
+    /// A drawer count that cannot write its audit trail leaves the day's count exactly as it was,
+    /// and leaves no entry without its change (PRD §3).
+    /// </summary>
+    [Fact]
+    public async Task A_failure_writing_an_audit_entry_leaves_the_drawer_count_unchanged()
+    {
+        await PrepareShopAsync();
+
+        await ProveAuditAtomicAsync(() => new RecordDrawerCashCommandHandler(
+            _fixture.Factory, _authorization, _clock, AuditWriter, _session)
+            .HandleAsync(new RecordDrawerCashCommand(BusinessDate, _session.UserId, new Money(50m), new Money(250m)),
+                CancellationToken.None));
+    }
+
+    /// <summary>
+    /// A first-run setup that cannot write its audit trail leaves the shop unconfigured, so
+    /// setup is still offered rather than looking complete without a trail (PRD §3).
+    /// </summary>
+    [Fact]
+    public async Task A_failure_writing_an_audit_entry_leaves_the_shop_unconfigured()
+    {
+        await ProveAuditAtomicAsync(() => new CompleteSetupCommandHandler(
+            _fixture.Factory, new PasswordHasher(), _clock, AuditWriter)
+            .HandleAsync(new CompleteSetupCommand("owner", Password, "Owner",
+                new StoreDetails("Matrix shop", null, "New address", "01001234567", null, null),
+                StoreSettings.Defaults with { PrintCopies = 2 }), CancellationToken.None));
+    }
+
+    /// <summary>
+    /// Runs one command with its audit write failing, and checks that neither the change nor the
+    /// audit entry survived the failure.
+    /// </summary>
+    /// <param name="command">The command to run.</param>
+    private async Task ProveAuditAtomicAsync(Func<Task> command)
+    {
+        await ProveRollbackAsync(WritePoint.WriteAuditEntryInTransaction, command);
+
+        // The injector stays armed until it is told otherwise, so the next command starts clean.
+        _fixture.Faults.FailAt = null;
+        _fixture.Faults.Failed.Clear();
+    }
+
     /// <summary>A committed sale has one audit row even when the checkout is replayed.</summary>
     [Fact]
     public async Task A_committed_sale_and_its_replay_have_one_audit_entry()

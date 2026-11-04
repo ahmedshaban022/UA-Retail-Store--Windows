@@ -23,4 +23,9 @@ public interface IAuditWriter
 {
     /// <summary>Appends an audit entry.</summary>
     Task WriteAsync(AuditEntry entry, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an audit entry to a write that is already open, so the entry is saved with it.</summary>
+    /// <param name="trail">The open write the entry belongs to.</param>
+    /// <param name="entry">The entry to add.</param>
+    void AddTo(IAuditTrail trail, AuditEntry entry);
 }

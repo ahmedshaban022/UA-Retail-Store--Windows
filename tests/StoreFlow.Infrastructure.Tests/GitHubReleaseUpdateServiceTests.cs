@@ -92,6 +92,152 @@ public sealed class GitHubReleaseUpdateServiceTests
         result.HasUpdate.ShouldBeFalse();
     }
 
+    /// <summary>
+    /// A feed that answers "too many requests" is not the shop's problem, so it is not an error
+    /// the shopkeeper is shown: the check simply finds nothing today.
+    /// </summary>
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task A_feed_that_is_rate_limited_or_unavailable_is_not_an_error(HttpStatusCode status)
+    {
+        using var handler = new FakeHandler(_ => new HttpResponseMessage(status));
+        GitHubReleaseUpdateService service = Service(handler, "1.0.0");
+
+        UpdateCheckResult result = await service.CheckAsync(CancellationToken.None);
+
+        result.Status.ShouldBe(UpdateStatus.Unavailable);
+        result.HasUpdate.ShouldBeFalse();
+        result.LatestVersion.ShouldBeNull();
+    }
+
+    /// <summary>
+    /// A feed that cannot be reached at all is not an error either: the shop's programme carries
+    /// on, and nothing is written anywhere.
+    /// </summary>
+    [Fact]
+    public async Task A_feed_that_cannot_be_reached_at_all_is_not_an_error()
+    {
+        using var handler = new FakeHandler(_ => throw new HttpRequestException("The name could not be resolved."));
+        GitHubReleaseUpdateService service = Service(handler, "1.0.0");
+
+        UpdateCheckResult result = await service.CheckAsync(CancellationToken.None);
+
+        result.Status.ShouldBe(UpdateStatus.Unavailable);
+        result.HasUpdate.ShouldBeFalse();
+    }
+
+    /// <summary>
+    /// A download that breaks in the middle starts no installer, leaves no half-written file
+    /// behind, and says nothing the shop cannot act on.
+    /// </summary>
+    [Fact]
+    public async Task A_download_that_breaks_in_the_middle_leaves_nothing_behind()
+    {
+        using var handler = new FakeHandler(request => request.RequestUri!.AbsoluteUri switch
+        {
+            var url when url == ChecksumUrl => Text(new string('A', 64)),
+            var url when url == InstallerUrl => Broken(Encoding.UTF8.GetBytes("half an installer")),
+            _ => Json(Release("v1.0.1")),
+        });
+
+        using var scoped = new TempFolder();
+
+        var launcher = new RecordingLauncher();
+
+        var service = new GitHubReleaseUpdateService(
+            "1.0.0",
+            handler.Client,
+            launcher,
+            scoped.Path);
+
+        UpdateCheckResult check = await service.CheckAsync(CancellationToken.None);
+        UpdateInstallResult result = await service.InstallAsync(check, null, CancellationToken.None);
+
+        result.Started.ShouldBeFalse();
+        result.Reason.ShouldNotBeNullOrWhiteSpace();
+
+        // Nothing was installed, and the half-written download was thrown away.
+        launcher.StartedPath.ShouldBeNull();
+        Directory.GetFiles(scoped.Path, "*.msi", SearchOption.AllDirectories).ShouldBeEmpty();
+    }
+
+    /// <summary>
+    /// A download that is cancelled starts no installer and leaves nothing behind, so the shop
+    /// can try again later without finding a broken file in the way.
+    /// </summary>
+    [Fact]
+    public async Task A_download_that_is_cancelled_leaves_nothing_behind()
+    {
+        using var handler = new FakeHandler(request => request.RequestUri!.AbsoluteUri switch
+        {
+            var url when url == ChecksumUrl => Text(new string('A', 64)),
+            var url when url == InstallerUrl => Bytes(Encoding.UTF8.GetBytes("the installer bytes")),
+            _ => Json(Release("v1.0.1")),
+        });
+
+        using var scoped = new TempFolder();
+
+        var launcher = new RecordingLauncher();
+
+        var service = new GitHubReleaseUpdateService(
+            "1.0.0",
+            handler.Client,
+            launcher,
+            scoped.Path);
+
+        UpdateCheckResult check = await service.CheckAsync(CancellationToken.None);
+
+        using var cancelled = new CancellationTokenSource();
+        await cancelled.CancelAsync();
+
+        UpdateInstallResult result = await service.InstallAsync(check, null, cancelled.Token);
+
+        result.Started.ShouldBeFalse();
+        result.Reason.ShouldNotBeNullOrWhiteSpace();
+        launcher.StartedPath.ShouldBeNull();
+        Directory.GetFiles(scoped.Path, "*.msi", SearchOption.AllDirectories).ShouldBeEmpty();
+    }
+
+    /// <summary>
+    /// An update never writes inside the shop's own data folder: the download is kept in the
+    /// folder it was given, and the shop's ledger, catalogue and backups are never touched.
+    /// </summary>
+    [Fact]
+    public async Task An_update_never_writes_inside_the_shop_data()
+    {
+        byte[] installer = Encoding.UTF8.GetBytes("the installer bytes");
+        string checksum = Convert.ToHexString(SHA256.HashData(installer));
+
+        using var handler = new FakeHandler(request => request.RequestUri!.AbsoluteUri switch
+        {
+            var url when url == ChecksumUrl => Text(checksum),
+            var url when url == InstallerUrl => Bytes(installer),
+            _ => Json(Release("v1.0.1")),
+        });
+
+        using var scoped = new TempFolder();
+
+        var launcher = new RecordingLauncher();
+
+        var service = new GitHubReleaseUpdateService(
+            "1.0.0",
+            handler.Client,
+            launcher,
+            scoped.Path);
+
+        UpdateCheckResult check = await service.CheckAsync(CancellationToken.None);
+        UpdateInstallResult result = await service.InstallAsync(check, null, CancellationToken.None);
+
+        result.Started.ShouldBeTrue();
+
+        // Everything the update wrote is under the folder it was given, and nothing else.
+        Path.GetFullPath(launcher.StartedPath!).StartsWith(
+            Path.GetFullPath(scoped.Path),
+            StringComparison.OrdinalIgnoreCase).ShouldBeTrue();
+    }
+
     [Fact]
     public async Task A_download_that_matches_its_checksum_starts_the_installer()
     {
@@ -198,6 +344,57 @@ public sealed class GitHubReleaseUpdateServiceTests
 
     private static HttpResponseMessage Bytes(byte[] body) =>
         new(HttpStatusCode.OK) { Content = new ByteArrayContent(body) };
+
+    /// <summary>A download that delivers a few bytes and then breaks, the way a dropped connection does.</summary>
+    private static HttpResponseMessage Broken(byte[] head) =>
+        new(HttpStatusCode.OK) { Content = new StreamContent(new BreakingStream(head)) };
+
+    /// <summary>A stream that hands over part of a download and then fails.</summary>
+    private sealed class BreakingStream : Stream
+    {
+        private readonly byte[] _head;
+        private int _read;
+
+        public BreakingStream(byte[] head) => _head = head;
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            if (_read >= _head.Length)
+            {
+                throw new IOException("The connection was closed before the download finished.");
+            }
+
+            int take = Math.Min(count, _head.Length - _read);
+            Array.Copy(_head, _read, buffer, offset, take);
+            _read += take;
+
+            return take;
+        }
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
 
     /// <summary>A handler that answers by hand, so no test touches the internet.</summary>
     private sealed class FakeHandler : HttpMessageHandler

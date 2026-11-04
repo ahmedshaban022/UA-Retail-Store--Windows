@@ -169,18 +169,19 @@ public sealed class RecordDrawerCashCommandHandler(
             clock,
             cancellationToken);
 
-        await context.BeforeWriteAsync(WritePoint.RecordDrawerCash, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 "cash.drawer_counted",
                 nameof(Setting),
                 command.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 null,
                 $"cashier {command.CashierUserId.ToString(CultureInfo.InvariantCulture)}",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.RecordDrawerCash, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

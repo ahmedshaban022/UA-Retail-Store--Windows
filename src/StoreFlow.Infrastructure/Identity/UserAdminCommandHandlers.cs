@@ -212,18 +212,26 @@ public sealed class CreateUserCommandHandler(
 
         context.Users.Add(user);
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         await context.BeforeWriteAsync(WritePoint.CreateUser, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        await auditWriter.WriteAsync(
+        // A new account has no id until its row has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the account it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 UserAdminAudit.Created,
                 nameof(User),
                 user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 null,
                 $"role {role.Code}",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<UserSummary>.Success(new UserSummary(
             user.Id,
@@ -296,18 +304,19 @@ public sealed class ChangeUserRoleCommandHandler(
         user.RoleId = role.Id;
         user.UpdatedUtc = clock.UtcNow;
 
-        await context.BeforeWriteAsync(WritePoint.ChangeUserRole, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 UserAdminAudit.RoleChanged,
                 nameof(User),
                 user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 null,
                 $"role {role.Code}",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.ChangeUserRole, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result<UserSummary>.Success(new UserSummary(
             user.Id,
@@ -378,18 +387,19 @@ public sealed class SetUserActiveCommandHandler(
         user.IsActive = command.IsActive;
         user.UpdatedUtc = clock.UtcNow;
 
-        await context.BeforeWriteAsync(WritePoint.SetUserActive, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 command.IsActive ? UserAdminAudit.Reactivated : UserAdminAudit.Deactivated,
                 nameof(User),
                 user.Id.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 null,
                 null,
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.SetUserActive, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         Role? role = await context.Roles
             .AsNoTracking()

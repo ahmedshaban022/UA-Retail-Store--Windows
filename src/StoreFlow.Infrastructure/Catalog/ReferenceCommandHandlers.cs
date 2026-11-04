@@ -94,18 +94,26 @@ public sealed class SaveCategoryCommandHandler(
             context.Categories.Add(category);
         }
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         await context.BeforeWriteAsync(WritePoint.SaveCategory, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        await auditWriter.WriteAsync(
+        // A new category has no id until its row has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the category it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 isNew ? CatalogAudit.CategoryCreate : CatalogAudit.CategoryUpdate,
                 nameof(Category),
                 category.Id.ToString(),
                 beforeHash,
                 category.Name,
-                null),
-            cancellationToken);
+                null));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(category.Id);
     }
@@ -156,18 +164,19 @@ public sealed class SetCategoryActiveCommandHandler(
         category.IsActive = command.IsActive;
         category.UpdatedUtc = clock.UtcNow;
 
-        await context.BeforeWriteAsync(WritePoint.SetCategoryActive, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 CatalogAudit.CategoryActiveChanged,
                 nameof(Category),
                 category.Id.ToString(),
                 beforeHash,
                 command.IsActive ? "Active" : "Deactivated",
-                null),
-            cancellationToken);
+                null));
+
+        await context.BeforeWriteAsync(WritePoint.SetCategoryActive, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
@@ -270,18 +279,26 @@ public sealed class SaveUnitCommandHandler(
             context.Units.Add(unit);
         }
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         await context.BeforeWriteAsync(WritePoint.SaveUnit, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        await auditWriter.WriteAsync(
+        // A new unit has no id until its row has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the unit it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 isNew ? CatalogAudit.UnitCreate : CatalogAudit.UnitUpdate,
                 nameof(Unit),
                 unit.Id.ToString(),
                 beforeHash,
                 unit.Name,
-                null),
-            cancellationToken);
+                null));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(unit.Id);
     }
@@ -330,18 +347,19 @@ public sealed class SetUnitActiveCommandHandler(
 
         unit.IsActive = command.IsActive;
 
-        await context.BeforeWriteAsync(WritePoint.SetUnitActive, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 CatalogAudit.UnitActiveChanged,
                 nameof(Unit),
                 unit.Id.ToString(),
                 beforeHash,
                 command.IsActive ? "Active" : "Deactivated",
-                null),
-            cancellationToken);
+                null));
+
+        await context.BeforeWriteAsync(WritePoint.SetUnitActive, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
@@ -435,18 +453,26 @@ public sealed class SaveSupplierCommandHandler(
             context.Suppliers.Add(supplier);
         }
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         await context.BeforeWriteAsync(WritePoint.SaveSupplier, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        await auditWriter.WriteAsync(
+        // A new supplier has no id until its row has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the supplier it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 isNew ? CatalogAudit.SupplierCreate : CatalogAudit.SupplierUpdate,
                 nameof(Supplier),
                 supplier.Id.ToString(),
                 beforeHash,
                 supplier.Name,
-                null),
-            cancellationToken);
+                null));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(supplier.Id);
     }
@@ -497,18 +523,19 @@ public sealed class SetSupplierActiveCommandHandler(
         supplier.IsActive = command.IsActive;
         supplier.UpdatedUtc = clock.UtcNow;
 
-        await context.BeforeWriteAsync(WritePoint.SetSupplierActive, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 CatalogAudit.SupplierActiveChanged,
                 nameof(Supplier),
                 supplier.Id.ToString(),
                 beforeHash,
                 command.IsActive ? "Active" : "Deactivated",
-                null),
-            cancellationToken);
+                null));
+
+        await context.BeforeWriteAsync(WritePoint.SetSupplierActive, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

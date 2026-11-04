@@ -184,18 +184,26 @@ public sealed class SavePurchaseCommandHandler(
             context.PurchaseDocuments.Add(document);
         }
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         await context.BeforeWriteAsync(WritePoint.SavePurchase, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        await auditWriter.WriteAsync(
+        // A new document has no id until its row has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the document it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.PurchaseSave,
                 nameof(PurchaseDocument),
                 document.Id.ToString(),
                 null,
                 $"{document.Number} with {document.Lines.Count} lines, total {document.Total}",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(document.Id);
     }
@@ -307,20 +315,21 @@ public sealed class PostPurchaseCommandHandler(
         document.PostedUtc = now;
         document.UserId = session.Current?.UserId;
 
-        await context.BeforeWriteAsync(WritePoint.PostPurchaseStock, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-        await context.BeforeCommitAsync(WritePoint.PostPurchaseCommit, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.PurchasePost,
                 nameof(PurchaseDocument),
                 document.Id.ToString(),
                 null,
                 $"{document.Number} received, total {document.Total}",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.PostPurchaseStock, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.PostPurchaseCommit, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(document.Id);
     }
@@ -481,20 +490,21 @@ public sealed class ReversePurchaseCommandHandler(
 
         document.Status = DocumentStatus.Reversed;
 
-        await context.BeforeWriteAsync(WritePoint.ReversePurchaseStock, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-        await context.BeforeCommitAsync(WritePoint.ReversePurchaseCommit, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.PurchaseReverse,
                 nameof(PurchaseDocument),
                 document.Id.ToString(),
                 null,
                 $"{document.Number} reversed by {reversal.Number}: {reason}",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.ReversePurchaseStock, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.ReversePurchaseCommit, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(reversal.Id);
     }

@@ -174,18 +174,26 @@ public sealed class SaveStockCountCommandHandler(
             context.StockCounts.Add(count);
         }
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         await context.BeforeWriteAsync(WritePoint.SaveStockCount, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        await auditWriter.WriteAsync(
+        // A new count has no id until its row has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the count it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.CountSave,
                 nameof(StockCount),
                 count.Id.ToString(),
                 null,
                 $"{count.Number} with {count.Lines.Count} counted products",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(count.Id);
     }
@@ -245,18 +253,19 @@ public sealed class SubmitStockCountCommandHandler(
 
         count.Status = StockCountStatus.AwaitingApproval;
 
-        await context.BeforeWriteAsync(WritePoint.SubmitStockCount, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.CountSubmit,
                 nameof(StockCount),
                 count.Id.ToString(),
                 null,
                 $"{count.Number} submitted for approval",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.SubmitStockCount, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
@@ -337,18 +346,19 @@ public sealed class ApproveStockCountCommandHandler(
         count.ApprovedUtc = clock.UtcNow;
         count.Reason = command.Reason.Trim();
 
-        await context.BeforeWriteAsync(WritePoint.ApproveStockCount, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.CountApprove,
                 nameof(StockCount),
                 count.Id.ToString(),
                 null,
                 $"{count.Number} approved: {count.Reason}",
-                actorId),
-            cancellationToken);
+                actorId));
+
+        await context.BeforeWriteAsync(WritePoint.ApproveStockCount, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
@@ -463,20 +473,21 @@ public sealed class PostStockCountCommandHandler(
 
         count.Status = StockCountStatus.Posted;
 
-        await context.BeforeWriteAsync(WritePoint.PostStockCountMovements, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-        await context.BeforeCommitAsync(WritePoint.PostStockCountCommit, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.CountPost,
                 nameof(StockCount),
                 count.Id.ToString(),
                 null,
                 $"{count.Number} posted with {written} corrections",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.PostStockCountMovements, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.PostStockCountCommit, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<int>.Success(written);
     }
@@ -524,18 +535,19 @@ public sealed class CancelStockCountCommandHandler(
 
         count.Status = StockCountStatus.Cancelled;
 
-        await context.BeforeWriteAsync(WritePoint.CancelStockCount, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 InventoryAudit.CountCancel,
                 nameof(StockCount),
                 count.Id.ToString(),
                 null,
                 $"{count.Number} cancelled",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.CancelStockCount, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

@@ -266,7 +266,7 @@ public sealed class PostSaleCommandHandler(
             await context.BeforeWriteAsync(WritePoint.PostSaleStockMovement, cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
 
-            EfAuditWriter.AddEntry(
+            auditWriter.AddTo(
                 context,
                 new AuditEntry(
                     PosAudit.SalePost,
@@ -274,29 +274,30 @@ public sealed class PostSaleCommandHandler(
                     invoice.Id.ToString(CultureInfo.InvariantCulture),
                     null,
                     $"{invoice.Number} for {invoice.Total.Amount.ToString("0.00", CultureInfo.InvariantCulture)}",
-                    session.Current?.UserId),
-                session.Current?.UserId,
-                clock.UtcNow);
-            await context.BeforeWriteAsync(WritePoint.PostSaleAudit, cancellationToken);
-            await context.SaveChangesAsync(cancellationToken);
-
-            await context.BeforeCommitAsync(WritePoint.PostSaleCommit, cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+                    session.Current?.UserId));
 
             if (command.ApprovalRequestId is int approvalRequestId)
             {
                 // The approval that let the discount through is written down, so that the trail
-                // shows why the sale was allowed.
-                await auditWriter.WriteAsync(
+                // shows why the sale was allowed. It joins the sale's own write, so the sale and
+                // the reason for it are made permanent together or not at all.
+                auditWriter.AddTo(
+                    context,
                     new AuditEntry(
                         Approvals.ApprovalAudit.Applied,
                         nameof(SalesInvoice),
                         invoice.Id.ToString(CultureInfo.InvariantCulture),
                         null,
                         $"approval {approvalRequestId.ToString(CultureInfo.InvariantCulture)}",
-                        session.Current?.UserId),
-                    cancellationToken);
+                        session.Current?.UserId));
             }
+
+            await context.BeforeWriteAsync(WritePoint.PostSaleAudit, cancellationToken);
+            await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+
+            await context.BeforeCommitAsync(WritePoint.PostSaleCommit, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
 
             return Result<SaleReceipt>.Success(receipt);
         }

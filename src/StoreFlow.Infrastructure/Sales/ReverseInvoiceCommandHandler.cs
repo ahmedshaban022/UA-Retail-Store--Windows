@@ -240,6 +240,21 @@ public sealed class ReverseInvoiceCommandHandler(
 
         await context.BeforeWriteAsync(WritePoint.ReverseInvoiceStockMovement, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+
+        // The reversal only has an id once it has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the reversal it describes.
+        auditWriter.AddTo(
+            context,
+            new AuditEntry(
+                SalesAudit.InvoiceReversal,
+                nameof(SalesInvoice),
+                reversal.Id.ToString(CultureInfo.InvariantCulture),
+                null,
+                $"{reversal.Number} reverses {invoice.Number} for {reversalTotal.Amount.ToString("0.00", CultureInfo.InvariantCulture)}",
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         await context.BeforeCommitAsync(WritePoint.ReverseInvoiceCommit, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
@@ -262,16 +277,6 @@ public sealed class ReverseInvoiceCommandHandler(
                     command.IsResellable,
                     plan.Total))
                 .ToList());
-
-        await auditWriter.WriteAsync(
-            new AuditEntry(
-                SalesAudit.InvoiceReversal,
-                nameof(SalesInvoice),
-                reversal.Id.ToString(CultureInfo.InvariantCulture),
-                null,
-                $"{reversal.Number} reverses {invoice.Number} for {reversalTotal.Amount.ToString("0.00", CultureInfo.InvariantCulture)}",
-                session.Current?.UserId),
-            cancellationToken);
 
         return Result<RefundReceipt>.Success(receipt);
     }

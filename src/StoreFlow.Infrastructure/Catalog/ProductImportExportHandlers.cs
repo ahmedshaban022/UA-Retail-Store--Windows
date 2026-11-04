@@ -210,18 +210,19 @@ public sealed class ImportProductsCommandHandler(
             productsToUpdate.Add(product);
         }
 
-        await context.BeforeWriteAsync(WritePoint.ImportProducts, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 CatalogAudit.CatalogImport,
                 nameof(Product),
                 null,
                 null,
                 $"Created {created}, updated {updated}, failed {failed}",
-                null),
-            cancellationToken);
+                null));
+
+        await context.BeforeWriteAsync(WritePoint.ImportProducts, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result<ImportSummary>.Success(new ImportSummary(created, updated, failed));
     }

@@ -86,20 +86,28 @@ public sealed class HoldCartCommandHandler(
 
         context.HeldCarts.Add(cart);
 
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         await context.BeforeWriteAsync(WritePoint.HoldCart, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         HeldCartSummary summary = Summarise(cart, command.Lines);
 
-        await auditWriter.WriteAsync(
+        // A new cart has no id until its row has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the cart it describes.
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 PosAudit.CartHold,
                 nameof(HeldCart),
                 cart.Id.ToString(CultureInfo.InvariantCulture),
                 null,
                 $"{cart.Number}: {summary.LineCount} lines",
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return Result<HeldCartSummary>.Success(summary);
     }
@@ -166,18 +174,19 @@ public sealed class ResumeHeldCartCommandHandler(
         // The cart is on the till now, so it is no longer waiting.
         context.HeldCarts.Remove(cart);
 
-        await context.BeforeWriteAsync(WritePoint.ResumeHeldCart, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 PosAudit.CartResume,
                 nameof(HeldCart),
                 cart.Id.ToString(CultureInfo.InvariantCulture),
                 null,
                 cart.Number,
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.ResumeHeldCart, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result<HeldCartDetails>.Success(new HeldCartDetails(summary, lines, invoiceDiscount));
     }
@@ -217,18 +226,19 @@ public sealed class ClearHeldCartCommandHandler(
 
         context.HeldCarts.Remove(cart);
 
-        await context.BeforeWriteAsync(WritePoint.ClearHeldCart, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await auditWriter.WriteAsync(
+        auditWriter.AddTo(
+            context,
             new AuditEntry(
                 PosAudit.CartClear,
                 nameof(HeldCart),
                 cart.Id.ToString(CultureInfo.InvariantCulture),
                 null,
                 cart.Number,
-                session.Current?.UserId),
-            cancellationToken);
+                session.Current?.UserId));
+
+        await context.BeforeWriteAsync(WritePoint.ClearHeldCart, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
