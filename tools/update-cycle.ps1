@@ -138,6 +138,28 @@ function Get-FolderFingerprint([string] $folder) {
     return $fingerprint
 }
 
+# The fingerprints are written to the evidence folder, so that the phases can be run as separate
+# invocations and still measure the same shop before and after.
+function Save-Fingerprint([string] $name, $fingerprint) {
+    $path = Join-Path $EvidenceRoot ($name + '.json')
+    ConvertTo-Json -InputObject @{
+        shop = @($fingerprint.Keys | Sort-Object | ForEach-Object { @{ path = $_; hash = $fingerprint[$_] } })
+    } | Set-Content -LiteralPath $path -Encoding UTF8
+}
+
+function Read-Fingerprint([string] $name) {
+    $path = Join-Path $EvidenceRoot ($name + '.json')
+
+    if (-not (Test-Path -LiteralPath $path)) { return $null }
+
+    $saved = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+    $fingerprint = @{}
+
+    foreach ($entry in $saved.shop) { $fingerprint[$entry.path] = $entry.hash }
+
+    return $fingerprint
+}
+
 function Compare-Fingerprint($before, $after, [string] $what) {
     $changed = @()
     $missing = @()
@@ -517,6 +539,8 @@ try {
         $script:shopBefore = Get-FolderFingerprint $ShopHome
         $script:realShopBefore = Get-FolderFingerprint $realShopHome
 
+        Save-Fingerprint 'before' $script:shopBefore
+
         Write-Line ('the shop''s folder holds ' + $script:shopBefore.Count + ' files before the upgrade')
         Write-Line ('the real shop''s folder holds ' + $script:realShopBefore.Count + ' files before the upgrade')
 
@@ -524,6 +548,8 @@ try {
 
         $script:shopAfter = Get-FolderFingerprint $ShopHome
         $script:realShopAfter = Get-FolderFingerprint $realShopHome
+
+        Save-Fingerprint 'after' $script:shopAfter
 
         if ($Phase -eq 'Update') {
             Write-Line ''
@@ -533,6 +559,12 @@ try {
     }
 
     if ($Phase -eq 'All' -or $Phase -eq 'Verify') {
+        # The fingerprints may have been measured by an earlier invocation of this script.
+        if ($null -eq $script:shopBefore) { $script:shopBefore = Read-Fingerprint 'before' }
+        if ($null -eq $script:shopAfter) { $script:shopAfter = Read-Fingerprint 'after' }
+        if ($null -eq $script:realShopBefore) { $script:realShopBefore = @{} }
+        if ($null -eq $script:realShopAfter) { $script:realShopAfter = @{} }
+
         Invoke-Verify
     }
 }
