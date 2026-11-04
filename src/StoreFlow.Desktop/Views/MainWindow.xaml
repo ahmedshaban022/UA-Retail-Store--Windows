@@ -117,6 +117,7 @@
                     ItemsSource="{Binding Languages}"
                     SelectedItem="{Binding SelectedLanguage}"
                     AutomationProperties.AutomationId="LanguagePicker"
+                    AutomationProperties.Name="{Binding LanguageLabel}"
                     DisplayMemberPath="NativeName" />
 
           <StackPanel Grid.Column="2"

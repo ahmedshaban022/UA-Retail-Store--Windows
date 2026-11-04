@@ -32,7 +32,7 @@
                     SelectedItem="{Binding SelectedKind}"
                     DisplayMemberPath="DisplayName"
                     VerticalAlignment="Center"
-                    AutomationProperties.AutomationId="Reports.Picker" />
+                    AutomationProperties.AutomationId="Reports.Picker" AutomationProperties.Name="{Binding KindLabel}" />
 
           <TextBlock Text="{Binding FromLabel}"
                      Style="{StaticResource Type.FieldLabel}"
@@ -41,7 +41,7 @@
           <TextBox Width="120"
                    Text="{Binding FromText, UpdateSourceTrigger=PropertyChanged}"
                    VerticalAlignment="Center"
-                   AutomationProperties.AutomationId="Reports.From" />
+                   AutomationProperties.AutomationId="Reports.From" AutomationProperties.Name="{Binding FromLabel}" />
 
           <TextBlock Text="{Binding ToLabel}"
                      Style="{StaticResource Type.FieldLabel}"
@@ -50,7 +50,7 @@
           <TextBox Width="120"
                    Text="{Binding ToText, UpdateSourceTrigger=PropertyChanged}"
                    VerticalAlignment="Center"
-                   AutomationProperties.AutomationId="Reports.To" />
+                   AutomationProperties.AutomationId="Reports.To" AutomationProperties.Name="{Binding ToLabel}" />
 
           <TextBlock Text="{Binding CashierLabel}"
                      Style="{StaticResource Type.FieldLabel}"
@@ -61,7 +61,7 @@
                     SelectedItem="{Binding SelectedCashier}"
                     DisplayMemberPath="DisplayName"
                     VerticalAlignment="Center"
-                    AutomationProperties.AutomationId="Reports.Cashier" />
+                    AutomationProperties.AutomationId="Reports.Cashier" AutomationProperties.Name="{Binding CashierLabel}" />
         </StackPanel>
 
         <!-- The commands -->
@@ -82,7 +82,7 @@
 
     <Grid Grid.Row="1">
       <DataGrid x:Name="ReportGrid"
-                AutomationProperties.AutomationId="Reports.Grid"
+                AutomationProperties.AutomationId="Reports.Grid" AutomationProperties.Name="{Binding Title}"
                 ItemsSource="{Binding Rows}"
                 AutoGenerateColumns="False"
                 IsReadOnly="True"
@@ -120,7 +120,7 @@
         <TextBox Width="110"
                  Text="{Binding DrawerOpeningText, UpdateSourceTrigger=PropertyChanged}"
                  VerticalAlignment="Center"
-                 AutomationProperties.AutomationId="Reports.DrawerOpening" />
+                 AutomationProperties.AutomationId="Reports.DrawerOpening" AutomationProperties.Name="{Binding DrawerOpeningLabel}" />
 
         <TextBlock Text="{Binding DrawerCountedLabel}"
                    Style="{StaticResource Type.Caption}"
@@ -129,7 +129,7 @@
         <TextBox Width="110"
                  Text="{Binding DrawerCountedText, UpdateSourceTrigger=PropertyChanged}"
                  VerticalAlignment="Center"
-                 AutomationProperties.AutomationId="Reports.DrawerCounted" />
+                 AutomationProperties.AutomationId="Reports.DrawerCounted" AutomationProperties.Name="{Binding DrawerCountedLabel}" />
 
         <Button Content="{Binding RecordDrawerLabel}"
                 Command="{Binding RecordDrawerCommand}"

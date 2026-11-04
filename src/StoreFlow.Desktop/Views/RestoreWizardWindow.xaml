@@ -46,7 +46,7 @@
                     ItemsSource="{Binding Artifacts}"
                     SelectedItem="{Binding SelectedArtifact}"
                     DisplayMemberPath="Path"
-                    AutomationProperties.AutomationId="Restore.Artifact" />
+                    AutomationProperties.AutomationId="Restore.Artifact" AutomationProperties.Name="{Binding ChooseLabel}" />
 
           <Button Grid.Column="1"
                   Content="{Binding BrowseLabel}"

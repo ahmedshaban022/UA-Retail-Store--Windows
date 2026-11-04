@@ -46,7 +46,7 @@
         <StackPanel Grid.Column="0">
           <TextBlock Text="{Binding FileLabel}" Style="{StaticResource Type.FieldLabel}" />
           <TextBox Text="{Binding FilePath}"
-                   AutomationProperties.AutomationId="CsvImport.FilePath"
+                   AutomationProperties.AutomationId="CsvImport.FilePath" AutomationProperties.Name="{Binding FileLabel}"
                    IsReadOnly="True"
                    FlowDirection="LeftToRight"
                    TextAlignment="Left" />
@@ -76,7 +76,7 @@
 
     <!-- What the import would do -->
     <Grid Grid.Row="2" Margin="24,14,24,0">
-      <DataGrid x:Name="CsvImportGrid" AutomationProperties.AutomationId="CsvImport.Grid" EnableColumnVirtualization="False"
+      <DataGrid x:Name="CsvImportGrid" AutomationProperties.AutomationId="CsvImport.Grid" AutomationProperties.Name="{Binding Title}" EnableColumnVirtualization="False"
                 ItemsSource="{Binding Rows}">
         <DataGrid.Columns>
           <DataGridTextColumn Width="60"

@@ -36,7 +36,7 @@
         <ComboBox ItemsSource="{Binding Products}"
                   DisplayMemberPath="DisplayName"
                   SelectedValuePath="Id"
-                  AutomationProperties.AutomationId="StockAdjustment.Product">
+                  AutomationProperties.AutomationId="StockAdjustment.Product" AutomationProperties.Name="{Binding ProductLabel}">
             <ComboBox.SelectedValue>
                 <Binding Path="ProductId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
             </ComboBox.SelectedValue>
@@ -46,13 +46,13 @@
         <TextBox Text="{Binding QuantityText, UpdateSourceTrigger=PropertyChanged}"
                  FlowDirection="LeftToRight"
                  TextAlignment="Left"
-                 AutomationProperties.AutomationId="StockAdjustment.Quantity" />
+                 AutomationProperties.AutomationId="StockAdjustment.Quantity" AutomationProperties.Name="{Binding QuantityLabel}" />
 
         <TextBlock Text="{Binding UnitCostLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,16,0,0" />
         <TextBox Text="{Binding UnitCostText, UpdateSourceTrigger=PropertyChanged}"
                  FlowDirection="LeftToRight"
                  TextAlignment="Left"
-                 AutomationProperties.AutomationId="StockAdjustment.UnitCost" />
+                 AutomationProperties.AutomationId="StockAdjustment.UnitCost" AutomationProperties.Name="{Binding UnitCostLabel}" />
 
         <TextBlock Text="{Binding DispositionLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,16,0,0" />
         <StackPanel Orientation="Horizontal">
@@ -71,7 +71,7 @@
                  TextWrapping="Wrap"
                  Height="{DynamicResource Size.MultilineFieldHeight}"
                  VerticalScrollBarVisibility="Auto"
-                 AutomationProperties.AutomationId="StockAdjustment.Reason" />
+                 AutomationProperties.AutomationId="StockAdjustment.Reason" AutomationProperties.Name="{Binding ReasonLabel}" />
       </StackPanel>
     </ScrollViewer>
 

@@ -54,7 +54,7 @@
                     DisplayMemberPath="DisplayName"
                     SelectedValuePath="Id"
                     MinWidth="200"
-                    AutomationProperties.AutomationId="PurchaseEditor.Supplier">
+                    AutomationProperties.AutomationId="PurchaseEditor.Supplier" AutomationProperties.Name="{Binding SupplierLabel}">
               <ComboBox.SelectedValue>
                   <Binding Path="SupplierId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
               </ComboBox.SelectedValue>
@@ -67,7 +67,7 @@
                    Width="140"
                    FlowDirection="LeftToRight"
                    TextAlignment="Left"
-                   AutomationProperties.AutomationId="PurchaseEditor.Date" />
+                   AutomationProperties.AutomationId="PurchaseEditor.Date" AutomationProperties.Name="{Binding DateLabel}" />
         </StackPanel>
 
         <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="16,0,0,0">
@@ -76,14 +76,14 @@
                    Width="120"
                    FlowDirection="LeftToRight"
                    TextAlignment="Left"
-                   AutomationProperties.AutomationId="PurchaseEditor.Discount" />
+                   AutomationProperties.AutomationId="PurchaseEditor.Discount" AutomationProperties.Name="{Binding DiscountLabel}" />
         </StackPanel>
 
         <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="16,0,0,0">
           <TextBlock Text="{Binding NotesLabel}" Style="{StaticResource Type.FieldLabel}" />
           <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
                    Width="220"
-                   AutomationProperties.AutomationId="PurchaseEditor.Notes" />
+                   AutomationProperties.AutomationId="PurchaseEditor.Notes" AutomationProperties.Name="{Binding NotesLabel}" />
         </StackPanel>
       </Grid>
     </Border>
@@ -91,7 +91,7 @@
     <!-- The lines -->
     <Grid Grid.Row="2" Margin="24,12,24,0">
       <DataGrid x:Name="LinesGrid"
-                AutomationProperties.AutomationId="PurchaseEditor.Lines"
+                AutomationProperties.AutomationId="PurchaseEditor.Lines" AutomationProperties.Name="{Binding Title}"
                 ItemsSource="{Binding Lines}"
                 CanUserAddRows="False"
                 CanUserDeleteRows="False"
@@ -108,7 +108,7 @@
                 <ComboBox ItemsSource="{Binding DataContext.Products, Source={x:Reference LinesGrid}}"
                           DisplayMemberPath="DisplayName"
                           SelectedValuePath="Id"
-                          AutomationProperties.AutomationId="PurchaseEditor.Line.Product">
+                          AutomationProperties.AutomationId="PurchaseEditor.Line.Product" AutomationProperties.Name="{Binding DataContext.ProductLabel, Source={x:Reference LinesGrid}}">
                     <ComboBox.SelectedValue>
                         <Binding Path="ProductId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
                     </ComboBox.SelectedValue>
@@ -124,7 +124,7 @@
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
-                         AutomationProperties.AutomationId="PurchaseEditor.Line.Quantity" />
+                         AutomationProperties.AutomationId="PurchaseEditor.Line.Quantity" AutomationProperties.Name="{Binding DataContext.QuantityLabel, Source={x:Reference LinesGrid}}" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
@@ -136,7 +136,7 @@
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBox Text="{Binding UnitCost, UpdateSourceTrigger=PropertyChanged}"
-                         AutomationProperties.AutomationId="PurchaseEditor.Line.UnitCost" />
+                         AutomationProperties.AutomationId="PurchaseEditor.Line.UnitCost" AutomationProperties.Name="{Binding DataContext.UnitCostLabel, Source={x:Reference LinesGrid}}" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
@@ -148,7 +148,7 @@
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBox Text="{Binding Tax, UpdateSourceTrigger=PropertyChanged}"
-                         AutomationProperties.AutomationId="PurchaseEditor.Line.Tax" />
+                         AutomationProperties.AutomationId="PurchaseEditor.Line.Tax" AutomationProperties.Name="{Binding DataContext.TaxLabel, Source={x:Reference LinesGrid}}" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>

@@ -153,6 +153,9 @@ public sealed partial class ShellViewModel : ObservableObject, IDisposable
     /// <summary>The available languages.</summary>
     public static IReadOnlyList<LanguageOption> Languages => LanguageService.Available;
 
+    /// <summary>The label of the language picker, which names it for a screen reader.</summary>
+    public string LanguageLabel => _strings[StringKeys.SettingsLanguage];
+
     /// <summary>Navigates to a page by its key.</summary>
     [RelayCommand]
     private void Navigate(string key)

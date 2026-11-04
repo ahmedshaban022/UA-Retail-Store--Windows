@@ -15,7 +15,7 @@
       <TextBox Width="120"
                Text="{Binding DateText, UpdateSourceTrigger=PropertyChanged}"
                VerticalAlignment="Center"
-               AutomationProperties.AutomationId="Dashboard.Date" />
+               AutomationProperties.AutomationId="Dashboard.Date" AutomationProperties.Name="{Binding DateLabel}" />
       <Button Content="{Binding RefreshLabel}"
               Command="{Binding RefreshCommand}"
               Style="{StaticResource Button.Ghost}"

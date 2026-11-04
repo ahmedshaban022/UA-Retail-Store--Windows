@@ -44,13 +44,13 @@
                  HorizontalAlignment="Left"
                  FlowDirection="LeftToRight"
                  TextAlignment="Left"
-                 AutomationProperties.AutomationId="StockCount.Date" />
+                 AutomationProperties.AutomationId="StockCount.Date" AutomationProperties.Name="{Binding DateLabel}" />
       </StackPanel>
     </Border>
 
     <Grid Grid.Row="2" Margin="24,12,24,0">
       <DataGrid x:Name="LinesGrid"
-                AutomationProperties.AutomationId="StockCount.Lines"
+                AutomationProperties.AutomationId="StockCount.Lines" AutomationProperties.Name="{Binding Title}"
                 ItemsSource="{Binding Lines}"
                 CanUserAddRows="False"
                 CanUserDeleteRows="False"
@@ -66,7 +66,7 @@
                 <ComboBox ItemsSource="{Binding DataContext.Products, Source={x:Reference LinesGrid}}"
                           DisplayMemberPath="DisplayName"
                           SelectedValuePath="Id"
-                          AutomationProperties.AutomationId="StockCount.Line.Product">
+                          AutomationProperties.AutomationId="StockCount.Line.Product" AutomationProperties.Name="{Binding DataContext.ProductLabel, Source={x:Reference LinesGrid}}">
                     <ComboBox.SelectedValue>
                         <Binding Path="ProductId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
                     </ComboBox.SelectedValue>
@@ -82,7 +82,7 @@
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBox Text="{Binding CountedQuantity, UpdateSourceTrigger=PropertyChanged}"
-                         AutomationProperties.AutomationId="StockCount.Line.Counted" />
+                         AutomationProperties.AutomationId="StockCount.Line.Counted" AutomationProperties.Name="{Binding DataContext.CountedLabel, Source={x:Reference LinesGrid}}" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>

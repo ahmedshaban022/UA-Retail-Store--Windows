@@ -45,21 +45,21 @@
         <StackPanel Grid.Column="0">
           <TextBlock Text="{Binding SkuLabel}" Style="{StaticResource Type.FieldLabel}" />
           <TextBox Text="{Binding Sku, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="ProductEditor.Sku" />
+                   AutomationProperties.AutomationId="ProductEditor.Sku" AutomationProperties.Name="{Binding SkuLabel}" />
           <TextBlock Text="{Binding SkuError}"
                      Style="{StaticResource Type.Error}"
                      AutomationProperties.AutomationId="ProductEditor.SkuError" />
 
           <TextBlock Text="{Binding NameLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
           <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="ProductEditor.Name" />
+                   AutomationProperties.AutomationId="ProductEditor.Name" AutomationProperties.Name="{Binding NameLabel}" />
           <TextBlock Text="{Binding NameError}"
                      Style="{StaticResource Type.Error}"
                      AutomationProperties.AutomationId="ProductEditor.NameError" />
 
           <TextBlock Text="{Binding NameArLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
           <TextBox Text="{Binding NameAr, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="ProductEditor.NameAr"
+                   AutomationProperties.AutomationId="ProductEditor.NameAr" AutomationProperties.Name="{Binding NameArLabel}"
                    FlowDirection="RightToLeft"
                    TextAlignment="Right" />
           <TextBlock Text="{Binding NameArError}"
@@ -68,7 +68,7 @@
 
           <TextBlock Text="{Binding DescriptionLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
           <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="ProductEditor.Description"
+                   AutomationProperties.AutomationId="ProductEditor.Description" AutomationProperties.Name="{Binding DescriptionLabel}"
                    AcceptsReturn="True"
                    TextWrapping="Wrap"
                    Height="{DynamicResource Size.MultilineFieldHeight}"
@@ -81,7 +81,7 @@
           <ComboBox ItemsSource="{Binding Categories}"
                     DisplayMemberPath="DisplayName"
                     SelectedValuePath="Id"
-                    AutomationProperties.AutomationId="ProductEditor.Category">
+                    AutomationProperties.AutomationId="ProductEditor.Category" AutomationProperties.Name="{Binding CategoryLabel}">
               <ComboBox.SelectedValue>
                   <Binding Path="CategoryId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
               </ComboBox.SelectedValue>
@@ -91,7 +91,7 @@
           <ComboBox ItemsSource="{Binding Units}"
                     DisplayMemberPath="DisplayName"
                     SelectedValuePath="Id"
-                    AutomationProperties.AutomationId="ProductEditor.Unit">
+                    AutomationProperties.AutomationId="ProductEditor.Unit" AutomationProperties.Name="{Binding UnitLabel}">
               <ComboBox.SelectedValue>
                   <Binding Path="UnitId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
               </ComboBox.SelectedValue>
@@ -101,7 +101,7 @@
           <ComboBox ItemsSource="{Binding TaxCategories}"
                     DisplayMemberPath="DisplayName"
                     SelectedValuePath="Id"
-                    AutomationProperties.AutomationId="ProductEditor.TaxCategory">
+                    AutomationProperties.AutomationId="ProductEditor.TaxCategory" AutomationProperties.Name="{Binding TaxCategoryLabel}">
               <ComboBox.SelectedValue>
                   <Binding Path="TaxCategoryId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
               </ComboBox.SelectedValue>
@@ -112,7 +112,7 @@
         <StackPanel Grid.Column="2">
           <TextBlock Text="{Binding SalePriceLabel}" Style="{StaticResource Type.FieldLabel}" />
           <TextBox Text="{Binding SalePrice, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="ProductEditor.SalePrice"
+                   AutomationProperties.AutomationId="ProductEditor.SalePrice" AutomationProperties.Name="{Binding SalePriceLabel}"
                    FlowDirection="LeftToRight"
                    TextAlignment="Left" />
           <TextBlock Text="{Binding SalePriceError}"
@@ -121,7 +121,7 @@
 
           <TextBlock Text="{Binding CostPriceLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
           <TextBox Text="{Binding CostPrice, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="ProductEditor.CostPrice"
+                   AutomationProperties.AutomationId="ProductEditor.CostPrice" AutomationProperties.Name="{Binding CostPriceLabel}"
                    FlowDirection="LeftToRight"
                    TextAlignment="Left" />
           <TextBlock Text="{Binding CostPriceError}"
@@ -130,7 +130,7 @@
 
           <TextBlock Text="{Binding ReorderLevelLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
           <TextBox Text="{Binding ReorderLevel, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="ProductEditor.ReorderLevel"
+                   AutomationProperties.AutomationId="ProductEditor.ReorderLevel" AutomationProperties.Name="{Binding ReorderLevelLabel}"
                    FlowDirection="LeftToRight"
                    TextAlignment="Left" />
           <TextBlock Text="{Binding ReorderLevelError}"
@@ -139,7 +139,7 @@
 
           <TextBlock Text="{Binding BarcodeLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,14,0,0" />
           <TextBox Text="{Binding Barcode, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="ProductEditor.Barcode"
+                   AutomationProperties.AutomationId="ProductEditor.Barcode" AutomationProperties.Name="{Binding BarcodeLabel}"
                    FlowDirection="LeftToRight"
                    TextAlignment="Left" />
           <TextBlock Text="{Binding BarcodeError}"
@@ -154,7 +154,7 @@
             </Grid.ColumnDefinitions>
             <TextBox Grid.Column="0"
                      Text="{Binding NewBarcode, UpdateSourceTrigger=PropertyChanged}"
-                     AutomationProperties.AutomationId="ProductEditor.NewBarcode"
+                     AutomationProperties.AutomationId="ProductEditor.NewBarcode" AutomationProperties.Name="{Binding AdditionalBarcodesLabel}"
                      FlowDirection="LeftToRight"
                      TextAlignment="Left" />
             <Button Grid.Column="1"

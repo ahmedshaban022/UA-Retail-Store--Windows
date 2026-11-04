@@ -200,6 +200,12 @@ public sealed partial class InventoryViewModel : ObservableObject
     /// <summary>The label on the from-date field.</summary>
     public string FromLabel => _strings[StringKeys.PurchasesFrom];
 
+    /// <summary>
+    /// The label of the product picker that narrows the movements. The picker has no visible
+    /// label of its own, so this is what names it for a screen reader.
+    /// </summary>
+    public string ProductLabel => _strings[StringKeys.InventoryProduct];
+
     /// <summary>The label on the to-date field.</summary>
     public string ToLabel => _strings[StringKeys.PurchasesTo];
 

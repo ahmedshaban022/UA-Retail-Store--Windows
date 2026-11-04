@@ -483,6 +483,9 @@
   <data name="Inventory.ProductCount" xml:space="preserve">
     <value>المنتجات</value>
   </data>
+  <data name="Inventory.Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
   <data name="Inventory.QuantityDelta" xml:space="preserve">
     <value>التغيير</value>
   </data>
@@ -1326,6 +1329,9 @@
   </data>
   <data name="Pos.SearchResults" xml:space="preserve">
     <value>نتائج البحث</value>
+  </data>
+  <data name="Pos.AddToCart" xml:space="preserve">
+    <value>أضف إلى السلة</value>
   </data>
   <data name="Pos.NoResults" xml:space="preserve">
     <value>لا يوجد ما يطابق ذلك.</value>

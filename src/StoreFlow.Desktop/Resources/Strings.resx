@@ -483,6 +483,9 @@
   <data name="Inventory.ProductCount" xml:space="preserve">
     <value>Products</value>
   </data>
+  <data name="Inventory.Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
   <data name="Inventory.QuantityDelta" xml:space="preserve">
     <value>Change</value>
   </data>
@@ -1326,6 +1329,9 @@
   </data>
   <data name="Pos.SearchResults" xml:space="preserve">
     <value>Search results</value>
+  </data>
+  <data name="Pos.AddToCart" xml:space="preserve">
+    <value>Add to cart</value>
   </data>
   <data name="Pos.NoResults" xml:space="preserve">
     <value>Nothing matches that.</value>

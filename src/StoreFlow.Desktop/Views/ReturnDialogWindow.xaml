@@ -42,7 +42,7 @@
       <!-- The lines of the invoice -->
       <DataGrid x:Name="ReturnLinesGrid"
                 Grid.Row="0"
-                AutomationProperties.AutomationId="ReturnDialogLines"
+                AutomationProperties.AutomationId="ReturnDialogLines" AutomationProperties.Name="{Binding Title}"
                 ItemsSource="{Binding Lines}"
                 EnableColumnVirtualization="False"
                 IsReadOnly="False"
@@ -105,7 +105,7 @@
                 <TextBox Text="{Binding QuantityText, UpdateSourceTrigger=PropertyChanged}"
                          FlowDirection="LeftToRight"
                          TextAlignment="Left"
-                         AutomationProperties.AutomationId="ReturnDialogQuantity" />
+                         AutomationProperties.AutomationId="ReturnDialogQuantity" AutomationProperties.Name="{Binding DataContext.ReturnQuantityHeader, Source={x:Reference ReturnLinesGrid}}" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
@@ -153,7 +153,7 @@
                    TextWrapping="Wrap"
                    Height="{DynamicResource Size.MultilineFieldHeight}"
                    VerticalScrollBarVisibility="Auto"
-                   AutomationProperties.AutomationId="ReturnDialogReason" />
+                   AutomationProperties.AutomationId="ReturnDialogReason" AutomationProperties.Name="{Binding ReasonLabel}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1" MinWidth="200">
@@ -161,7 +161,7 @@
           <ComboBox ItemsSource="{Binding Methods}"
                     DisplayMemberPath="DisplayName"
                     SelectedValuePath="Method"
-                    AutomationProperties.AutomationId="ReturnDialogMethod">
+                    AutomationProperties.AutomationId="ReturnDialogMethod" AutomationProperties.Name="{Binding MethodLabel}">
             <ComboBox.SelectedValue>
               <Binding Path="RefundMethod" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
             </ComboBox.SelectedValue>

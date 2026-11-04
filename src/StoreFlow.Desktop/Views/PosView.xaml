@@ -273,7 +273,9 @@
                           Style="{StaticResource Button.Ghost}"
                           HorizontalContentAlignment="Stretch"
                           MinHeight="{DynamicResource Size.PosHitTarget}"
-                          AutomationProperties.AutomationId="Pos.AddSearchResult">
+                          AutomationProperties.AutomationId="Pos.AddSearchResult"
+                          AutomationProperties.Name="{Binding DataContext.AddToCartLabel, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          AutomationProperties.HelpText="{Binding Name}">
                     <StackPanel Orientation="Horizontal">
                       <TextBlock Text="{Binding Name}" Style="{StaticResource Type.Cell}" />
                       <TextBlock Text="{Binding Sku}" Style="{StaticResource Type.LeftToRight}"

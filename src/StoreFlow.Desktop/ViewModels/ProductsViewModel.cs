@@ -77,6 +77,9 @@ public sealed partial class ProductsViewModel : ObservableObject
     /// <summary>The text shown inside the empty search box.</summary>
     public string SearchPlaceholder => _strings[StringKeys.ProductsSearch];
 
+    /// <summary>The title of the screen, which also names the grid for a screen reader.</summary>
+    public string Title => _strings[StringKeys.ProductsTitle];
+
     /// <summary>The label on the new-product command.</summary>
     public string NewProductText => _strings[StringKeys.ProductsNew];
 

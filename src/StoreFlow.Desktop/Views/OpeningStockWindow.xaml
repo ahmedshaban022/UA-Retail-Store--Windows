@@ -50,21 +50,21 @@
                    Width="140"
                    FlowDirection="LeftToRight"
                    TextAlignment="Left"
-                   AutomationProperties.AutomationId="OpeningStock.Date" />
+                   AutomationProperties.AutomationId="OpeningStock.Date" AutomationProperties.Name="{Binding DateLabel}" />
         </StackPanel>
 
         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
           <TextBlock Text="{Binding NotesLabel}" Style="{StaticResource Type.FieldLabel}" />
           <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
                    Width="280"
-                   AutomationProperties.AutomationId="OpeningStock.Notes" />
+                   AutomationProperties.AutomationId="OpeningStock.Notes" AutomationProperties.Name="{Binding NotesLabel}" />
         </StackPanel>
       </Grid>
     </Border>
 
     <Grid Grid.Row="2" Margin="24,12,24,0">
       <DataGrid x:Name="LinesGrid"
-                AutomationProperties.AutomationId="OpeningStock.Lines"
+                AutomationProperties.AutomationId="OpeningStock.Lines" AutomationProperties.Name="{Binding Title}"
                 ItemsSource="{Binding Lines}"
                 CanUserAddRows="False"
                 CanUserDeleteRows="False"
@@ -80,7 +80,7 @@
                 <ComboBox ItemsSource="{Binding DataContext.Products, Source={x:Reference LinesGrid}}"
                           DisplayMemberPath="DisplayName"
                           SelectedValuePath="Id"
-                          AutomationProperties.AutomationId="OpeningStock.Line.Product">
+                          AutomationProperties.AutomationId="OpeningStock.Line.Product" AutomationProperties.Name="{Binding DataContext.ProductLabel, Source={x:Reference LinesGrid}}">
                     <ComboBox.SelectedValue>
                         <Binding Path="ProductId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
                     </ComboBox.SelectedValue>
@@ -96,7 +96,7 @@
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
-                         AutomationProperties.AutomationId="OpeningStock.Line.Quantity" />
+                         AutomationProperties.AutomationId="OpeningStock.Line.Quantity" AutomationProperties.Name="{Binding DataContext.QuantityLabel, Source={x:Reference LinesGrid}}" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
@@ -108,7 +108,7 @@
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <TextBox Text="{Binding UnitCost, UpdateSourceTrigger=PropertyChanged}"
-                         AutomationProperties.AutomationId="OpeningStock.Line.UnitCost" />
+                         AutomationProperties.AutomationId="OpeningStock.Line.UnitCost" AutomationProperties.Name="{Binding DataContext.UnitCostLabel, Source={x:Reference LinesGrid}}" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>

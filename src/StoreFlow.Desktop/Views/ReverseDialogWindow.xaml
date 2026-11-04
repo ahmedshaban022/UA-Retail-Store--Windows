@@ -42,13 +42,13 @@
                  TextWrapping="Wrap"
                  Height="{DynamicResource Size.MultilineFieldHeight}"
                  VerticalScrollBarVisibility="Auto"
-                 AutomationProperties.AutomationId="ReverseDialogReason" />
+                 AutomationProperties.AutomationId="ReverseDialogReason" AutomationProperties.Name="{Binding ReasonLabel}" />
 
         <TextBlock Text="{Binding MethodLabel}" Style="{StaticResource Type.FieldLabel}" Margin="0,16,0,0" />
         <ComboBox ItemsSource="{Binding Methods}"
                   DisplayMemberPath="DisplayName"
                   SelectedValuePath="Method"
-                  AutomationProperties.AutomationId="ReverseDialogMethod">
+                  AutomationProperties.AutomationId="ReverseDialogMethod" AutomationProperties.Name="{Binding MethodLabel}">
           <ComboBox.SelectedValue>
             <Binding Path="RefundMethod" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
           </ComboBox.SelectedValue>

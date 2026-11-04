@@ -38,7 +38,7 @@
                TextWrapping="Wrap"
                Height="{DynamicResource Size.MultilineFieldHeight}"
                VerticalScrollBarVisibility="Auto"
-               AutomationProperties.AutomationId="ReasonPrompt.Reason" />
+               AutomationProperties.AutomationId="ReasonPrompt.Reason" AutomationProperties.Name="{Binding Label}" />
       <TextBlock Text="{Binding ErrorMessage}"
                  Style="{StaticResource Type.Error}"
                  AutomationProperties.AutomationId="ReasonPrompt.Error"

@@ -20,12 +20,12 @@
   <Window.Resources>
     <DataTemplate x:Key="EditorTextField">
       <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
-               AutomationProperties.AutomationId="{Binding AutomationId}" />
+               AutomationProperties.AutomationId="{Binding AutomationId}" AutomationProperties.Name="{Binding Label}" />
     </DataTemplate>
 
     <DataTemplate x:Key="EditorMultilineField">
       <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
-               AutomationProperties.AutomationId="{Binding AutomationId}"
+               AutomationProperties.AutomationId="{Binding AutomationId}" AutomationProperties.Name="{Binding Label}"
                AcceptsReturn="True"
                TextWrapping="Wrap"
                Height="{DynamicResource Size.MultilineFieldHeight}"
@@ -36,7 +36,7 @@
       <ComboBox ItemsSource="{Binding Options}"
                 DisplayMemberPath="DisplayName"
                 SelectedValuePath="Id"
-                AutomationProperties.AutomationId="{Binding AutomationId}">
+                AutomationProperties.AutomationId="{Binding AutomationId}" AutomationProperties.Name="{Binding Label}">
           <ComboBox.SelectedValue>
               <Binding Path="Value" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
           </ComboBox.SelectedValue>

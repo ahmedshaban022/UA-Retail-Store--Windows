@@ -166,6 +166,12 @@ public sealed partial class PosViewModel : ObservableObject
     /// <summary>The heading of the search results.</summary>
     public string SearchResultsLabel => _strings[StringKeys.PosSearchResults];
 
+    /// <summary>
+    /// The name of the button that adds a searched product to the cart. The product's own name
+    /// is kept as the button's help text, so a screen reader says both.
+    /// </summary>
+    public string AddToCartLabel => _strings[StringKeys.PosAddToCart];
+
     /// <summary>The message shown when a search finds nothing.</summary>
     public string NoResultsLabel => _strings[StringKeys.PosNoResults];
 

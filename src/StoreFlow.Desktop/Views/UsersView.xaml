@@ -22,7 +22,7 @@
                  Margin="0,0,0,8" />
 
       <DataGrid Grid.Row="1"
-                AutomationProperties.AutomationId="Users.Grid"
+                AutomationProperties.AutomationId="Users.Grid" AutomationProperties.Name="{Binding UsersLabel}"
                 ItemsSource="{Binding Users}"
                 SelectedItem="{Binding SelectedUser}"
                 IsReadOnly="True"
@@ -66,7 +66,7 @@
 
       <!-- The roles and their permissions -->
       <DataGrid Grid.Row="1"
-                AutomationProperties.AutomationId="Users.Roles"
+                AutomationProperties.AutomationId="Users.Roles" AutomationProperties.Name="{Binding RolesLabel}"
                 ItemsSource="{Binding Roles}"
                 SelectedItem="{Binding SelectedRole}"
                 IsReadOnly="True"
@@ -98,7 +98,7 @@
                       ItemsSource="{Binding Roles}"
                       SelectedItem="{Binding SelectedRole}"
                       DisplayMemberPath="Name"
-                      AutomationProperties.AutomationId="Users.ChangeRolePicker" />
+                      AutomationProperties.AutomationId="Users.ChangeRolePicker" AutomationProperties.Name="{Binding ChangeRoleLabel}" />
 
             <Button Content="{Binding ChangeRoleLabel}"
                     Command="{Binding ChangeRoleCommand}"
@@ -128,21 +128,21 @@
 
           <TextBlock Text="{Binding NewUsernameLabel}" Style="{StaticResource Type.Caption}" Margin="0,8,0,0" />
           <TextBox Text="{Binding NewUsername, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="Users.NewUsername" />
+                   AutomationProperties.AutomationId="Users.NewUsername" AutomationProperties.Name="{Binding NewUsernameLabel}" />
 
           <TextBlock Text="{Binding NewDisplayNameLabel}" Style="{StaticResource Type.Caption}" Margin="0,8,0,0" />
           <TextBox Text="{Binding NewDisplayName, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="Users.NewDisplayName" />
+                   AutomationProperties.AutomationId="Users.NewDisplayName" AutomationProperties.Name="{Binding NewDisplayNameLabel}" />
 
           <TextBlock Text="{Binding NewPasswordLabel}" Style="{StaticResource Type.Caption}" Margin="0,8,0,0" />
           <TextBox Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"
-                   AutomationProperties.AutomationId="Users.NewPassword" />
+                   AutomationProperties.AutomationId="Users.NewPassword" AutomationProperties.Name="{Binding NewPasswordLabel}" />
 
           <TextBlock Text="{Binding NewRoleLabel}" Style="{StaticResource Type.Caption}" Margin="0,8,0,0" />
           <ComboBox ItemsSource="{Binding Roles}"
                     SelectedItem="{Binding NewUserRole}"
                     DisplayMemberPath="Name"
-                    AutomationProperties.AutomationId="Users.NewRole" />
+                    AutomationProperties.AutomationId="Users.NewRole" AutomationProperties.Name="{Binding NewRoleLabel}" />
 
           <Button Content="{Binding AddLabel}"
                   Command="{Binding AddUserCommand}"

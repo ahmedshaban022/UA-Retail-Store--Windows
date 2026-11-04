@@ -45,7 +45,7 @@
           <TextBlock Text="{Binding AsOfDateLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0" />
           <TextBox Text="{Binding AsOfDateText, UpdateSourceTrigger=PropertyChanged}"
                    Width="120"
-                   AutomationProperties.AutomationId="Inventory.AsOfDate" />
+                   AutomationProperties.AutomationId="Inventory.AsOfDate" AutomationProperties.Name="{Binding AsOfDateLabel}" />
         </StackPanel>
       </Grid>
     </Border>
@@ -116,7 +116,7 @@
 
               <Grid Grid.Column="0" Width="260" VerticalAlignment="Center">
                 <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                         AutomationProperties.AutomationId="Inventory.Search" />
+                         AutomationProperties.AutomationId="Inventory.Search" AutomationProperties.Name="{Binding SearchPlaceholder}" />
                 <TextBlock Text="{Binding SearchPlaceholder}"
                            IsHitTestVisible="False"
                            Margin="11,8"
@@ -134,7 +134,7 @@
 
             <Grid Grid.Row="1">
               <DataGrid x:Name="BalancesGrid"
-                        AutomationProperties.AutomationId="Inventory.Balances"
+                        AutomationProperties.AutomationId="Inventory.Balances" AutomationProperties.Name="{Binding StockOnHandText}"
                         ItemsSource="{Binding Balances}"
                         SelectedItem="{Binding SelectedBalance, Mode=TwoWay}"
                         EnableColumnVirtualization="False">
@@ -307,7 +307,8 @@
                         DisplayMemberPath="DisplayName"
                         SelectedValuePath="Id"
                         MinWidth="200"
-                        AutomationProperties.AutomationId="Inventory.MovementProduct">
+                        AutomationProperties.AutomationId="Inventory.MovementProduct"
+                        AutomationProperties.Name="{Binding ProductLabel}">
                   <ComboBox.SelectedValue>
                       <Binding Path="MovementProductId" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged" />
                   </ComboBox.SelectedValue>
@@ -317,18 +318,18 @@
                 <TextBlock Text="{Binding FromLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="0,0,6,0" />
                 <TextBox Text="{Binding FromDateText, UpdateSourceTrigger=PropertyChanged}"
                          Width="110"
-                         AutomationProperties.AutomationId="Inventory.MovementFrom" />
+                         AutomationProperties.AutomationId="Inventory.MovementFrom" AutomationProperties.Name="{Binding FromLabel}" />
 
                 <TextBlock Text="{Binding ToLabel}" Style="{StaticResource Type.FieldLabel}" VerticalAlignment="Center" Margin="12,0,6,0" />
                 <TextBox Text="{Binding ToDateText, UpdateSourceTrigger=PropertyChanged}"
                          Width="110"
-                         AutomationProperties.AutomationId="Inventory.MovementTo" />
+                         AutomationProperties.AutomationId="Inventory.MovementTo" AutomationProperties.Name="{Binding ToLabel}" />
               </StackPanel>
             </Grid>
 
             <Grid Grid.Row="1">
               <DataGrid x:Name="MovementsGrid"
-                        AutomationProperties.AutomationId="Inventory.Movements"
+                        AutomationProperties.AutomationId="Inventory.Movements" AutomationProperties.Name="{Binding MovementsText}"
                         ItemsSource="{Binding Movements}"
                         EnableColumnVirtualization="False">
                 <DataGrid.Columns>
@@ -493,7 +494,7 @@
 
             <Grid Grid.Row="1">
               <DataGrid x:Name="CountsGrid"
-                        AutomationProperties.AutomationId="Inventory.Counts"
+                        AutomationProperties.AutomationId="Inventory.Counts" AutomationProperties.Name="{Binding CountsText}"
                         ItemsSource="{Binding Counts}"
                         SelectedItem="{Binding SelectedCount, Mode=TwoWay}"
                         EnableColumnVirtualization="False">

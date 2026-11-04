@@ -72,7 +72,8 @@
           <TextBox Grid.Column="0"
                    Text="{Binding ChosenPath, UpdateSourceTrigger=PropertyChanged}"
                    IsReadOnly="True"
-                   AutomationProperties.AutomationId="Recovery.Path" />
+                   AutomationProperties.AutomationId="Recovery.Path"
+                   AutomationProperties.Name="{Binding ChooseLabel}" />
 
           <Button Grid.Column="1"
                   Content="{Binding BrowseLabel}"

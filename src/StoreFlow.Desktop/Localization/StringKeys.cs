@@ -180,6 +180,7 @@ public static class StringKeys
     public const string InventoryPostCount = "Inventory.PostCount";
     public const string InventoryPosted = "Inventory.Posted";
     public const string InventoryProductCount = "Inventory.ProductCount";
+    public const string InventoryProduct = "Inventory.Product";
     public const string InventoryQuantityDelta = "Inventory.QuantityDelta";
     public const string InventoryReason = "Inventory.Reason";
     public const string InventoryReorderLevel = "Inventory.ReorderLevel";
@@ -390,6 +391,7 @@ public static class StringKeys
     public const string PosScan = "Pos.Scan";
     public const string PosScanPlaceholder = "Pos.ScanPlaceholder";
     public const string PosSearchResults = "Pos.SearchResults";
+    public const string PosAddToCart = "Pos.AddToCart";
     public const string PosNoResults = "Pos.NoResults";
     public const string PosCart = "Pos.Cart";
     public const string PosCartEmpty = "Pos.CartEmpty";
