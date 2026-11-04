@@ -20,6 +20,10 @@ Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 Add-Type -AssemblyName System.Windows.Forms
 
+# The two handles every automation helper uses.
+$AE = [System.Windows.Automation.AutomationElement]
+$TS = [System.Windows.Automation.TreeScope]
+
 # The interop helper is only added once. A script that dot-sources this file twice would
 # otherwise fail with "the type name already exists", which is a puzzle nobody should have to
 # solve at half past two in the morning.
@@ -282,6 +286,126 @@ function Get-TextsContaining($window, [string]$needle) {
         } catch { }
     }
     return $result
+}
+
+# Pictures are taken by the application itself. The script sends one command down the capture pipe
+# and the application draws the window it names and writes the picture itself.
+#
+# A picture taken from outside the process comes back mirrored for a right-to-left window, and the
+# mirrored version of an Arabic screen is a lie about the screen.
+function Send-Capture([string]$pipeName, [string]$command) {
+    $writer = $null
+    $reader = $null
+    $pipe = New-Object System.IO.Pipes.NamedPipeClientStream(
+        '.', $pipeName, [System.IO.Pipes.PipeDirection]::InOut)
+
+    try {
+        $pipe.Connect(20000)
+
+        $writer = New-Object System.IO.StreamWriter($pipe, (New-Object System.Text.UTF8Encoding($false)))
+        $writer.AutoFlush = $true
+        $reader = New-Object System.IO.StreamReader($pipe, [System.Text.Encoding]::UTF8, $false, 1024, $true)
+
+        $writer.WriteLine($command)
+
+        $answer = $reader.ReadLineAsync()
+        if (-not $answer.Wait(30000)) {
+            return 'ERR the application did not answer in time'
+        }
+
+        return $answer.Result
+    } catch {
+        return ('ERR ' + $_.Exception.Message)
+    } finally {
+        if ($reader) { $reader.Dispose() }
+        if ($writer) { $writer.Dispose() }
+        $pipe.Dispose()
+    }
+}
+
+# Asks the running application to draw the window and writes the picture into the folder.
+#
+# Returns true when the picture was taken. The caller decides what a missing picture means: a
+# harness that has no picture is still a harness that made its checks.
+function Save-WindowShot([string]$pipeName, [string]$outDir, [string]$windowId, [string]$fileName) {
+    $path = Join-Path $outDir $fileName
+    $reply = Send-Capture $pipeName ('CAPTURE ' + $windowId + ' ' + $path)
+
+    if ($reply -and $reply.StartsWith('OK')) {
+        Write-Output ('  screenshot -> ' + $fileName + ' (' + $windowId + ')')
+        return $true
+    }
+
+    Write-Output ('  no screenshot for ' + $fileName + ': ' + $reply)
+    return $false
+}
+
+# The application keeps the language it starts in in its theme file. A harness that reads the
+# screen in English rewrites that file after the shop has been set up, and starts the application
+# again.
+function Set-EnglishLanguage([string]$themeFile) {
+    if (-not (Test-Path -LiteralPath $themeFile)) { return $false }
+
+    $theme = Get-Content -Raw -Encoding UTF8 -LiteralPath $themeFile
+    $theme = [regex]::Replace($theme, '"default"\s*:\s*"ar"', '"default": "en"')
+    [System.IO.File]::WriteAllText($themeFile, $theme, (New-Object System.Text.UTF8Encoding($false)))
+
+    return $true
+}
+
+function Wait-ThemeFile([string]$themeFile, [int]$seconds = 30) {
+    $deadline = (Get-Date).AddSeconds($seconds)
+
+    while (-not (Test-Path -LiteralPath $themeFile) -and (Get-Date) -lt $deadline) {
+        Start-Sleep -Milliseconds 300
+    }
+
+    return (Test-Path -LiteralPath $themeFile)
+}
+
+# Starts the application on a shop folder of its own, so that a harness never writes into the
+# shop's real data.
+function Start-NewShop([string]$exe, [string]$pipeName, [string]$runRoot) {
+    $env:STOREFLOW_HOME = $runRoot
+
+    return (Start-Process -FilePath $exe -ArgumentList @('--capture-pipe', $pipeName) -PassThru)
+}
+
+# Walks the first-run wizard to the end and sets the shop up.
+#
+# The shop's details are written in both languages, and the owner's account is created with the
+# password the harness signs in with afterwards.
+function Complete-FirstRun($wizard, [string]$password = 'StoreFlow!2026') {
+    if (-not $wizard) { return $false }
+
+    $arabicStoreName = A @(0x0645, 0x062A, 0x062C, 0x0631, 0x0020, 0x0645, 0x0635, 0x0631, 0x064A, 0x0629)
+
+    Fill-Fields $wizard @('Al-Masria Store', $arabicStoreName, '12 Tahrir Street, Cairo', '+20 100 000 0000') $true | Out-Null
+    Start-Sleep -Milliseconds 700
+    Invoke-ById $wizard 'FirstRun.Next' | Out-Null
+    Start-Sleep -Seconds 2
+
+    Fill-Fields $wizard @('Owner', 'owner', $password, $password) $true | Out-Null
+    Start-Sleep -Milliseconds 700
+    Invoke-ById $wizard 'FirstRun.Next' | Out-Null
+    Start-Sleep -Seconds 2
+
+    Invoke-ById $wizard 'FirstRun.Finish' | Out-Null
+    Start-Sleep -Seconds 6
+
+    return $true
+}
+
+# Signs in with the account the wizard created.
+function Sign-In($login, [string]$userName = 'owner', [string]$password = 'StoreFlow!2026') {
+    if (-not $login) { return $false }
+
+    $edits = Get-EditBoxes $login
+    if ($edits.Count -ge 1) { Set-EditValue $edits[0] $userName | Out-Null }
+    Fill-Password $login $password $false | Out-Null
+    Start-Sleep -Milliseconds 700
+
+    return (Invoke-ById $login 'Login.SignIn')
 }
 
 function Find-Text($window, [string]$needle) {

@@ -226,8 +226,6 @@ public static class StoreFlowDialog {
 }
 '@
 
-$AE = [System.Windows.Automation.AutomationElement]
-$TS = [System.Windows.Automation.TreeScope]
 
 
 
@@ -554,45 +552,18 @@ function Get-CartTotal($shell) {
     return $value
 }
 
-# Pictures are taken by the application itself. The script sends one command down the capture pipe
-# and the application draws the window it names and writes the picture itself.
-function Send-Capture([string]$command) {
-    if ($p -and $p.HasExited) {
-        return 'ERR the application has stopped'
-    }
-
-    $writer = $null
-    $reader = $null
-    $pipe = New-Object System.IO.Pipes.NamedPipeClientStream(
-        '.', $pipeName, [System.IO.Pipes.PipeDirection]::InOut)
-
-    try {
-        $pipe.Connect(20000)
-
-        $writer = New-Object System.IO.StreamWriter($pipe, (New-Object System.Text.UTF8Encoding($false)))
-        $writer.AutoFlush = $true
-        $reader = New-Object System.IO.StreamReader($pipe, [System.Text.Encoding]::UTF8, $false, 1024, $true)
-
-        $writer.WriteLine($command)
-
-        $answer = $reader.ReadLineAsync()
-        if (-not $answer.Wait(30000)) {
-            return 'ERR the application did not answer in time'
-        }
-
-        return $answer.Result
-    } catch {
-        return ('ERR ' + $_.Exception.Message)
-    } finally {
-        if ($reader) { $reader.Dispose() }
-        if ($writer) { $writer.Dispose() }
-        $pipe.Dispose()
-    }
-}
-
+# Pictures are taken by the application itself: the script sends one command down the capture pipe
+# and the application draws the window it names and writes the picture itself. The pipe client
+# lives in the shared library.
 function Save-Shot([string]$windowId, [string]$fileName) {
+    if ($p -and $p.HasExited) {
+        Write-Output ('  no screenshot for ' + $fileName + ': the application has stopped')
+        Fail ('the picture of ' + $fileName + ' could not be taken: the application had stopped')
+        return
+    }
+
     $path = Join-Path $outDir $fileName
-    $reply = Send-Capture ('CAPTURE ' + $windowId + ' ' + $path)
+    $reply = Send-Capture $pipeName ('CAPTURE ' + $windowId + ' ' + $path)
 
     if ($reply -and $reply.StartsWith('OK')) {
         Write-Output ('  screenshot -> ' + $fileName + ' (' + $windowId + ')')

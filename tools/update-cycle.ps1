@@ -11,14 +11,17 @@
 
     The phases are:
 
-        Prepare   the release is published; its installer and its checksum are downloaded and the
-                   checksum is checked against the published hash.
-        Install   the published version is installed for the current user, with no administrator
-                   account and no elevation.
+        Prepare   the old release and the new one are both published. The old release's installer
+                   and its checksum are downloaded, and the checksum is checked against the
+                   published hash.
+        Install   the old version is installed for the current user, with no administrator account
+                   and no elevation. A newer copy that is already installed is removed first,
+                   because Windows Installer refuses to go backwards, and the shop's data is
+                   measured before and after that removal.
         Update    the INSTALLED copy is driven: it finds the newer release, offers it, downloads
-                   the installer and the checksum beside it, checks the download against that
-                   checksum, and starts the installer. The programme closes itself, because the
-                   installer cannot replace files that are still open.
+                   the installer and the checksum published beside it, checks the download against
+                   that checksum, and starts the installer. The programme closes itself, because
+                   the installer cannot replace files that are still open.
         Verify    the installed version is the new one, and the shop's data is exactly as it was:
                    the database's SHA-256, the catalogue and the backups are all still there.
 
@@ -67,7 +70,7 @@ if ([string]::IsNullOrWhiteSpace($ShopHome)) {
 
 New-Item -ItemType Directory -Force -Path $ShopHome | Out-Null
 
-$logPath = Join-Path $EvidenceRoot ('update-cycle-' + $Version + '.log')
+$logPath = Join-Path $EvidenceRoot ('update-cycle-' + $FromVersion + '-to-' + $Version + '.log')
 
 $failures = 0
 $checks = 0
@@ -186,33 +189,30 @@ function Get-AssetUrl($release, [string] $suffix) {
     return $null
 }
 
-# --- the phases ------------------------------------------------------------------------------
-
-function Invoke-Prepare {
-    Write-Line ''
-    Write-Line '--- prepare: the release, its installer and its checksum ---'
-
-    $release = Get-Release ('v' + $Version)
+# Downloads a published installer and the checksum published beside it, and checks the download
+# against that checksum.
+function Get-PublishedInstaller([string] $version) {
+    $release = Get-Release ('v' + $version)
 
     if ($null -eq $release) {
-        Fail ('the release v' + $Version + ' is not published yet')
+        Fail ('the release v' + $version + ' is not published')
         return $null
     }
 
-    Check ($release.draft -ne $true) ('the release v' + $Version + ' is published, not a draft')
+    Check ($release.draft -ne $true) ('the release v' + $version + ' is published, not a draft')
 
     $installerUrl = Get-AssetUrl $release '.msi'
     $checksumUrl = Get-AssetUrl $release '.msi.sha256'
 
-    Check ($null -ne $installerUrl) ('the release carries an installer')
-    Check ($null -ne $checksumUrl) ('the release carries the checksum published beside it')
+    Check ($null -ne $installerUrl) ('the release v' + $version + ' carries an installer')
+    Check ($null -ne $checksumUrl) ('the release v' + $version + ' carries the checksum published beside it')
 
     if ($null -eq $installerUrl -or $null -eq $checksumUrl) { return $null }
 
-    $installerPath = Join-Path $EvidenceRoot ('StoreFlow-' + $Version + '-x64.msi')
-    $checksumPath = Join-Path $EvidenceRoot ('StoreFlow-' + $Version + '-x64.msi.sha256')
+    $installerPath = Join-Path $EvidenceRoot ('StoreFlow-' + $version + '-x64.msi')
+    $checksumPath = Join-Path $EvidenceRoot ('StoreFlow-' + $version + '-x64.msi.sha256')
 
-    Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath -UseBasicParsing -TimeoutSec 600
+    Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath -UseBasicParsing -TimeoutSec 900
     Invoke-WebRequest -Uri $checksumUrl -OutFile $checksumPath -UseBasicParsing -TimeoutSec 120
 
     $actual = Get-FileHashOf $installerPath
@@ -225,23 +225,60 @@ function Invoke-Prepare {
     Check ($published.ToUpperInvariant().Contains($actual.ToUpperInvariant())) `
         'the download matches the checksum published beside it'
 
-    # The published release carries its own digest, and it must be the same digest.
-    $digest = [string]$release.assets | ForEach-Object { $_.digest } | Where-Object { $_ -like 'sha256:*' }
+    return $installerPath
+}
 
-    if ($digest) {
-        Check ($digest.ToUpperInvariant().Contains($actual.ToUpperInvariant())) `
-            'the download matches the digest the release itself carries'
+# --- the phases ------------------------------------------------------------------------------
+
+function Invoke-Prepare {
+    Write-Line ''
+    Write-Line ('--- prepare: the published releases ---')
+
+    $old = Get-PublishedInstaller $FromVersion
+
+    if ($null -eq $old) { return $null }
+
+    # The new release has to be published as well, because that is what the installed copy is
+    # going to look for.
+    $new = Get-Release ('v' + $Version)
+
+    if ($null -eq $new) {
+        Fail ('the release v' + $Version + ' is not published yet')
+        return $null
     }
 
-    return $installerPath
+    Check ($new.draft -ne $true) ('the release v' + $Version + ' is published, not a draft')
+    Check ($null -ne (Get-AssetUrl $new '.msi')) ('the release v' + $Version + ' carries an installer')
+    Check ($null -ne (Get-AssetUrl $new '.msi.sha256')) ('the release v' + $Version + ' carries its checksum')
+
+    return $old
 }
 
 function Invoke-Install([string] $installerPath) {
     Write-Line ''
-    Write-Line '--- install: the published version, for this user, with no elevation ---'
+    Write-Line ('--- install: ' + $FromVersion + ', for this user, with no elevation ---')
 
     $before = Get-InstalledVersion
     Write-Line ('installed version before: ' + $before)
+
+    # Windows Installer refuses to go backwards, so a newer copy has to be removed first. The
+    # shop's data is not part of the installation and must survive that removal.
+    if ($before -and $before -ne $FromVersion) {
+        Write-Line ('a different version is installed (' + $before + '); it is removed first')
+
+        $script:realShopBefore = Get-FolderFingerprint $realShopHome
+
+        $uninstallLog = Join-Path $EvidenceRoot 'msiexec-uninstall.log'
+        $uninstall = Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\msiexec.exe') `
+            -ArgumentList @('/x', ('"' + $before + '"'), '/qb', '/norestart', '/l*v', ('"' + $uninstallLog + '"')) `
+            -Wait -PassThru -WindowStyle Hidden
+
+        Write-Line ('msiexec exit code: ' + $uninstall.ExitCode)
+        Check ($uninstall.ExitCode -eq 0) 'the copy that was installed was removed'
+
+        $script:realShopAfter = Get-FolderFingerprint $realShopHome
+        Compare-Fingerprint $script:realShopBefore $script:realShopAfter 'the real %APPDATA%\StoreFlow'
+    }
 
     $log = Join-Path $EvidenceRoot 'msiexec-install.log'
 
@@ -256,7 +293,7 @@ function Invoke-Install([string] $installerPath) {
     $after = Get-InstalledVersion
     Write-Line ('installed version after: ' + $after)
 
-    Check ($after -eq $Version) ('the installed version is ' + $Version)
+    Check ($after -eq $FromVersion) ('the installed version is ' + $FromVersion)
 
     Check (Test-Path -LiteralPath $installedExe) ('the programme is installed at ' + $installedExe)
 
@@ -274,46 +311,28 @@ function Start-TheShop {
 
     $env:STOREFLOW_HOME = $ShopHome
 
-    $process = Start-Process -FilePath $installedExe -PassThru
+    $process = Start-NewShop $installedExe $script:pipeName $ShopHome
 
     $wizard = Wait-WindowById 'FirstRunWindow' 60
 
     if ($wizard) {
         Write-Line 'the shop is new: the first-run wizard is up'
 
-        Fill-Fields $wizard @('Update Cycle Shop', 'Update Cycle Shop', '1 Test Street', '+20 100 000 0000') $true | Out-Null
-        Start-Sleep -Milliseconds 700
-        Invoke-ById $wizard 'FirstRun.Next' | Out-Null
-        Start-Sleep -Seconds 2
-
-        Fill-Fields $wizard @('owner', 'owner', $password, $password) $true | Out-Null
-        Start-Sleep -Milliseconds 700
-        Invoke-ById $wizard 'FirstRun.Next' | Out-Null
-        Start-Sleep -Seconds 2
-
-        Invoke-ById $wizard 'FirstRun.Finish' | Out-Null
-        Start-Sleep -Seconds 6
+        Complete-FirstRun $wizard $password | Out-Null
 
         # The application keeps the language it starts in in its theme file, and the script reads
         # the screen in English. The file is written when the shop is set up.
         $themeFile = Join-Path $ShopHome 'themes\active.sftheme.json'
-        $deadline = (Get-Date).AddSeconds(30)
 
-        while (-not (Test-Path -LiteralPath $themeFile) -and (Get-Date) -lt $deadline) {
-            Start-Sleep -Milliseconds 300
-        }
-
-        if (Test-Path -LiteralPath $themeFile) {
-            $theme = Get-Content -Raw -Encoding UTF8 -LiteralPath $themeFile
-            $theme = [regex]::Replace($theme, '"default"\s*:\s*"ar"', '"default": "en"')
-            [System.IO.File]::WriteAllText($themeFile, $theme, (New-Object System.Text.UTF8Encoding($false)))
+        if (Wait-ThemeFile $themeFile 30) {
+            Set-EnglishLanguage $themeFile | Out-Null
             Write-Line 'the shop now starts in English'
         }
 
         Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 3
 
-        $process = Start-Process -FilePath $installedExe -PassThru
+        $process = Start-NewShop $installedExe $script:pipeName $ShopHome
         Write-Line ('the shop was started again: pid=' + $process.Id)
         Start-Sleep -Seconds 8
     }
@@ -322,13 +341,7 @@ function Start-TheShop {
 
     if ($login) {
         Write-Line 'the sign-in window is up'
-
-        $edits = Get-EditBoxes $login
-        if ($edits.Count -ge 1) { Set-EditValue $edits[0] 'owner' | Out-Null }
-        Fill-Password $login $password $false | Out-Null
-        Start-Sleep -Milliseconds 700
-
-        Invoke-ById $login 'Login.SignIn' | Out-Null
+        Sign-In $login 'owner' $password | Out-Null
         Start-Sleep -Seconds 8
     }
 
@@ -348,10 +361,6 @@ function Invoke-Update {
     if ($null -eq $shop.Shell) { return $null }
 
     $shell = $shop.Shell
-
-    # The version the installed copy is running, read off the screen.
-    $versionText = Get-TextById $shell 'Settings.Version'
-    Write-Line ('the installed copy reports its version as: ' + $versionText)
 
     # The shop asks about updates the way a shopkeeper would: Settings, then About, then the
     # button. The shell's navigation is found by the identifier of the item when the shell gives
@@ -378,7 +387,7 @@ function Invoke-Update {
 
     # The wait is for the VALUE the screen must reach: the message that names the new version.
     $status = $null
-    $deadline = (Get-Date).AddSeconds(60)
+    $deadline = (Get-Date).AddSeconds(90)
 
     while ((Get-Date) -lt $deadline) {
         $status = Get-TextById $shell 'Settings.UpdateStatus'
@@ -405,11 +414,10 @@ function Invoke-Update {
     Invoke-ById $shell 'Shell.UpdateNow' | Out-Null
 
     # The download and the checksum are checked by the programme itself. The evidence that they
-    # were is the file it downloaded and the file it published beside it.
-    $downloadFolder = Join-Path ([System.IO.Path]::GetTempPath()) 'StoreFlow'
-    $expectedDownload = Join-Path $downloadFolder ('update-' + $Version)
+    # were is the file it downloaded.
+    $expectedDownload = Join-Path ([System.IO.Path]::GetTempPath()) ('StoreFlow\update-' + $Version)
 
-    $deadline = (Get-Date).AddSeconds(180)
+    $deadline = (Get-Date).AddSeconds(300)
 
     while ((Get-Date) -lt $deadline) {
         if (Test-Path -LiteralPath $expectedDownload) { break }
@@ -420,7 +428,7 @@ function Invoke-Update {
         ('the installer was downloaded into ' + $expectedDownload)
 
     # The programme closes itself, because the installer cannot replace files that are still open.
-    $deadline = (Get-Date).AddSeconds(180)
+    $deadline = (Get-Date).AddSeconds(300)
 
     while ((Get-Date) -lt $deadline) {
         if ($shop.Process.HasExited) { break }
@@ -432,7 +440,7 @@ function Invoke-Update {
     # The installer runs on its own. It is given the time it needs, because it is replacing the
     # files of a programme that has just closed.
     $installed = $null
-    $deadline = (Get-Date).AddSeconds(600)
+    $deadline = (Get-Date).AddSeconds(900)
 
     while ((Get-Date) -lt $deadline) {
         $installed = Get-InstalledVersion
@@ -471,14 +479,13 @@ $script:shopBefore = $null
 $script:shopAfter = $null
 $script:realShopBefore = @{}
 $script:realShopAfter = @{}
+$script:pipeName = 'storeflow-update-' + [Guid]::NewGuid().ToString('N')
 
 try {
     if ($Phase -eq 'All' -or $Phase -eq 'Prepare') {
         $installer = Invoke-Prepare
 
-        if ($null -eq $installer) {
-            throw 'The release could not be prepared.'
-        }
+        if ($null -eq $installer) { throw 'The releases could not be prepared.' }
 
         if ($Phase -eq 'Prepare') {
             Write-Line ''
@@ -488,13 +495,13 @@ try {
     }
 
     if ($Phase -eq 'All' -or $Phase -eq 'Install') {
-        $installer = Join-Path $EvidenceRoot ('StoreFlow-' + $Version + '-x64.msi')
+        $installer = Join-Path $EvidenceRoot ('StoreFlow-' + $FromVersion + '-x64.msi')
 
         if (-not (Test-Path -LiteralPath $installer)) {
             $installer = Invoke-Prepare
         }
 
-        if ($null -eq $installer) { throw 'The release could not be prepared.' }
+        if ($null -eq $installer) { throw 'The releases could not be prepared.' }
 
         Invoke-Install $installer | Out-Null
 

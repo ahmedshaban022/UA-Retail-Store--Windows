@@ -6,94 +6,79 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
-# Signs in to an already-configured StoreFlow and captures the shell.
-#
-# The picture is taken by the application itself (--capture) rather than by a screen or window
-# capture. A screen capture needs an unlocked desktop, and PrintWindow draws a right-to-left
-# window mirrored - both of which make the result useless for checking the layout.
+# The shell of a shop that has been set up and signed into: the window the shopkeeper spends the
+# day in. The picture is taken by the application itself, so it is what the shopkeeper sees.
+
+. (Join-Path $PSScriptRoot 'lib\storeflow-ui.ps1')
 
 $exe = $ExePath
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $outDir = Join-Path $repoRoot 'docs\phases\phase0-screens'
-$capture = Join-Path $outDir 'phase0-shell.png'
 
-Add-Type -AssemblyName UIAutomationClient
-Add-Type -AssemblyName UIAutomationTypes
+New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
-$AE = [System.Windows.Automation.AutomationElement]
-$TS = [System.Windows.Automation.TreeScope]
+$runRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('storeflow-phase0-' + [Guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Force -Path $runRoot | Out-Null
 
-function Wait-FirstWindow([int]$processId, [int]$seconds = 25) {
-    $deadline = (Get-Date).AddSeconds($seconds)
-    while ((Get-Date) -lt $deadline) {
-        $cond = New-Object System.Windows.Automation.PropertyCondition($AE::ProcessIdProperty, $processId)
-        $all = $AE::RootElement.FindAll($TS::Children, $cond)
-        if ($all.Count -gt 0) { return $all[0] }
-        Start-Sleep -Milliseconds 400
+$pipeName = 'storeflow-phase0-' + [Guid]::NewGuid().ToString('N')
+$checks = 0
+$failures = 0
+
+function Check([bool]$condition, [string]$message) {
+    $script:checks++
+    if ($condition) { Write-Output ('  ok   ' + $message) } else { $script:failures++; Write-Output ('  FAIL ' + $message) }
+}
+
+$p = $null
+
+try {
+    $p = Start-NewShop $exe $pipeName $runRoot
+    Write-Output ('launched pid=' + $p.Id)
+
+    $wizard = Wait-WindowById 'FirstRunWindow' 40
+    Check (Complete-FirstRun $wizard) 'the shop was set up'
+
+    $themeFile = Join-Path $runRoot 'themes\active.sftheme.json'
+    Check (Wait-ThemeFile $themeFile 30) 'the theme file is where the application keeps it'
+    Check (Set-EnglishLanguage $themeFile) 'the shop now starts in English'
+
+    Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 3
+
+    $p = Start-NewShop $exe $pipeName $runRoot
+    Write-Output ('launched pid=' + $p.Id + ' in English')
+    Start-Sleep -Seconds 8
+
+    $login = Wait-WindowById 'LoginWindow' 40
+    Check ($null -ne $login) 'the sign-in window is up'
+    Check (Sign-In $login) 'the shopkeeper signed in'
+    Start-Sleep -Seconds 8
+
+    $shell = Wait-Shell $p.Id 40
+
+    Check ($null -ne $shell) 'the shell of the shop is up'
+
+    if ($shell) {
+        Write-Output ('shell: "' + $shell.Current.Name + '"')
+        Save-WindowShot $pipeName $outDir 'MainWindow' 'phase0-shell.png' | Out-Null
+        Save-WindowShot $pipeName $outDir 'MainWindow' 'phase0-05-shell-window.png' | Out-Null
+        Check (Test-Path -LiteralPath (Join-Path $outDir 'phase0-shell.png')) 'the picture of the shell was written'
     }
-    return $null
-}
-
-function Get-Edits($window, [bool]$password) {
-    $cond = New-Object System.Windows.Automation.PropertyCondition(
-        $AE::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)
-    $all = $window.FindAll($TS::Descendants, $cond)
-    $result = @()
-    foreach ($e in $all) {
-        try {
-            if (-not $e.Current.IsOffscreen -and $e.Current.IsPassword -eq $password) { $result += $e }
-        } catch { }
+} catch {
+    $failures++
+    Write-Output ('FAIL: the run stopped early: ' + $_.Exception.Message)
+} finally {
+    if ($p -and -not $p.HasExited) {
+        Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
     }
-    return $result
+    Write-Output 'stopped'
+    Write-Output ('run folder kept at: ' + $runRoot)
 }
 
-function Set-EditValue($element, [string]$value) {
-    $element.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($value)
-}
+Write-Output ('checks: ' + $checks)
+Write-Output ('failures: ' + $failures)
 
-function Invoke-AutomationId($window, [string]$automationId) {
-    $cond = New-Object System.Windows.Automation.AndCondition(
-        (New-Object System.Windows.Automation.PropertyCondition($AE::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)),
-        (New-Object System.Windows.Automation.PropertyCondition($AE::AutomationIdProperty, $automationId)))
-    $b = $window.FindFirst($TS::Descendants, $cond)
-    if (-not $b) { return $false }
-    try { $b.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke(); return $true } catch { return $false }
-}
+if ($failures -gt 0) { exit 1 }
 
-Get-Process | Where-Object { $_.ProcessName -like 'StoreFlow*' } | ForEach-Object { Stop-Process -Id $_.Id -Force }
-Start-Sleep -Milliseconds 500
-
-$p = Start-Process -FilePath $exe -ArgumentList @('--capture', $capture) -PassThru
-Write-Host ('launched pid=' + $p.Id)
-
-$login = Wait-FirstWindow $p.Id
-if (-not $login) {
-    Write-Host 'FAIL: no application window appeared'
-    Stop-Process -Id $p.Id -Force
-    exit 1
-}
-Write-Host ('sign-in window is up: [' + $login.Current.Name + ']')
-
-$edits = Get-Edits $login $false
-$passwords = Get-Edits $login $true
-Write-Host ('  text fields = ' + $edits.Count + ', password fields = ' + $passwords.Count)
-if ($edits.Count -ge 1) { Set-EditValue $edits[0] 'owner' }
-if ($passwords.Count -ge 1) { Set-EditValue $passwords[0] 'StoreFlow!2026' }
-Start-Sleep -Milliseconds 400
-Write-Host ('  clicked Sign in: ' + (Invoke-AutomationId $login 'Login.SignIn'))
-Start-Sleep -Seconds 8
-
-$cond = New-Object System.Windows.Automation.PropertyCondition($AE::ProcessIdProperty, $p.Id)
-$windows = $AE::RootElement.FindAll($TS::Children, $cond)
-foreach ($w in $windows) {
-    Write-Host ('  window=[' + $w.Current.Name + ']')
-}
-
-if (Test-Path $capture) {
-    Write-Host ('  capture -> ' + $capture + ' (' + (Get-Item $capture).Length + ' bytes)')
-} else {
-    Write-Host '  FAIL: the application wrote no capture'
-}
-
-Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
-Write-Host 'stopped'
+Write-Output 'PASS: the shell came up and was photographed'
+exit 0

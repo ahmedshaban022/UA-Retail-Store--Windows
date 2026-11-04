@@ -8,211 +8,126 @@ $ErrorActionPreference = 'Continue'
 
 # Drives the StoreFlow first-run wizard and the sign-in screen through UI Automation, so the whole
 # start-up path is exercised against the real application rather than mocked.
+#
+# The application draws its own windows: the script asks it to photograph one of them over the
+# capture pipe, so the picture is what the shopkeeper sees and not a mirrored copy of it.
+
+. (Join-Path $PSScriptRoot 'lib\storeflow-ui.ps1')
 
 $exe = $ExePath
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $outDir = Join-Path $repoRoot 'docs\phases\phase0-screens'
 
-Add-Type -AssemblyName UIAutomationClient
-Add-Type -AssemblyName UIAutomationTypes
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
+New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
-Add-Type @'
-using System;
-using System.Runtime.InteropServices;
+$runRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('storeflow-phase0-' + [Guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Force -Path $runRoot | Out-Null
 
-public static class Capture {
-    [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, uint nFlags);
-    [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT r);
-    [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
-}
-'@
+$env:STOREFLOW_HOME = $runRoot
 
-function Capture-Window($window, [string]$fileName) {
-    $handle = [IntPtr]$window.Current.NativeWindowHandle
-    $rect = New-Object Capture+RECT
-    [Capture]::GetWindowRect($handle, [ref]$rect) | Out-Null
-    $width = $rect.Right - $rect.Left
-    $height = $rect.Bottom - $rect.Top
-    if ($width -le 0 -or $height -le 0) { return $false }
+$pipeName = 'storeflow-phase0-' + [Guid]::NewGuid().ToString('N')
+$password = 'StoreFlow!2026'
+$checks = 0
+$failures = 0
 
-    $bmp = New-Object System.Drawing.Bitmap $width, $height
-    $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $hdc = $g.GetHdc()
-    [Capture]::PrintWindow($handle, $hdc, 2) | Out-Null
-    $g.ReleaseHdc($hdc)
-    $g.Dispose()
-    $path = Join-Path $outDir $fileName
-    $bmp.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
-    $bmp.Dispose()
-    Write-Output ("  window capture -> " + $fileName + " (" + $width + 'x' + $height + ')')
-    return $true
+function Check([bool]$condition, [string]$message) {
+    $script:checks++
+    if ($condition) { Write-Output ('  ok   ' + $message) } else { $script:failures++; Write-Output ('  FAIL ' + $message) }
 }
 
-$AE = [System.Windows.Automation.AutomationElement]
-$TS = [System.Windows.Automation.TreeScope]
-$CP = [System.Windows.Automation.Condition]
+$p = $null
 
-function Find-Window([int]$processId, [string]$name) {
-    $cond = New-Object System.Windows.Automation.AndCondition(
-        (New-Object System.Windows.Automation.PropertyCondition($AE::ProcessIdProperty, $processId)),
-        (New-Object System.Windows.Automation.PropertyCondition($AE::NameProperty, $name)))
-    $AE::RootElement.FindFirst($TS::Children, $cond)
-}
+try {
+    $p = Start-Process -FilePath $exe -ArgumentList @('--capture-pipe', $pipeName) -PassThru
+    Write-Output ('launched pid=' + $p.Id)
 
-function Wait-Window([int]$processId, [string]$name, [int]$seconds = 20) {
-    $deadline = (Get-Date).AddSeconds($seconds)
-    while ((Get-Date) -lt $deadline) {
-        $w = Find-Window $processId $name
-        if ($w) { return $w }
-        Start-Sleep -Milliseconds 400
+    # --- The first-run wizard ----------------------------------------------------------------
+    $wizard = Wait-WindowById 'FirstRunWindow' 40
+
+    if (-not $wizard) {
+        Write-Output 'FAIL: the wizard never appeared'
+        exit 1
     }
-    return $null
-}
 
-function Get-VisibleEdits($window) {
-    $cond = New-Object System.Windows.Automation.PropertyCondition(
-        $AE::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)
-    $all = $window.FindAll($TS::Descendants, $cond)
-    $result = @()
-    foreach ($e in $all) {
-        try {
-            if (-not $e.Current.IsOffscreen -and -not $e.Current.IsPassword) { $result += $e }
-        } catch { }
+    Write-Output 'the wizard is up'
+
+    # Built from code points so the Arabic survives this file being read as ANSI.
+    $arabicStoreName = A @(0x0645, 0x062A, 0x062C, 0x0631, 0x0020, 0x0645, 0x0635, 0x0631, 0x064A, 0x0629)
+
+    Check (Fill-Fields $wizard @('Al-Masria Store', $arabicStoreName, '12 Tahrir Street, Cairo', '+20 100 000 0000') $true) 'the shop details were written into the wizard'
+    Start-Sleep -Milliseconds 700
+    Save-WindowShot $pipeName $outDir 'FirstRunWindow' 'phase0-01-wizard-step1.png' | Out-Null
+    Check (Invoke-ById $wizard 'FirstRun.Next') 'the wizard went on to the account'
+    Start-Sleep -Seconds 2
+
+    Check (Fill-Fields $wizard @('Owner', 'owner', $password, $password) $true) 'the owner account was written into the wizard'
+    Start-Sleep -Milliseconds 700
+    Save-WindowShot $pipeName $outDir 'FirstRunWindow' 'phase0-02-wizard-step2.png' | Out-Null
+    Check (Invoke-ById $wizard 'FirstRun.Next') 'the wizard went on to its last step'
+    Start-Sleep -Seconds 2
+
+    Save-WindowShot $pipeName $outDir 'FirstRunWindow' 'phase0-03-wizard-step3.png' | Out-Null
+    Check (Invoke-ById $wizard 'FirstRun.Finish') 'the shop was set up'
+    Start-Sleep -Seconds 6
+
+    # --- The shop runs in English --------------------------------------------------------------
+    # The application keeps the language it starts in in its theme file, and this script reads the
+    # screen in English. The file is written when the shop is set up.
+    $themeFile = Join-Path $runRoot 'themes\active.sftheme.json'
+
+    Check (Wait-ThemeFile $themeFile 30) 'the theme file is where the application keeps it'
+    Check (Set-EnglishLanguage $themeFile) 'the shop now starts in English'
+
+    Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 3
+
+    $p = Start-Process -FilePath $exe -ArgumentList @('--capture-pipe', $pipeName) -PassThru
+    Write-Output ('launched pid=' + $p.Id + ' in English')
+    Start-Sleep -Seconds 8
+
+    # --- The sign-in screen --------------------------------------------------------------------
+    $login = Wait-WindowById 'LoginWindow' 40
+
+    if (-not $login) {
+        Write-Output 'FAIL: the sign-in window never appeared'
+        exit 1
     }
-    return $result
-}
 
-function Get-PasswordEdits($window) {
-    $cond = New-Object System.Windows.Automation.PropertyCondition(
-        $AE::ControlTypeProperty, [System.Windows.Automation.ControlType]::Edit)
-    $all = $window.FindAll($TS::Descendants, $cond)
-    $result = @()
-    foreach ($e in $all) {
-        try {
-            if (-not $e.Current.IsOffscreen -and $e.Current.IsPassword) { $result += $e }
-        } catch { }
+    Write-Output 'the sign-in window is up'
+    Save-WindowShot $pipeName $outDir 'LoginWindow' 'phase0-04-login.png' | Out-Null
+
+    $edits = Get-EditBoxes $login
+    if ($edits.Count -ge 1) { Set-EditValue $edits[0] 'owner' | Out-Null }
+    Fill-Password $login $password $false | Out-Null
+    Start-Sleep -Milliseconds 700
+
+    Check (Invoke-ById $login 'Login.SignIn') 'the shopkeeper signed in'
+    Start-Sleep -Seconds 8
+
+    # --- The shell -----------------------------------------------------------------------------
+    $shell = Wait-Shell $p.Id 40
+
+    Check ($null -ne $shell) 'the shell of the shop is up'
+
+    if ($shell) {
+        Save-WindowShot $pipeName $outDir 'MainWindow' 'phase0-05-shell.png' | Out-Null
+        Write-Output ('shell: "' + $shell.Current.Name + '"')
     }
-    return $result
-}
-
-function Set-EditValue($element, [string]$value) {
-    $pattern = $element.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
-    $pattern.SetValue($value)
-}
-
-function Invoke-Button($window, [string]$name) {
-    $cond = New-Object System.Windows.Automation.AndCondition(
-        (New-Object System.Windows.Automation.PropertyCondition($AE::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)),
-        (New-Object System.Windows.Automation.PropertyCondition($AE::NameProperty, $name)))
-    $b = $window.FindFirst($TS::Descendants, $cond)
-    if (-not $b) { return $false }
-    try {
-        $inv = $b.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-        $inv.Invoke()
-        return $true
-    } catch {
-        return $false
+} catch {
+    $failures++
+    Write-Output ('FAIL: the run stopped early: ' + $_.Exception.Message)
+} finally {
+    if ($p -and -not $p.HasExited) {
+        Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
     }
+    Write-Output 'stopped'
+    Write-Output ('run folder kept at: ' + $runRoot)
 }
 
-function Save-Screen([string]$fileName) {
-    $bounds = [System.Windows.Forms.SystemInformation]::VirtualScreen
-    $bmp = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
-    $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $g.CopyFromScreen($bounds.Left, $bounds.Top, 0, 0, $bounds.Size)
-    $g.Dispose()
-    $path = Join-Path $outDir $fileName
-    $bmp.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
-    $bmp.Dispose()
-    Write-Output ("  screenshot -> " + $fileName)
-}
+Write-Output ('checks: ' + $checks)
+Write-Output ('failures: ' + $failures)
 
-$p = Start-Process -FilePath $exe -PassThru
-Write-Output ('launched pid=' + $p.Id)
-Start-Sleep -Seconds 6
+if ($failures -gt 0) { exit 1 }
 
-# --- Step 1: store details -------------------------------------------------
-$wizard = Wait-Window $p.Id 'Set up StoreFlow'
-if (-not $wizard) { Write-Output 'FAIL: wizard window never appeared'; Stop-Process -Id $p.Id -Force; exit 1 }
-Write-Output 'wizard: "Set up StoreFlow" is up'
-Save-Screen 'phase0-01-wizard-step1.png'
-
-$edits = Get-VisibleEdits $wizard
-Write-Output ('  step 1 visible text fields = ' + $edits.Count)
-
-# Built from code points so the Arabic survives PowerShell 5.1's ANSI reading of this file.
-$arabicStoreName = -join (@(0x0645, 0x062A, 0x062C, 0x0631, 0x0020, 0x0645, 0x0635, 0x0631, 0x064A, 0x0629) | ForEach-Object { [char]$_ })
-
-$values = @('Al-Masria Store', $arabicStoreName, '12 Tahrir Street, Cairo', '+20 100 000 0000')
-for ($i = 0; $i -lt [Math]::Min($edits.Count, $values.Count); $i++) {
-    Set-EditValue $edits[$i] $values[$i]
-    Write-Output ('    field ' + $i + ' = ' + $values[$i])
-}
-Start-Sleep -Milliseconds 400
-Write-Output ('  clicked Next: ' + (Invoke-Button $wizard 'Next'))
-Start-Sleep -Seconds 2
-
-# --- Step 2: administrator account ----------------------------------------
-$edits = Get-VisibleEdits $wizard
-Write-Output ('  step 2 visible text fields = ' + $edits.Count)
-$passwords = Get-PasswordEdits $wizard
-Write-Output ('  step 2 password fields = ' + $passwords.Count)
-if ($edits.Count -ge 2) {
-    Set-EditValue $edits[0] 'Owner'
-    Set-EditValue $edits[1] 'owner'
-    Write-Output '    display name = Owner ; user name = owner'
-}
-if ($passwords.Count -ge 2) {
-    Set-EditValue $passwords[0] 'StoreFlow!2026'
-    Set-EditValue $passwords[1] 'StoreFlow!2026'
-    Write-Output '    password + confirmation filled'
-}
-Start-Sleep -Milliseconds 400
-Save-Screen 'phase0-02-wizard-step2.png'
-Write-Output ('  clicked Next: ' + (Invoke-Button $wizard 'Next'))
-Start-Sleep -Seconds 2
-
-# --- Step 3: language and appearance ---------------------------------------
-Save-Screen 'phase0-03-wizard-step3.png'
-Write-Output ('  clicked Finish: ' + (Invoke-Button $wizard 'Finish'))
-Start-Sleep -Seconds 4
-
-# --- Sign in ---------------------------------------------------------------
-$login = Wait-Window $p.Id 'Sign in'
-if (-not $login) {
-    Write-Output 'FAIL: sign-in window never appeared — dumping what the wizard is showing'
-    $textCond = New-Object System.Windows.Automation.PropertyCondition(
-        $AE::ControlTypeProperty, [System.Windows.Automation.ControlType]::Text)
-    foreach ($t in $wizard.FindAll($TS::Descendants, $textCond)) {
-        if ($t.Current.Name) { Write-Output ('    text: ' + $t.Current.Name) }
-    }
-    Stop-Process -Id $p.Id -Force
-    exit 1
-}
-Write-Output 'login: "Sign in" is up'
-Save-Screen 'phase0-04-login.png'
-
-$edits = Get-VisibleEdits $login
-$passwords = Get-PasswordEdits $login
-Write-Output ('  login text fields = ' + $edits.Count + ', password fields = ' + $passwords.Count)
-if ($edits.Count -ge 1) { Set-EditValue $edits[0] 'owner' }
-if ($passwords.Count -ge 1) { Set-EditValue $passwords[0] 'StoreFlow!2026' }
-Start-Sleep -Milliseconds 400
-Write-Output ('  clicked Sign in: ' + (Invoke-Button $login 'Sign in'))
-Start-Sleep -Seconds 5
-
-Save-Screen 'phase0-05-shell.png'
-
-# Report every top-level window the app owns right now.
-$cond = New-Object System.Windows.Automation.PropertyCondition($AE::ProcessIdProperty, $p.Id)
-$windows = $AE::RootElement.FindAll($TS::Children, $cond)
-Write-Output '--- application windows ---'
-foreach ($w in $windows) {
-    Write-Output ('  name=[' + $w.Current.Name + '] type=' + $w.Current.ControlType.ProgrammaticName + ' offscreen=' + $w.Current.IsOffscreen)
-    Capture-Window $w ('phase0-05-shell-window.png') | Out-Null
-}
-
-Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
-Write-Output 'stopped'
+Write-Output 'PASS: the wizard, the sign-in and the shell all came up'
+exit 0
