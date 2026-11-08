@@ -505,6 +505,7 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [Hardware sheet](docs/uat/HARDWARE-SHEET.md) | Printable hardware acceptance checklist |
 | [Release-candidate report](docs/phases/PHASE-8-RELEASE-CANDIDATE.md) | Release candidate and Definition of Done and UAT gate tables |
 | [v1.0.1 report](docs/phases/PHASE-9-V1.0.1.md) | The release cycle proved end to end, the three debts decided, and the updated gate tables |
+| [v1.0.1 evidence](docs/phases/phase9-evidence/README.md) | The logs the v1.0.1 report points at: the harness runs, the release cycle, and the proofs |
 | [Auto-update](docs/UPDATER.md) | How the programme updates itself from GitHub Releases, and how a release is made |
 
 ---

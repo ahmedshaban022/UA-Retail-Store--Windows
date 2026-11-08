@@ -1,0 +1,35 @@
+﻿Test run for D:\Coding\UA Retail Store\tests\StoreFlow.Infrastructure.Tests\bin\Release\net10.0-windows\StoreFlow.Infrastructure.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+dotnet.exe : [xUnit.net 00:00:03.86]     
+StoreFlow.Infrastructure.Tests.MigrationTriggerTests.A_shop_whose_database_file_exists_but_is_empty_still_opens [FAIL]
+At line:1 char:289
++ ... -Width 200; & 'D:\dotnet\dotnet.exe' test 'D:\Coding\UA Retail Store\ ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...ll_opens [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Failed StoreFlow.Infrastructure.Tests.MigrationTriggerTests.A_shop_whose_database_file_exists_but_is_empty_still_opens [59 ms]
+  Error Message:
+   Microsoft.Data.Sqlite.SqliteException : SQLite Error 8: 'attempt to write a readonly database'.
+  Stack Trace:
+     at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader()
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteScalar()
+   at StoreFlow.Infrastructure.Persistence.SqlitePragmaInterceptor.ApplyTo(SqliteConnection connection) in D:\Coding\UA Retail Store\src\StoreFlow.Infrastructure\Persistence\SqlitePragmaInterceptor.cs:line 85
+   at StoreFlow.Infrastructure.Persistence.SqlitePragmaInterceptor.ConnectionOpened(DbConnection connection, ConnectionEndEventData eventData) in D:\Coding\UA Retail Store\src\StoreFlow.Infrastructure\Persistence\SqlitePragmaInterceptor.cs:line 53
+   at Microsoft.EntityFrameworkCore.Diagnostics.Internal.RelationalConnectionDiagnosticsLogger.ConnectionOpened(IRelationalConnection connection, DateTimeOffset startTime, TimeSpan duration)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenInternal(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.Open(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Sqlite.Storage.Internal.SqliteDatabaseCreator.Exists()
+   at Microsoft.EntityFrameworkCore.Storage.RelationalDatabaseCreator.ExistsAsync(CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Migrations.HistoryRepository.ExistsAsync(CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Migrations.HistoryRepository.GetAppliedMigrationsAsync(CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.GetAppliedMigrationsAsync(DatabaseFacade databaseFacade, CancellationToken cancellationToken)
+   at StoreFlow.Infrastructure.Persistence.DatabaseInitializer.InitializeAsync(CancellationToken cancellationToken) in D:\Coding\UA Retail Store\src\StoreFlow.Infrastructure\Persistence\DatabaseInitializer.cs:line 55
+   at StoreFlow.Infrastructure.Persistence.DatabaseInitializer.InitializeAsync(CancellationToken cancellationToken) in D:\Coding\UA Retail Store\src\StoreFlow.Infrastructure\Persistence\DatabaseInitializer.cs:line 66
+   at StoreFlow.Infrastructure.Tests.MigrationTriggerTests.A_shop_whose_database_file_exists_but_is_empty_still_opens() in D:\Coding\UA Retail Store\tests\StoreFlow.Infrastructure.Tests\MigrationTriggerTests.cs:line 142
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     1, Passed:   232, Skipped:     0, Total:   233, Duration: 51 s - StoreFlow.Infrastructure.Tests.dll (net10.0)

@@ -1,0 +1,72 @@
+shop copy: C:\Users\ahmed\AppData\Local\Temp\storeflow-proof-shop
+database: C:\Users\ahmed\AppData\Local\Temp\storeflow-proof-shop\data\storeflow.db
+--- before: the shop by its content ---
+  sha256=60b833020e7824885a9d23f1cf161603f2f62128e5bc76debe92e7ebd175fd79
+  tables=28
+  rows=88
+  table=ApprovalRequests rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=AuditLogs rows=24 sha256=583a84eba52b08c224d63b4af6e23880d136c6c854fc5970bb2cb431eedce7f3
+  table=BackupLogs rows=1 sha256=a35ff685cca5940d2cecbf1a3b5bb6eb52ee9ee570349043c0cbb10af7910e30
+  table=Categories rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=HeldCarts rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=Payments rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=ProductBarcodes rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=Products rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=PurchaseDocuments rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=PurchaseLines rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=RequestOutcomes rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=RolePermissions rows=48 sha256=0782b8ee18f2f1fafd0b97b1b02e2bb259773071621c43aef8cd383f7b91e683
+  table=Roles rows=4 sha256=c8d94de50914473ba809cfa437295e0a05edcdd92bfa4fd21ef2dd04e10fc04c
+  table=SalesInvoiceLines rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=SalesInvoices rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=SalesReturnLines rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=SalesReturns rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=Settings rows=2 sha256=12dfb750d46177c29e79a52f92ce62ca5e0834bf6e04e0283f7bd5b4d9825cf9
+  table=StockBalances rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=StockCountLines rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=StockCounts rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=StockMovements rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=Suppliers rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=TaxCategories rows=1 sha256=aa4a32c63dbbe434b5db74733d5ba5450903ebda349bdedbe80ea007dda08f4a
+  table=Units rows=2 sha256=c773160aa8b4a71d3f4834dd38a54febbe1a29255349a7522d19928b88d15542
+  table=Users rows=1 sha256=b3b3b41e8efe157d87009ff5f1aab1b57f356e558182c08a699b35f5a3189fee
+  table=__EFMigrationsHistory rows=5 sha256=26cce9e9ca1bf00a9393eec4571b70e2020a617e7bc5c63d2dccbbb674de77fd
+  table=__EFMigrationsLock rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+--- the new build starts against the copy ---
+  pid 12436
+  the sign-in window came up
+  the shop opened
+--- closing the shop ---
+--- after: the shop by its content ---
+  sha256=28c8280332767ccf2c2aae22f0c87d11ee18af0a4ae01abcce194ef0fc81b708
+  tables=28
+  rows=89
+  table=ApprovalRequests rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=AuditLogs rows=25 sha256=5039d02f752b1d1ea817c0bed2db027f8a5857d1c9b8fc30befc11eb171a59e1
+  table=BackupLogs rows=1 sha256=a35ff685cca5940d2cecbf1a3b5bb6eb52ee9ee570349043c0cbb10af7910e30
+  table=Categories rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=HeldCarts rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=Payments rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=ProductBarcodes rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=Products rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=PurchaseDocuments rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=PurchaseLines rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=RequestOutcomes rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=RolePermissions rows=48 sha256=0782b8ee18f2f1fafd0b97b1b02e2bb259773071621c43aef8cd383f7b91e683
+  table=Roles rows=4 sha256=c8d94de50914473ba809cfa437295e0a05edcdd92bfa4fd21ef2dd04e10fc04c
+  table=SalesInvoiceLines rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=SalesInvoices rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=SalesReturnLines rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=SalesReturns rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=Settings rows=2 sha256=12dfb750d46177c29e79a52f92ce62ca5e0834bf6e04e0283f7bd5b4d9825cf9
+  table=StockBalances rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=StockCountLines rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=StockCounts rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=StockMovements rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=Suppliers rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  table=TaxCategories rows=1 sha256=aa4a32c63dbbe434b5db74733d5ba5450903ebda349bdedbe80ea007dda08f4a
+  table=Units rows=2 sha256=c773160aa8b4a71d3f4834dd38a54febbe1a29255349a7522d19928b88d15542
+  table=Users rows=1 sha256=d5d1358b9289a0c38292111b05bd8e9c94e246777ec1a8bc5d19b18b91377853
+  table=__EFMigrationsHistory rows=5 sha256=26cce9e9ca1bf00a9393eec4571b70e2020a617e7bc5c63d2dccbbb674de77fd
+  table=__EFMigrationsLock rows=0 sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+RESULT: OK - the new build opened the shop

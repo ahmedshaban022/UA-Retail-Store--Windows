@@ -75,15 +75,14 @@ a tag.
 
 The backup harness is the one that carries the backup, the restore, the recovery wizard, the
 Arabic run and the restore into a second shop. It was run against the development build after
-the fix, and the evidence is in [`build/scratch/backup-run-1.log`](../../build/scratch/backup-run-1.log)
-and [`backup-run-2.log`](../../build/scratch/backup-run-2.log): **39 checks, 0 failures** on each
-run.
+the fix, and the evidence is in
+[`backup-run-1.log`](phase9-evidence/backup-run-1.log) and
+[`backup-run-2.log`](phase9-evidence/backup-run-2.log): **39 checks, 0 failures** on each run.
 
 It was then run **three times against the installed v1.0.1** — the published release, driven the
 way a shop would drive it — with the same result: **39 checks, 0 failures** on each run. The
-evidence is in [`build/scratch/backup-installed-run-1.log`](../../build/scratch/backup-installed-run-1.log)
-and its two siblings, and the phase-6 pictures in the repository were taken from that installed
-copy.
+evidence is in [`backup-installed-run-1.log`](phase9-evidence/backup-installed-run-1.log) and its
+two siblings, and the phase-6 pictures in the repository were taken from that installed copy.
 
 ### The four harnesses that had stopped working
 
@@ -133,6 +132,8 @@ installed version is the new one, and the shop's data is what it was).
 
 The shop it drives is a throwaway one, so the real shop is never written to, and the real
 `%APPDATA%\StoreFlow` is measured before and after as well: seven files, unchanged.
+
+The run itself is in [`update-cycle-1.0.0-to-1.0.1.log`](phase9-evidence/update-cycle-1.0.0-to-1.0.1.log).
 
 ## What running it found
 
@@ -309,7 +310,8 @@ the failure was `no such table: main.SalesInvoices`.
 
 The fix is to take the guards down before the migrations and put them back after them
 (`SchemaTriggers.DropScript`, applied by `DatabaseInitializer`), and it is proven by two tests that
-fail against the old code with exactly that error.
+fail against the old code with exactly that error. The proof is in
+[`proof1-the-trigger-drop-removed.log`](phase9-evidence/proof1-the-trigger-drop-removed.log).
 
 The half-migrated shop was repaired by **rolling the interrupted migration back** — the temporary
 tables, the two indexes, the four columns and the eight triggers were dropped, after a consistent
@@ -355,6 +357,13 @@ Five tests cover this: the shop that has already run the programme can still be 
 guards are back afterwards; a shop whose database file exists but is empty still opens; a
 connection that cannot write is not asked to change the file; and a connection that can write puts
 the shop in the write-ahead log.
+
+The end-to-end proof is in [`proof-the-real-shop-opens.log`](phase9-evidence/proof-the-real-shop-opens.log):
+the new build was started against a **copy** of the real shop, the owner signed in, the shell
+opened, and the shop's content was measured before and after — 28 tables, the same rows, and only
+the sign-in's own audit entry added. The proof that the pragma tests catch the fault they were
+written for is in
+[`proof2-the-read-only-tolerance-removed.log`](phase9-evidence/proof2-the-read-only-tolerance-removed.log).
 
 ## The three debts, decided
 

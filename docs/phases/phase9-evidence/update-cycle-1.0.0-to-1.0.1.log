@@ -1,0 +1,236 @@
+﻿15:00:51  === the StoreFlow release cycle: 1.0.0 -> 1.0.1 ===
+15:00:51  evidence folder: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:00:51  shop folder: D:\Coding\UA Retail Store\build\update-cycle\shop
+15:00:51  
+15:00:51  --- prepare: the published releases ---
+15:00:51    ok   the release v1.0.0 is published, not a draft
+15:00:51    ok   the release v1.0.0 carries an installer
+15:00:51    ok   the release v1.0.0 carries the checksum published beside it
+15:01:27  installer: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1\StoreFlow-1.0.0-x64.msi
+15:01:27  sha256:    69AA3E5EC9403EE8308F21ACD243A1C27E3641AAB72B96DF2C36A9BD59363C9B
+15:01:27  published: 69AA3E5EC9403EE8308F21ACD243A1C27E3641AAB72B96DF2C36A9BD59363C9B *StoreFlow-1.0.0-x64.msi
+15:01:27    ok   the download matches the checksum published beside it
+15:01:27    ok   the release v1.0.1 is published, not a draft
+15:01:27    ok   the release v1.0.1 carries an installer
+15:01:27    ok   the release v1.0.1 carries its checksum
+15:01:27  
+15:01:27  checks: 7, failures: 0
+15:01:27  
+15:01:27  checks: 7, failures: 0
+15:01:27  the evidence of this run is in D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:01:27  the run folder is kept: it holds the evidence, and the local file-safety policy refuses deletions.
+15:01:27  === the StoreFlow release cycle: 1.0.0 -> 1.0.1 ===
+15:01:27  evidence folder: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:01:27  shop folder: D:\Coding\UA Retail Store\build\update-cycle\shop
+15:01:27  
+15:01:27  --- install: 1.0.0, for this user, with no elevation ---
+15:01:27  installed version before: 1.0.1
+15:01:27  a different version is installed (1.0.1); it is removed first
+15:01:27  the installed package is D:\Coding\UA Retail Store\artifacts\installer\1.0.1\StoreFlow-1.0.1-x64.msi
+15:19:58  === the StoreFlow release cycle: 1.0.0 -> 1.0.1 ===
+15:19:58  evidence folder: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:19:58  shop folder: D:\Coding\UA Retail Store\build\update-cycle\shop
+15:19:58  
+15:19:58  --- install: 1.0.0, for this user, with no elevation ---
+15:19:58  installed version before: 1.0.1
+15:19:58  a different version is installed (1.0.1); it is removed first
+15:19:58  the installed package is D:\Coding\UA Retail Store\artifacts\installer\1.0.1\StoreFlow-1.0.1-x64.msi
+15:20:01  msiexec exit code: 0
+15:20:01    ok   the copy that was installed was removed
+15:20:01    ok   nothing in the real %APPDATA%\StoreFlow changed (7 files)
+15:20:01    ok   nothing in the real %APPDATA%\StoreFlow was lost (0 missing)
+15:20:08  msiexec exit code: 0
+15:20:08    ok   the installer finished without an error
+15:20:08  installed version after: 1.0.0
+15:20:08    ok   the installed version is 1.0.0
+15:20:08    ok   the programme is installed at C:\Users\ahmed\AppData\Local\Programs\StoreFlow\StoreFlow.Desktop.exe
+15:20:08    ok   the install belongs to this account, not to the machine
+15:20:08  
+15:20:08  checks: 7, failures: 0
+15:20:08  
+15:20:08  checks: 7, failures: 0
+15:20:08  the evidence of this run is in D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:20:08  the run folder is kept: it holds the evidence, and the local file-safety policy refuses deletions.
+15:20:48  === the StoreFlow release cycle: 1.0.0 -> 1.0.1 ===
+15:20:48  evidence folder: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:20:48  shop folder: D:\Coding\UA Retail Store\build\update-cycle\shop
+15:20:48  
+15:20:48  --- update: the installed copy finds the newer release and applies it ---
+15:20:48  
+15:20:48  --- the shop: the installed copy is started ---
+15:20:56  the shop is new: the first-run wizard is up
+15:21:09  the shop now starts in English
+15:21:12  the shop was started again: pid=35136
+15:21:20  the sign-in window is up
+15:21:30    ok   the shell of the installed copy is up
+15:21:30  a product is put in the catalogue, so that the shop holds something
+15:21:56    ok   the editor closed after saving the product
+15:21:56    ok   the product is in the catalogue
+15:21:57  the shop database (before): 28 tables, 69 rows
+15:21:57  its content hash: c144c40f6245e09ea00ff59b395fca7d77530d9b1755fe6b7665b7480cededd8
+15:21:57  the shop holds 1 files that the programme does not write to
+15:21:57  the real shop holds 7 files
+15:21:57  the settings screen is open
+15:22:00    ok   the "check for updates" button is there
+15:22:00  the update status reads: Version v1.0.1 is available. Install it now?
+15:22:00    ok   the installed copy found v1.0.1 and is offering it
+15:22:00    ok   the update is offered in the shell as well
+15:27:01  FAIL: the installer was downloaded into C:\Users\ahmed\AppData\Local\Temp\StoreFlow\update-1.0.1
+15:27:01    ok   the programme closed itself, so the installer could take over
+15:27:01  installed version now: 1.0.1
+15:27:01    ok   the installed version is now 1.0.1
+15:27:01  the shop database (after): 28 tables, 69 rows
+15:27:01  its content hash: c144c40f6245e09ea00ff59b395fca7d77530d9b1755fe6b7665b7480cededd8
+15:27:01  the shop holds 1 files that the programme does not write to
+15:27:01  the real shop holds 7 files
+15:27:01  
+15:27:01  checks: 9, failures: 1
+15:27:01  the evidence of this run is in D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:27:01  the run folder is kept: it holds the evidence, and the local file-safety policy refuses deletions.
+15:28:55  === the StoreFlow release cycle: 1.0.0 -> 1.0.1 ===
+15:28:55  evidence folder: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:28:55  shop folder: D:\Coding\UA Retail Store\build\update-cycle\shop-2
+15:28:55  
+15:28:55  --- prepare: the published releases ---
+15:28:55    ok   the release v1.0.0 is published, not a draft
+15:28:55    ok   the release v1.0.0 carries an installer
+15:28:55    ok   the release v1.0.0 carries the checksum published beside it
+15:29:16  FAIL: the cycle stopped: Unable to connect to the remote server
+15:29:16  
+15:29:16  checks: 3, failures: 1
+15:29:16  the evidence of this run is in D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:29:16  the run folder is kept: it holds the evidence, and the local file-safety policy refuses deletions.
+15:30:33  === the StoreFlow release cycle: 1.0.0 -> 1.0.1 ===
+15:30:33  evidence folder: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:30:33  shop folder: D:\Coding\UA Retail Store\build\update-cycle\shop-2
+15:30:33  
+15:30:33  --- install: 1.0.0, for this user, with no elevation ---
+15:30:33  installed version before: 1.0.1
+15:30:33  a different version is installed (1.0.1); it is removed first
+15:30:33  the installed package is C:\Users\ahmed\AppData\Local\Temp\StoreFlow\update-v1.0.1\StoreFlow-1.0.1-x64.msi
+15:30:36  msiexec exit code: 0
+15:30:36    ok   the copy that was installed was removed
+15:30:36    ok   nothing in the real %APPDATA%\StoreFlow changed (7 files)
+15:30:36    ok   nothing in the real %APPDATA%\StoreFlow was lost (0 missing)
+15:30:45  msiexec exit code: 0
+15:30:45    ok   the installer finished without an error
+15:30:45  installed version after: 1.0.0
+15:30:45    ok   the installed version is 1.0.0
+15:30:45    ok   the programme is installed at C:\Users\ahmed\AppData\Local\Programs\StoreFlow\StoreFlow.Desktop.exe
+15:30:45    ok   the install belongs to this account, not to the machine
+15:30:45  
+15:30:45  checks: 7, failures: 0
+15:30:45  the evidence of this run is in D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:30:45  the run folder is kept: it holds the evidence, and the local file-safety policy refuses deletions.
+15:30:45  === the StoreFlow release cycle: 1.0.0 -> 1.0.1 ===
+15:30:45  evidence folder: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:30:45  shop folder: D:\Coding\UA Retail Store\build\update-cycle\shop-2
+15:30:45  
+15:30:45  --- update: the installed copy finds the newer release and applies it ---
+15:30:45  
+15:30:45  --- the shop: the installed copy is started ---
+15:30:54  the shop is new: the first-run wizard is up
+15:31:29  the shop now starts in English
+15:31:32  the shop was started again: pid=4864
+15:31:40  the sign-in window is up
+15:31:56    ok   the shell of the installed copy is up
+15:31:56  a product is put in the catalogue, so that the shop holds something
+15:32:38    ok   the editor closed after saving the product
+15:32:38    ok   the product is in the catalogue
+15:32:39  the shop database (before): 28 tables, 69 rows
+15:32:39  its content hash: 7e50c1e04a9c555780433a8c1e59a5d33fe418c46fd86bb1e8f5606e1acdc347
+15:32:39  the shop holds 1 files that the programme does not write to
+15:32:39  the real shop holds 7 files
+15:32:39  the settings screen is open
+15:32:44    ok   the "check for updates" button is there
+15:32:46  the update status reads: Version v1.0.1 is available. Install it now?
+15:32:46    ok   the installed copy found v1.0.1 and is offering it
+15:32:46    ok   the update is offered in the shell as well
+15:32:48    ok   the installer was downloaded into C:\Users\ahmed\AppData\Local\Temp\StoreFlow\update-v1.0.1
+15:32:48  the downloaded installer: C:\Users\ahmed\AppData\Local\Temp\StoreFlow\update-v1.0.1\StoreFlow-1.0.1-x64.msi
+15:32:48  its size: 55990559 bytes
+15:32:50  the download's sha256: B119CDB140957ED77DB2C01BF039DB74A5DB3F1C1B12D3782EC4B72435ABC1BC
+15:32:50  the published sha256:  
+15:32:50  FAIL: the published text carries no checksum
+15:32:50  FAIL: the downloaded installer matches the checksum published beside the release
+15:37:50  FAIL: the programme closed itself, so the installer could take over
+15:43:07  === the StoreFlow release cycle: 1.0.0 -> 1.0.1 ===
+15:43:07  evidence folder: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:43:07  shop folder: D:\Coding\UA Retail Store\build\update-cycle\shop-3
+15:43:07  
+15:43:07  --- install: 1.0.0, for this user, with no elevation ---
+15:43:07  installed version before: 1.0.0
+15:43:08  msiexec exit code: 0
+15:43:08    ok   the installer finished without an error
+15:43:08  installed version after: 1.0.0
+15:43:08    ok   the installed version is 1.0.0
+15:43:08    ok   the programme is installed at C:\Users\ahmed\AppData\Local\Programs\StoreFlow\StoreFlow.Desktop.exe
+15:43:08    ok   the install belongs to this account, not to the machine
+15:43:08  
+15:43:08  checks: 4, failures: 0
+15:43:08  the evidence of this run is in D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:43:08  the run folder is kept: it holds the evidence, and the local file-safety policy refuses deletions.
+15:43:08  === the StoreFlow release cycle: 1.0.0 -> 1.0.1 ===
+15:43:08  evidence folder: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:43:08  shop folder: D:\Coding\UA Retail Store\build\update-cycle\shop-3
+15:43:08  
+15:43:08  --- update: the installed copy finds the newer release and applies it ---
+15:43:08  
+15:43:08  --- the shop: the installed copy is started ---
+15:43:13  the shop is new: the first-run wizard is up
+15:43:49  the shop now starts in English
+15:43:52  the shop was started again: pid=9148
+15:44:00  the sign-in window is up
+15:44:15    ok   the shell of the installed copy is up
+15:44:15  a product is put in the catalogue, so that the shop holds something
+15:44:58    ok   the editor closed after saving the product
+15:44:58    ok   the product is in the catalogue
+15:44:58  the shop database (before): 28 tables, 69 rows
+15:44:58  its content hash: 2ca38cd2dcf2506853ed9a01e4d9091d5c49338792de1956aeb40f1fc79753a1
+15:44:58  the shop holds 1 files that the programme does not write to
+15:44:58  the real shop holds 7 files
+15:44:58  the settings screen is open
+15:45:03    ok   the "check for updates" button is there
+15:45:06  the update status reads: Version v1.0.1 is available. Install it now?
+15:45:06    ok   the installed copy found v1.0.1 and is offering it
+15:45:06    ok   the update is offered in the shell as well
+15:45:09  the published installer is 55990559 bytes
+15:45:25    ok   the installer was downloaded into C:\Users\ahmed\AppData\Local\Temp\StoreFlow\update-v1.0.1
+15:45:25  the downloaded installer: C:\Users\ahmed\AppData\Local\Temp\StoreFlow\update-v1.0.1\StoreFlow-1.0.1-x64.msi
+15:45:25  its size: 55990559 bytes
+15:45:25  the download's sha256: B119CDB140957ED77DB2C01BF039DB74A5DB3F1C1B12D3782EC4B72435ABC1BC
+15:45:25  the published sha256:  B119CDB140957ED77DB2C01BF039DB74A5DB3F1C1B12D3782EC4B72435ABC1BC
+15:45:25    ok   the downloaded installer matches the checksum published beside the release
+15:45:25    ok   the programme closed itself, so the installer could take over
+15:45:46  installed version now: 1.0.1
+15:45:46    ok   the installed version is now 1.0.1
+15:45:46  the shop database (after): 28 tables, 69 rows
+15:45:46  its content hash: 2ca38cd2dcf2506853ed9a01e4d9091d5c49338792de1956aeb40f1fc79753a1
+15:45:46  the shop holds 1 files that the programme does not write to
+15:45:46  the real shop holds 7 files
+15:45:46  
+15:45:46  checks: 10, failures: 0
+15:45:46  the evidence of this run is in D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:45:46  the run folder is kept: it holds the evidence, and the local file-safety policy refuses deletions.
+15:45:46  === the StoreFlow release cycle: 1.0.0 -> 1.0.1 ===
+15:45:46  evidence folder: D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:45:46  shop folder: D:\Coding\UA Retail Store\build\update-cycle\shop-3
+15:45:46  
+15:45:46  --- verify: the shop's data came through the upgrade untouched ---
+15:45:46    ok   the installed version is 1.0.1
+15:45:46  the installed programme: C:\Users\ahmed\AppData\Local\Programs\StoreFlow\StoreFlow.Desktop.exe
+15:45:46  its sha256: 2C51AD144C1211ED4983C8A582EF0823FD09698F3305BFCC480834F4811D22FE
+15:45:46    ok   nothing in the shop's files changed (1 files)
+15:45:46    ok   nothing in the shop's files was lost (0 missing)
+15:45:46  the database before the upgrade: 2ca38cd2dcf2506853ed9a01e4d9091d5c49338792de1956aeb40f1fc79753a1
+15:45:46  the database after the upgrade:  2ca38cd2dcf2506853ed9a01e4d9091d5c49338792de1956aeb40f1fc79753a1
+15:45:46    ok   the shop database was read before the upgrade
+15:45:46    ok   every table of the shop is the same (0 changed)
+15:45:46    ok   the shop database holds exactly the same tables and the same rows
+15:45:46    ok   the real %APPDATA%\StoreFlow holds the same number of files
+15:45:46    ok   nothing in the real %APPDATA%\StoreFlow changed (7 files)
+15:45:46    ok   nothing in the real %APPDATA%\StoreFlow was lost (0 missing)
+15:45:46  
+15:45:46  checks: 9, failures: 0
+15:45:46  the evidence of this run is in D:\Coding\UA Retail Store\build\update-cycle\v1.0.0-to-v1.0.1
+15:45:46  the run folder is kept: it holds the evidence, and the local file-safety policy refuses deletions.
