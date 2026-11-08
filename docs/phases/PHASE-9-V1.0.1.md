@@ -45,8 +45,8 @@ prove.
 
 The orchestrator reports a solution build with **0 warnings and 0 errors** in both Debug and
 Release. The full solution suite was run **three consecutive times** in Debug and once in
-Release; every run was green. The suite grew from 489 to **539 tests**: 25 domain, 158
-application, 228 infrastructure and 128 desktop.
+Release; every run was green. The suite grew from 489 to **544 tests**: 25 domain, 158
+application, 233 infrastructure and 128 desktop.
 
 The additions are:
 
@@ -60,6 +60,10 @@ The additions are:
   answers *too many requests*, the release that carries no installer, the download that breaks in
   the middle, the download that is cancelled, and the proof that an update never writes inside
   the shop's data.
+- **Five tests for the shop that could not be migrated.** The shop that has already run the
+  programme can still be migrated with its guards in place; the guards are back afterwards; a shop
+  whose database file exists but is empty still opens; a connection that cannot write is not asked
+  to change the file; and a connection that can write puts the shop in the write-ahead log.
 
 ### CI
 
@@ -283,6 +287,68 @@ session and are gone with it. They all write into the repository now, and the ph
 the wizard, the sign-in and the shell — have a folder of their own with a note saying what each
 one shows.
 
+### The shop could not be migrated at all, and the wizard could not let go
+
+After the release cycle had been proved, the shop on this machine would not open. It failed with
+`duplicate column name: RefundTax`, the recovery wizard came up, and the wizard offered one
+thing only: **Close**. Closing it ended the programme with *"The shop's data cannot be read and no
+backup was restored, so StoreFlow cannot start."* The owner was stranded, and there was no way
+out of the screen.
+
+The shop's database had been left **half-migrated** by an interrupted migration. Four of the five
+migrations were recorded, two temporary tables were left behind, and four columns, two indexes and
+eight guard triggers had been applied outside the migration's transaction. The next start tried to
+apply the fifth migration again and stopped at the first column it found already there.
+
+Behind that lay a second fault, and it is the one that had been lying in the code since Phase 0.
+**The migration that rebuilds a table cannot run while the guard triggers are in place.** SQLite
+will not drop a table that a trigger still refers to, and a migration that changes the shape of a
+table rebuilds it: it makes a new table, copies the rows, drops the old one and renames the new
+one. A shop that had run the programme at least once therefore could not be migrated at all, and
+the failure was `no such table: main.SalesInvoices`.
+
+The fix is to take the guards down before the migrations and put them back after them
+(`SchemaTriggers.DropScript`, applied by `DatabaseInitializer`), and it is proven by two tests that
+fail against the old code with exactly that error.
+
+The half-migrated shop was repaired by **rolling the interrupted migration back** — the temporary
+tables, the two indexes, the four columns and the eight triggers were dropped, after a consistent
+copy had been taken with SQLite's own `VACUUM INTO` — so that the migration ran cleanly the next
+time. The shop had no sales in it, so nothing was lost, and the owner account survived.
+
+### The fix for that brought up a second landmine of the same shape
+
+Taking the guards down opens a connection before the migration runs — and that connection brought
+up a fault that had been waiting in the framework's own path since Phase 0.
+
+**The framework checks whether the database exists before it migrates it, and it opens that check
+read-only**, so the check does not bring a database into being as a side effect. Our pragmas were
+applied to every connection, and one of them — `PRAGMA journal_mode = WAL` — is not a setting of
+the connection but a change **to the file**. On a connection that cannot write, that change fails
+with *attempt to write a readonly database*, and the failure comes out of the open and stops the
+shop from starting.
+
+The whole suite fell over: **200 failures**, all of them with the same error, from every test that
+opens a database. The rules are worth writing down, because they are the same rules as the ones
+above:
+
+- **A connection that cannot write must never be asked to change the file.** The journal mode is
+  a property of the file; a read-only connection simply cannot move it, and nothing is lost when
+  the request is refused.
+- **The settings that belong to the connection** — foreign keys on, the busy timeout, the full
+  synchronous journal, the temporary store in memory — are applied to every connection, read-only
+  or not, because they cost nothing and change nothing outside the connection.
+
+The pragmas are now split in two: the connection's own settings are always applied, and the file's
+journal mode is asked for in a way that tolerates a connection that cannot write. The busy timeout
+also moved to the front, because a connection that finds the database locked should wait for the
+lock before anything else is asked of the database.
+
+Five tests cover this: the shop that has already run the programme can still be migrated; the
+guards are back afterwards; a shop whose database file exists but is empty still opens; a
+connection that cannot write is not asked to change the file; and a connection that can write puts
+the shop in the write-ahead log.
+
 ## The three debts, decided
 
 ### 1. The archive encryption — designed, and deliberately not built
@@ -423,6 +489,16 @@ damaged balances against movements; it is part of the reported green suite.
   does not prove who published it.
 - **The update was proved against GitHub Releases, not against every mirror.** The feed was
   reachable and the checksum matched on this machine.
+- **An interrupted migration still cannot heal itself.** SQLite's own table rebuild runs outside
+  the migration's transaction, so a programme that is killed halfway through leaves columns,
+  indexes and temporary tables behind, and the next start stops on the first one it finds. The fix
+  in this phase removes the *trigger* obstacle — a shop with its guards in place can now be
+  migrated — but a genuinely half-applied migration still needs the rollback that was done by hand
+  here, or the copy the programme takes before every migration.
+- **The recovery wizard still has no way out.** When the shop's data cannot be prepared and no
+  backup is restored, the wizard offers only *Close*, and the programme then refuses to start. A
+  way to start again with a fresh shop, keeping the old folder aside, is a **new screen** and has
+  not been built.
 
 ## Where the programme stands
 
