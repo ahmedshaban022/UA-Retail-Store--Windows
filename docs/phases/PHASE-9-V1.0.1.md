@@ -316,6 +316,13 @@ tables, the two indexes, the four columns and the eight triggers were dropped, a
 copy had been taken with SQLite's own `VACUUM INTO` — so that the migration ran cleanly the next
 time. The shop had no sales in it, so nothing was lost, and the owner account survived.
 
+**What this means for the released v1.0.1.** Both the `v1.0.0` and the `v1.0.1` tags already carry
+all five migrations, so a shop that has only ever run a released version is never behind and never
+meets the fault — which is why the update cycle proved the upgrade works end to end. The fault
+needs a shop whose database is **behind** the migrations, and that is a shop that ran an earlier
+build. The fix removes the whole class of failure, and it will be in the next release; the copy
+that is installed on this machine is the released v1.0.1 and does not carry it.
+
 ### The fix for that brought up a second landmine of the same shape
 
 Taking the guards down opens a connection before the migration runs — and that connection brought
