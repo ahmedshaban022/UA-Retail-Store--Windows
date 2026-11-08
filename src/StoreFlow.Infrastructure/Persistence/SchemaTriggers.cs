@@ -10,6 +10,34 @@ namespace StoreFlow.Infrastructure.Persistence;
 /// </remarks>
 public static class SchemaTriggers
 {
+    /// <summary>
+    /// The script that takes the triggers down before a migration runs.
+    /// </summary>
+    /// <remarks>
+    /// SQLite will not drop a table that a trigger still refers to, and a migration that changes
+    /// the shape of a table rebuilds it: it makes a new table, copies the rows, drops the old one
+    /// and renames the new one. A shop that has run the programme at least once therefore cannot be
+    /// migrated while its triggers are in place, and the migration fails with
+    /// <c>no such table: main.SalesInvoices</c>.
+    ///
+    /// The triggers are put back by <see cref="Script"/> the moment the migrations are done, and
+    /// they are put back on every start, so nothing is lost if a shop is closed in between.
+    /// </remarks>
+    public const string DropScript = """
+        DROP TRIGGER IF EXISTS trg_StockBalances_NoNegative;
+        DROP TRIGGER IF EXISTS trg_StockBalances_NoNegativeInsert;
+        DROP TRIGGER IF EXISTS trg_StockMovements_NoUpdate;
+        DROP TRIGGER IF EXISTS trg_StockMovements_NoDelete;
+        DROP TRIGGER IF EXISTS trg_SalesInvoiceLines_NoUpdate;
+        DROP TRIGGER IF EXISTS trg_SalesInvoiceLines_NoDelete;
+        DROP TRIGGER IF EXISTS trg_PurchaseLines_NoUpdate;
+        DROP TRIGGER IF EXISTS trg_PurchaseLines_NoDelete;
+        DROP TRIGGER IF EXISTS trg_Products_BarcodeNotTaken;
+        DROP TRIGGER IF EXISTS trg_Products_BarcodeNotTakenOnUpdate;
+        DROP TRIGGER IF EXISTS trg_ProductBarcodes_NotTaken;
+        DROP TRIGGER IF EXISTS trg_ProductBarcodes_NotTakenOnUpdate;
+        """;
+
     /// <summary>The trigger script applied after every migration.</summary>
     public const string Script = """
         -- The sellable quantity may never go negative.

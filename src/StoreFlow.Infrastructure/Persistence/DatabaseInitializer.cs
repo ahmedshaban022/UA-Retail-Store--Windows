@@ -44,7 +44,23 @@ public sealed class DatabaseInitializer(
 
         await BackUpBeforeMigrateAsync(context, cancellationToken);
 
+        // The triggers come down before the migrations and go back up after them. SQLite will not
+        // drop a table that a trigger still refers to, and a migration that changes the shape of a
+        // table rebuilds it. Without this, a shop that has run the programme at least once cannot
+        // be migrated at all: the migration fails with "no such table", and the shop cannot open.
+        //
+        // The guards are only taken down when the shop has run the programme before, because that
+        // is the only time they are there to be taken down. A shop that has never run has no
+        // triggers, and it does not get an empty database file created before its first schema.
+        IReadOnlyList<string> applied = (await context.Database.GetAppliedMigrationsAsync(cancellationToken)).ToList();
+
+        if (applied.Count > 0)
+        {
+            await context.Database.ExecuteSqlRawAsync(SchemaTriggers.DropScript, cancellationToken);
+        }
+
         await context.Database.MigrateAsync(cancellationToken);
+
         await context.Database.ExecuteSqlRawAsync(SchemaTriggers.Script, cancellationToken);
 
         await SeedAsync(context, cancellationToken);
