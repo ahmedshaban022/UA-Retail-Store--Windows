@@ -35,6 +35,7 @@ public sealed class GitHubReleaseUpdateService : IUpdateService
     private readonly string _runningVersion;
     private readonly HttpClient _client;
     private readonly IInstallerLauncher _launcher;
+    private readonly IInstallerTrust _trust;
     private readonly string _downloadRoot;
 
     /// <summary>Creates the service for the running programme.</summary>
@@ -57,7 +58,8 @@ public sealed class GitHubReleaseUpdateService : IUpdateService
         string runningVersion,
         HttpClient client,
         IInstallerLauncher launcher,
-        string? downloadRoot = null)
+        string? downloadRoot = null,
+        IInstallerTrust? trust = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(runningVersion);
         ArgumentNullException.ThrowIfNull(client);
@@ -66,6 +68,7 @@ public sealed class GitHubReleaseUpdateService : IUpdateService
         _runningVersion = runningVersion;
         _client = client;
         _launcher = launcher;
+        _trust = trust ?? new AuthenticodeInstallerTrust();
         _downloadRoot = downloadRoot ?? Path.Combine(Path.GetTempPath(), "StoreFlow");
     }
 
@@ -211,6 +214,17 @@ public sealed class GitHubReleaseUpdateService : IUpdateService
                 return new UpdateInstallResult(
                     false,
                     "the download did not match the checksum published with it");
+            }
+
+            // The checksum proves the download arrived intact. It cannot prove who published it,
+            // because the checksum was published beside the installer, in the same release. The
+            // installer's own signature is the publisher's proof, so it is checked before the
+            // installer is run.
+            if (!_trust.IsTrusted(target, out string? problem))
+            {
+                TryDelete(target);
+
+                return new UpdateInstallResult(false, problem ?? "the installer is not trusted");
             }
 
             if (!_launcher.Start(target))
@@ -438,14 +452,41 @@ public sealed class GitHubReleaseUpdateService : IUpdateService
 }
 
 /// <summary>
-/// Starts the installer of a downloaded release, for the current user.
+/// Starts the installer of a downloaded release, for the current user, once the programme has
+/// closed.
 /// </summary>
 /// <remarks>
+/// <para>
 /// The install is per-user, like the installer the shop already uses: a till does not have an
 /// administrator account, and an update that needs one would never be applied.
+/// </para>
+/// <para>
+/// The installer is started by a helper that waits for this programme to close first. The
+/// installer cannot replace the programme's files while the programme is holding them open, and
+/// an installer that starts too early is quietly deferred to the next reboot by Windows
+/// Installer: the shop would be told the update was applied when it had not been. The helper
+/// waits, and the installer replaces the files while nothing is holding them.
+/// </para>
 /// </remarks>
 public sealed class MsiexecInstallerLauncher : IInstallerLauncher
 {
+    /// <summary>How long the helper waits for the programme to close, in seconds.</summary>
+    public const int WaitSeconds = 120;
+
+    private readonly string _processToWaitFor;
+
+    /// <summary>Creates the launcher.</summary>
+    /// <param name="processToWaitFor">
+    /// The name of the process the installer must wait for. The default is this programme: the
+    /// installer cannot replace the programme's files while the programme is holding them open.
+    /// </param>
+    public MsiexecInstallerLauncher(string? processToWaitFor = null)
+    {
+        _processToWaitFor = string.IsNullOrWhiteSpace(processToWaitFor)
+            ? System.Diagnostics.Process.GetCurrentProcess().ProcessName
+            : processToWaitFor;
+    }
+
     /// <inheritdoc />
     public bool Start(string installerPath)
     {
@@ -458,14 +499,29 @@ public sealed class MsiexecInstallerLauncher : IInstallerLauncher
             return false;
         }
 
+        string script = Path.Combine(
+            Path.GetDirectoryName(installerPath) ?? Path.GetTempPath(),
+            Path.GetFileNameWithoutExtension(installerPath) + ".cmd");
+
+        try
+        {
+            File.WriteAllText(script, BuildScript(msiexec, installerPath));
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
+
         var info = new ProcessStartInfo
         {
-            FileName = msiexec,
-            Arguments = string.Format(
-                CultureInfo.InvariantCulture,
-                "/i \"{0}\" /qb /norestart",
-                installerPath),
+            FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe"),
+            Arguments = string.Format(CultureInfo.InvariantCulture, "/c \"\"{0}\"\"", script),
             UseShellExecute = false,
+            CreateNoWindow = true,
         };
 
         try
@@ -481,4 +537,27 @@ public sealed class MsiexecInstallerLauncher : IInstallerLauncher
             return false;
         }
     }
+
+    /// <summary>
+    /// The script the helper runs: it waits for the programme to close, and only then starts the
+    /// installer.
+    /// </summary>
+    /// <param name="msiexec">The Windows installer.</param>
+    /// <param name="installerPath">The installer that was downloaded.</param>
+    /// <returns>The script.</returns>
+    public string BuildScript(string msiexec, string installerPath) =>
+        string.Join(
+            Environment.NewLine,
+            "@echo off",
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "waitfor /t {0} {1}",
+                WaitSeconds,
+                _processToWaitFor),
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "\"{0}\" /i \"{1}\" /qb /norestart",
+                msiexec,
+                installerPath),
+            "del \"%~f0\"");
 }

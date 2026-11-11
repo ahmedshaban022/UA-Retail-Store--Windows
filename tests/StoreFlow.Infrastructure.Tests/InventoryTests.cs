@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StoreFlow.Application.Abstractions;
+using StoreFlow.Application.Approvals;
 using StoreFlow.Application.Authorization;
 using StoreFlow.Application.Common;
 using StoreFlow.Application.Inventory;
@@ -8,6 +9,7 @@ using StoreFlow.Domain.Entities;
 using StoreFlow.Domain.Enumerations;
 using StoreFlow.Domain.Money;
 using StoreFlow.Infrastructure.Export;
+using StoreFlow.Infrastructure.Approvals;
 using StoreFlow.Infrastructure.Inventory;
 using StoreFlow.Infrastructure.Persistence;
 using StoreFlow.Infrastructure.Services;
@@ -307,6 +309,141 @@ public sealed class InventoryTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_count_brings_the_books_to_the_shelf_even_when_the_stock_moved_in_between()
+    {
+        int productId = await CreateProductAsync("RICE-001", 0);
+
+        await PostPurchaseAsync(productId, 10m, 50m);
+
+        // The counter counts twelve on the shelf. At that moment the books say ten.
+        int countId = await SaveStockCountAsync(productId, 12m);
+
+        // Three of them are sold while the count waits for a second person to approve it.
+        await new PostStockAdjustmentCommandHandler(
+            _fixture.Factory, _authorization, _auditWriter, new TestClock(), _session)
+            .HandleAsync(
+                new PostStockAdjustmentCommand(productId, -3m, StockDisposition.Sellable, new Money(50m), "Sold at the till"),
+                CancellationToken.None);
+
+        await ApproveAndPostCountAsync(countId);
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        StockBalance balance = await context.StockBalances.SingleAsync();
+
+        // The shelf holds twelve, so the books say twelve — not the nine that replaying the
+        // difference captured at save time would have left behind.
+        balance.QuantityOnHandScaled.ShouldBe(12);
+
+        StockMovement correction = await context.StockMovements.SingleAsync(
+            movement => movement.MovementType == StockMovementType.CountCorrection);
+
+        correction.QuantityDeltaScaled.ShouldBe(5);
+    }
+
+    [Fact]
+    public async Task A_count_that_would_have_run_the_stock_negative_now_lands_the_books_on_the_shelf()
+    {
+        int productId = await CreateProductAsync("RICE-001", 0);
+
+        await PostPurchaseAsync(productId, 10m, 50m);
+
+        // The counter counts five on the shelf, while the books say ten.
+        int countId = await SaveStockCountAsync(productId, 5m);
+
+        // Six of them are sold while the count waits for its approval.
+        await new PostStockAdjustmentCommandHandler(
+            _fixture.Factory, _authorization, _auditWriter, new TestClock(), _session)
+            .HandleAsync(
+                new PostStockAdjustmentCommand(productId, -6m, StockDisposition.Sellable, new Money(50m), "Sold at the till"),
+                CancellationToken.None);
+
+        await ApproveAndPostCountAsync(countId);
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        StockBalance balance = await context.StockBalances.SingleAsync();
+
+        // Four were left on the shelf, the counter found five, so one came back into the books.
+        // Replaying the difference captured at save time would have tried to remove five from four
+        // and the whole count would have rolled back with a misleading message.
+        balance.QuantityOnHandScaled.ShouldBe(5);
+
+        StockMovement correction = await context.StockMovements.SingleAsync(
+            movement => movement.MovementType == StockMovementType.CountCorrection);
+
+        correction.QuantityDeltaScaled.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task A_posted_count_records_the_correction_it_actually_applied()
+    {
+        int productId = await CreateProductAsync("RICE-001", 0);
+
+        await PostPurchaseAsync(productId, 10m, 50m);
+
+        int countId = await SaveStockCountAsync(productId, 12m);
+
+        await new PostStockAdjustmentCommandHandler(
+            _fixture.Factory, _authorization, _auditWriter, new TestClock(), _session)
+            .HandleAsync(
+                new PostStockAdjustmentCommand(productId, -3m, StockDisposition.Sellable, new Money(50m), "Sold at the till"),
+                CancellationToken.None);
+
+        await ApproveAndPostCountAsync(countId);
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        StockCountLine line = await context.StockCountLines.SingleAsync();
+
+        // The count document tells the same story as the ledger: the books said seven, the shelf
+        // said twelve, and five were corrected.
+        line.ExpectedQuantityScaled.ShouldBe(7);
+        line.CountedQuantityScaled.ShouldBe(12);
+        line.DifferenceScaled.ShouldBe(5);
+    }
+
+    [Fact]
+    public async Task A_balance_that_somebody_else_has_moved_is_not_overwritten()
+    {
+        int productId = await CreateProductAsync("RICE-001", 0);
+
+        await PostPurchaseAsync(productId, 10m, 50m);
+
+        await using (StoreFlowDbContext first = await _fixture.Factory.CreateDbContextAsync())
+        {
+            StockBalance balance = await first.StockBalances.SingleAsync();
+
+            balance.QuantityOnHandScaled.ShouldBe(10);
+
+            // Somebody else moves the stock while this one is holding the balance it read.
+            await using (StoreFlowDbContext second = await _fixture.Factory.CreateDbContextAsync())
+            {
+                StockBalance other = await second.StockBalances.SingleAsync();
+
+                other.QuantityOnHandScaled = 20;
+                other.Version += 1;
+
+                await second.SaveChangesAsync();
+            }
+
+            balance.QuantityOnHandScaled = 30;
+            balance.Version += 1;
+
+            // The write carries the version it read, so it lands on a balance that has moved and is
+            // refused, rather than quietly overwriting what the other writer put there. The ledger
+            // and the balance have to agree, and this is what keeps them agreeing.
+            await Should.ThrowAsync<DbUpdateConcurrencyException>(() => first.SaveChangesAsync());
+        }
+
+        await using StoreFlowDbContext after = await _fixture.Factory.CreateDbContextAsync();
+
+        StockBalance balanceAfter = await after.StockBalances.SingleAsync();
+
+        balanceAfter.QuantityOnHandScaled.ShouldBe(20);
+    }
+
+    [Fact]
     public async Task A_stock_count_cannot_be_approved_by_the_person_who_counted_it()
     {
         int productId = await CreateProductAsync("RICE-001", 0);
@@ -376,9 +513,11 @@ public sealed class InventoryTests : IAsyncLifetime
 
         _session.UserId = _secondUserId;
 
-        Result<int> approved = await new ApproveStockAdjustmentCommandHandler(
+        Result<ApprovalRequestSummary> approved = await new DecideApprovalRequestCommandHandler(
             _fixture.Factory, _authorization, _auditWriter, new TestClock(), _session)
-            .HandleAsync(new ApproveStockAdjustmentCommand(outcome.Value.ApprovalRequestId!.Value, "Checked"), CancellationToken.None);
+            .HandleAsync(
+                new DecideApprovalRequestCommand(outcome.Value.ApprovalRequestId!.Value, true, "Checked"),
+                CancellationToken.None);
 
         approved.IsSuccess.ShouldBeTrue();
 
@@ -411,6 +550,56 @@ public sealed class InventoryTests : IAsyncLifetime
 
         balance.QuantityOnHandScaled.ShouldBe(8);
         balance.AverageUnitCost.ShouldBe(new Money(50m));
+    }
+
+    [Fact]
+    public async Task An_adjustment_the_selling_unit_cannot_express_is_refused()
+    {
+        int productId = await CreateProductAsync("RICE-001", 0);
+
+        await PostPurchaseAsync(productId, 10m, 50m);
+
+        // 2.6 pieces of a product sold by the piece cannot be written down. Rounding it to 3 on the
+        // way to the ledger would leave the book claiming three more bags than the counter found.
+        Result<StockAdjustmentOutcome> refused = await new PostStockAdjustmentCommandHandler(
+            _fixture.Factory, _authorization, _auditWriter, new TestClock(), _session)
+            .HandleAsync(
+                new PostStockAdjustmentCommand(productId, 2.6m, StockDisposition.Sellable, new Money(50m), "Found in the back store"),
+                CancellationToken.None);
+
+        refused.IsFailure.ShouldBeTrue();
+        refused.Error.Code.ShouldBe(InventoryValidation.QuantityTooPreciseCode);
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        StockBalance balance = await context.StockBalances.SingleAsync();
+
+        balance.QuantityOnHandScaled.ShouldBe(10);
+        (await context.StockMovements.CountAsync()).ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task An_adjustment_the_selling_unit_can_express_reaches_the_ledger_as_it_was_typed()
+    {
+        // The kilogram is the seeded unit with a precision of three, so 2.6 of it is a quantity the
+        // unit can express and must reach the ledger unscaled.
+        int productId = await CreateProductAsync("RICE-001", 3);
+
+        await PostPurchaseAsync(productId, 10m, 50m);
+
+        Result<StockAdjustmentOutcome> outcome = await new PostStockAdjustmentCommandHandler(
+            _fixture.Factory, _authorization, _auditWriter, new TestClock(), _session)
+            .HandleAsync(
+                new PostStockAdjustmentCommand(productId, 2.6m, StockDisposition.Sellable, new Money(50m), "Found in the back store"),
+                CancellationToken.None);
+
+        outcome.IsSuccess.ShouldBeTrue();
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        StockBalance balance = await context.StockBalances.SingleAsync();
+
+        balance.QuantityOnHandScaled.ShouldBe(12600);
     }
 
     [Fact]
@@ -750,6 +939,33 @@ public sealed class InventoryTests : IAsyncLifetime
         saved.IsFailure.ShouldBeFalse(saved.Error.Message);
 
         return saved.Value;
+    }
+
+    /// <summary>
+    /// Submits a count, has it approved by somebody other than the counter, and posts it.
+    /// </summary>
+    private async Task ApproveAndPostCountAsync(int countId)
+    {
+        Result submitted = await new SubmitStockCountCommandHandler(
+            _fixture.Factory, _authorization, _auditWriter, _session)
+            .HandleAsync(new SubmitStockCountCommand(countId), CancellationToken.None);
+
+        submitted.IsSuccess.ShouldBeTrue();
+
+        // The counter may not sign off their own count, so the second user approves it.
+        _session.UserId = _secondUserId;
+
+        Result approved = await new ApproveStockCountCommandHandler(
+            _fixture.Factory, _authorization, _auditWriter, new TestClock(), _session)
+            .HandleAsync(new ApproveStockCountCommand(countId, "Recount of the shelf"), CancellationToken.None);
+
+        approved.IsSuccess.ShouldBeTrue();
+
+        Result<int> posted = await new PostStockCountCommandHandler(
+            _fixture.Factory, _authorization, _auditWriter, new TestClock(), _session)
+            .HandleAsync(new PostStockCountCommand(countId), CancellationToken.None);
+
+        posted.IsSuccess.ShouldBeTrue(posted.Error.Message);
     }
 
     /// <summary>Authorises everything, so these tests exercise the inventory and not the roles.</summary>

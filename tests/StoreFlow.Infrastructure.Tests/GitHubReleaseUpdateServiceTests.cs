@@ -303,6 +303,44 @@ public sealed class GitHubReleaseUpdateServiceTests
         Directory.GetFiles(scoped.Path, "*.msi", SearchOption.AllDirectories).ShouldBeEmpty();
     }
 
+    [Fact]
+    public async Task An_installer_the_shop_does_not_trust_is_never_run()
+    {
+        // The checksum proves the download arrived intact. It cannot prove who published it, because
+        // the same publisher published the checksum beside the installer. When the installer's own
+        // signature is not the one this build expects, the file is thrown away and nothing is run.
+        byte[] installer = Encoding.UTF8.GetBytes("the installer bytes");
+        string checksum = Convert.ToHexString(SHA256.HashData(installer));
+
+        using var handler = new FakeHandler(request => request.RequestUri!.AbsoluteUri switch
+        {
+            var url when url == ChecksumUrl => Text(checksum + " *StoreFlow-1.0.1-x64.msi"),
+            var url when url == InstallerUrl => Bytes(installer),
+            _ => Json(Release("v1.0.1")),
+        });
+
+        using var scoped = new TempFolder();
+
+        var launcher = new RecordingLauncher();
+
+        var service = new GitHubReleaseUpdateService(
+            "1.0.0",
+            handler.Client,
+            launcher,
+            scoped.Path,
+            new RefusingTrust());
+
+        UpdateCheckResult check = await service.CheckAsync(CancellationToken.None);
+        UpdateInstallResult result = await service.InstallAsync(check, null, CancellationToken.None);
+
+        result.Started.ShouldBeFalse();
+        result.Reason.ShouldNotBeNullOrWhiteSpace();
+
+        // Nothing was run, and the file that was refused was thrown away.
+        launcher.StartedPath.ShouldBeNull();
+        Directory.GetFiles(scoped.Path, "*.msi", SearchOption.AllDirectories).ShouldBeEmpty();
+    }
+
     [Theory]
     [InlineData("ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789", "ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789")]
     [InlineData("abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789  *StoreFlow.msi", "ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789")]
@@ -443,6 +481,17 @@ public sealed class GitHubReleaseUpdateServiceTests
             StartedPath = installerPath;
 
             return true;
+        }
+    }
+
+    /// <summary>A trust check that refuses every installer, as one that does not know the publisher does.</summary>
+    private sealed class RefusingTrust : IInstallerTrust
+    {
+        public bool IsTrusted(string installerPath, out string? problem)
+        {
+            problem = "the installer is not signed by the publisher";
+
+            return false;
         }
     }
 

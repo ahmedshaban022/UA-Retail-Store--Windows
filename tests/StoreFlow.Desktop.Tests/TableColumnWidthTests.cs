@@ -130,19 +130,18 @@ public sealed class TableColumnWidthTests
     private static IEnumerable<(Table Table, Column Column, Expectation Expectation)> Columns()
     {
         string? root = FindRepositoryRoot();
-        if (root is null)
-        {
-            // The sources are not beside the test, so there is nothing to read.
-            yield break;
-        }
+
+        // The guard is only worth having if it reads the views. A run that cannot find the
+        // sources would measure nothing and pass, so the sources are demanded rather than
+        // tolerated.
+        root.ShouldNotBeNull();
 
         foreach (Table table in Tables)
         {
             string path = Path.Combine(root, "src", "StoreFlow.Desktop", "Views", table.View);
-            if (!File.Exists(path))
-            {
-                continue;
-            }
+
+            // A view that has been renamed must not take the guard with it.
+            File.Exists(path).ShouldBeTrue($"The view {table.View} was not found at {path}.");
 
             IReadOnlyDictionary<string, Column> columns = ColumnsOf(File.ReadAllText(path), table.Grid);
 

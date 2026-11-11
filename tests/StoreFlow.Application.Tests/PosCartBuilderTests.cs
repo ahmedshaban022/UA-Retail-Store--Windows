@@ -247,6 +247,84 @@ public sealed class PosCartBuilderTests
     }
 
     [Fact]
+    public void The_rounding_remainder_of_the_invoice_discount_goes_to_the_dearest_line()
+    {
+        // A discount of one piastre over a hundred is 0.12, 0.33 and 0.54, which is a piastre
+        // short of the discount. The missing piastre goes on the dearest line, so the line that
+        // gives up the most is the one that carries the rounding.
+        PosCart cart = PosCartBuilder.Build(
+            [
+                new SaleLineInput(1, 1m, new Money(12.34m), DiscountSpec.None),
+                new SaleLineInput(2, 1m, new Money(33.33m), DiscountSpec.None),
+                new SaleLineInput(3, 1m, new Money(54.33m), DiscountSpec.None),
+            ],
+            Catalogue(
+                Product(1, salePrice: 12.34m),
+                Product(2, salePrice: 33.33m),
+                Product(3, salePrice: 54.33m)),
+            DiscountSpec.FixedAmount(1m));
+
+        cart.IsValid.ShouldBeTrue();
+
+        cart.Lines[0].InvoiceDiscountShare.Amount.ShouldBe(0.12m);
+        cart.Lines[1].InvoiceDiscountShare.Amount.ShouldBe(0.33m);
+        cart.Lines[2].InvoiceDiscountShare.Amount.ShouldBe(0.55m);
+
+        cart.Lines.Sum(line => line.InvoiceDiscountShare.Amount).ShouldBe(1.00m);
+    }
+
+    [Fact]
+    public void The_rounding_remainder_goes_to_the_dearest_line_and_not_to_the_last_one()
+    {
+        // The dearest line is in the middle here, so the remainder cannot land on the last line
+        // by accident, and it cannot land on the cheapest one either.
+        PosCart cart = PosCartBuilder.Build(
+            [
+                new SaleLineInput(1, 1m, new Money(12.34m), DiscountSpec.None),
+                new SaleLineInput(2, 1m, new Money(54.33m), DiscountSpec.None),
+                new SaleLineInput(3, 1m, new Money(33.33m), DiscountSpec.None),
+            ],
+            Catalogue(
+                Product(1, salePrice: 12.34m),
+                Product(2, salePrice: 54.33m),
+                Product(3, salePrice: 33.33m)),
+            DiscountSpec.FixedAmount(1m));
+
+        cart.IsValid.ShouldBeTrue();
+
+        cart.Lines[0].InvoiceDiscountShare.Amount.ShouldBe(0.12m);
+        cart.Lines[1].InvoiceDiscountShare.Amount.ShouldBe(0.55m);
+        cart.Lines[2].InvoiceDiscountShare.Amount.ShouldBe(0.33m);
+
+        cart.Lines.Sum(line => line.InvoiceDiscountShare.Amount).ShouldBe(1.00m);
+    }
+
+    [Fact]
+    public void A_discount_share_is_never_negative()
+    {
+        // The rounded shares can add up to more than the discount, and the remainder then takes
+        // the dearest line below zero. A line whose share is negative is charged more than it is
+        // worth, and the discount the shop granted is not fully applied.
+        PosCart cart = PosCartBuilder.Build(
+            [
+                new SaleLineInput(1, 1m, new Money(0.01m), DiscountSpec.None),
+                new SaleLineInput(2, 1m, new Money(0.01m), DiscountSpec.None),
+                new SaleLineInput(3, 1m, new Money(0.01m), DiscountSpec.None),
+                new SaleLineInput(4, 1m, new Money(0.01m), DiscountSpec.None),
+            ],
+            Catalogue(
+                Product(1, salePrice: 0.01m),
+                Product(2, salePrice: 0.01m),
+                Product(3, salePrice: 0.01m),
+                Product(4, salePrice: 0.01m)),
+            DiscountSpec.FixedAmount(0.02m));
+
+        cart.Lines.Count.ShouldBe(4);
+
+        cart.Lines.All(line => line.InvoiceDiscountShare.Amount >= 0m).ShouldBeTrue();
+    }
+
+    [Fact]
     public void The_totals_reconcile_with_the_lines()
     {
         PosCart cart = PosCartBuilder.Build(

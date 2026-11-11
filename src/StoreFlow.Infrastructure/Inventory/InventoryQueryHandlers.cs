@@ -248,10 +248,20 @@ public sealed class ListStockBalancesQueryHandler(
             long damaged = balance?.DamagedQuantityScaled ?? 0;
             Money average = balance?.AverageUnitCost ?? Money.Zero;
 
-            decimal quantity = onHand / (decimal)Math.Pow(10, row.Precision);
+            // The balance is read in the scale it was written in, not in the product's current unit.
+            // The two are the same for every product whose unit has not been changed, and when they
+            // are not the same it is because the unit was changed before the shop's rule about that
+            // was put in place — and the number in the books is still the number in the books.
+            int scale = balance?.QuantityScale ?? row.Precision;
+
+            decimal quantity = onHand / (decimal)Math.Pow(10, scale);
             decimal reorderLevel = row.ReorderLevelScaled / (decimal)Math.Pow(10, row.Precision);
 
-            bool belowReorder = row.ReorderLevelScaled > 0 && onHand <= row.ReorderLevelScaled;
+            // The reorder level belongs to the product's current unit, so it is brought into the
+            // balance's scale before the two are compared.
+            long reorderLevelScaled = InventoryLedger.Rescale(row.ReorderLevelScaled, row.Precision, scale);
+
+            bool belowReorder = reorderLevelScaled > 0 && onHand <= reorderLevelScaled;
 
             if (query.OnlyLowStock && !belowReorder)
             {
@@ -266,9 +276,9 @@ public sealed class ListStockBalancesQueryHandler(
                 row.UnitName,
                 row.Precision,
                 quantity,
-                damaged / (decimal)Math.Pow(10, row.Precision),
+                damaged / (decimal)Math.Pow(10, scale),
                 average,
-                InventoryLedger.ValueOf(onHand, row.Precision, average),
+                InventoryLedger.ValueOf(onHand, scale, average),
                 reorderLevel,
                 belowReorder,
                 row.IsActive));
@@ -457,7 +467,7 @@ public sealed class GetInventoryValuationQueryHandler(
             .OrderBy(movement => movement.Id)
             .ToListAsync(cancellationToken);
 
-        IReadOnlyDictionary<int, (long Quantity, long AverageMinor)> positions =
+        IReadOnlyDictionary<int, ReplayedPosition> positions =
             InventoryLedgerReplay.Replay(movements);
 
         Dictionary<int, int> scales = await context.Products
@@ -476,7 +486,7 @@ public sealed class GetInventoryValuationQueryHandler(
         decimal totalQuantity = 0m;
         decimal totalValue = 0m;
 
-        foreach (KeyValuePair<int, (long Quantity, long AverageMinor)> entry in positions)
+        foreach (KeyValuePair<int, ReplayedPosition> entry in positions)
         {
             long quantityScaled = entry.Value.Quantity;
 
@@ -487,7 +497,9 @@ public sealed class GetInventoryValuationQueryHandler(
 
             productCount += 1;
 
-            int precision = scales.TryGetValue(entry.Key, out int scale) ? scale : 0;
+            // The position is read in the scale the movements were written in, which is the scale the
+            // balance carries and not necessarily the product's current unit.
+            int precision = entry.Value.Scale;
             decimal quantity = quantityScaled / (decimal)Math.Pow(10, precision);
             Money average = Money.FromMinorUnits(entry.Value.AverageMinor);
             Money value = InventoryLedger.ValueOf(quantityScaled, precision, average);
@@ -495,9 +507,19 @@ public sealed class GetInventoryValuationQueryHandler(
             totalQuantity += quantity;
             totalValue += value.Amount;
 
-            if (reorderLevels.TryGetValue(entry.Key, out long reorderLevel) && quantityScaled <= reorderLevel)
+            if (reorderLevels.TryGetValue(entry.Key, out long reorderLevel))
             {
-                lowStockCount += 1;
+                // The reorder level belongs to the product's current unit, so it is brought into the
+                // position's scale before the two are compared.
+                long reorderLevelScaled = InventoryLedger.Rescale(
+                    reorderLevel,
+                    scales.TryGetValue(entry.Key, out int productScale) ? productScale : precision,
+                    precision);
+
+                if (quantityScaled <= reorderLevelScaled)
+                {
+                    lowStockCount += 1;
+                }
             }
         }
 
@@ -651,7 +673,13 @@ public sealed class GetInventoryReferenceDataQueryHandler(
 
         await using StoreFlowDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-        List<InventoryReferenceProduct> products = await context.Products
+        // What the books say is on the shelf. A stock count is not blind: the counter can see the
+        // recorded quantity, so the reference data carries it.
+        Dictionary<int, long> balances = await context.StockBalances
+            .AsNoTracking()
+            .ToDictionaryAsync(balance => balance.ProductId, balance => balance.QuantityOnHandScaled, cancellationToken);
+
+        List<InventoryReferenceProduct> products = (await context.Products
             .AsNoTracking()
             .Include(product => product.Unit)
             .Where(product => product.IsActive)
@@ -664,7 +692,12 @@ public sealed class GetInventoryReferenceDataQueryHandler(
                 product.Unit == null ? string.Empty : product.Unit.Name,
                 product.Unit == null ? 0 : product.Unit.Precision,
                 product.CostPrice))
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken))
+            .Select(product => product with
+            {
+                QuantityOnHand = QuantityOnHand(product, balances),
+            })
+            .ToList();
 
         List<InventoryReferenceSupplier> suppliers = await context.Suppliers
             .AsNoTracking()
@@ -674,6 +707,21 @@ public sealed class GetInventoryReferenceDataQueryHandler(
             .ToListAsync(cancellationToken);
 
         return Result<InventoryReferenceData>.Success(new InventoryReferenceData(products, suppliers));
+    }
+
+    /// <summary>
+    /// How much of the product the books say is on the shelf, in the selling unit's own scale.
+    /// </summary>
+    private static decimal QuantityOnHand(
+        InventoryReferenceProduct product,
+        IReadOnlyDictionary<int, long> balances)
+    {
+        if (!balances.TryGetValue(product.Id, out long scaled))
+        {
+            return 0m;
+        }
+
+        return scaled / (decimal)Math.Pow(10, product.QuantityScale);
     }
 }
 

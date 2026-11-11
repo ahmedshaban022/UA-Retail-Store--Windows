@@ -223,6 +223,9 @@ public sealed record StockAdjustmentOutcome(
 /// <param name="UnitName">The selling unit's name.</param>
 /// <param name="QuantityScale">The precision of the selling unit.</param>
 /// <param name="CostPrice">The current cost price, used as the default opening and adjustment cost.</param>
+/// <param name="QuantityOnHand">
+/// How much of the product the books say is on the shelf, in the selling unit's own scale.
+/// </param>
 public sealed record InventoryReferenceProduct(
     int Id,
     string Sku,
@@ -230,7 +233,8 @@ public sealed record InventoryReferenceProduct(
     string? NameAr,
     string UnitName,
     int QuantityScale,
-    Money CostPrice);
+    Money CostPrice,
+    decimal QuantityOnHand = 0m);
 
 /// <summary>A supplier the owner can pick on a purchase document.</summary>
 public sealed record InventoryReferenceSupplier(

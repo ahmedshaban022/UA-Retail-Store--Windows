@@ -391,19 +391,19 @@ public sealed partial class ProductEditorViewModel : ObservableObject
     {
         ClearErrors();
 
-        if (!TryReadMoney(SalePrice, out decimal salePrice))
+        if (!NumberInput.TryReadMoney(SalePrice, out decimal salePrice))
         {
             SalePriceError = _strings[StringKeys.ErrorNegativePrice];
             return;
         }
 
-        if (!TryReadMoney(CostPrice, out decimal costPrice))
+        if (!NumberInput.TryReadMoney(CostPrice, out decimal costPrice))
         {
             CostPriceError = _strings[StringKeys.ErrorNegativePrice];
             return;
         }
 
-        if (!TryReadDecimal(ReorderLevel, out decimal reorderLevel))
+        if (!NumberInput.TryReadDecimal(ReorderLevel, out decimal reorderLevel))
         {
             ReorderLevelError = _strings[StringKeys.ErrorNegativeQuantity];
             return;
@@ -714,24 +714,6 @@ public sealed partial class ProductEditorViewModel : ObservableObject
         _pendingImagePath = null;
 
         await _imageStore.DeleteAsync(path, cancellationToken);
-    }
-
-    private static bool TryReadDecimal(string? text, out decimal value) =>
-        decimal.TryParse(
-            (text ?? string.Empty).Trim(),
-            NumberStyles.Number,
-            CultureInfo.InvariantCulture,
-            out value);
-
-    private static bool TryReadMoney(string? text, out decimal value)
-    {
-        if (!TryReadDecimal(text, out value))
-        {
-            value = 0m;
-            return false;
-        }
-
-        return value >= 0m;
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e) =>

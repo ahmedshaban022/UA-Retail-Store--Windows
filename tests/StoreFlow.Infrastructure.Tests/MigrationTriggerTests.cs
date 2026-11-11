@@ -128,6 +128,66 @@ public sealed class MigrationTriggerTests : IDisposable
     }
 
     [Fact]
+    public async Task The_guards_are_back_after_a_migration_that_failed()
+    {
+        DbContextOptions<StoreFlowDbContext> options = BuildOptions();
+
+        await using (StoreFlowDbContext context = new(options))
+        {
+            await context.Database.MigrateAsync(MigrationBeforeTheRebuild);
+            await context.Database.ExecuteSqlRawAsync(SchemaTriggers.Script);
+        }
+
+        // An index the next migration wants to create is already there, so the migration fails.
+        await using (StoreFlowDbContext context = new(options))
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "CREATE UNIQUE INDEX \"IX_SalesInvoices_ReversesDocumentId\" ON \"SalesInvoices\" (\"Id\");");
+        }
+
+        var initializer = new DatabaseInitializer(new SingleContextFactory(options), new TestClock());
+
+        await Should.ThrowAsync<Exception>(() => initializer.InitializeAsync());
+
+        // The guards are the shop's own rules. A shop whose migration failed must not sit on disk
+        // with them down, able to be written to in ways it would have refused.
+        List<string> triggers = await ReadTriggerNamesAsync(options);
+
+        triggers.ShouldBe(ExpectedTriggers, ignoreOrder: true);
+    }
+
+    [Fact]
+    public async Task The_guards_are_not_taken_down_when_no_migration_is_waiting()
+    {
+        DbContextOptions<StoreFlowDbContext> options = BuildOptions();
+
+        await using (StoreFlowDbContext context = new(options))
+        {
+            await context.Database.MigrateAsync();
+            await context.Database.ExecuteSqlRawAsync(SchemaTriggers.Script);
+        }
+
+        // The guard is given a body of its own, so that the test can tell whether the shop's
+        // standard script laid it down again. The script only creates a trigger that is not there,
+        // so a guard that was left alone keeps the body it had.
+        await using (StoreFlowDbContext context = new(options))
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "DROP TRIGGER \"trg_StockBalances_NoNegative\"; " +
+                "CREATE TRIGGER \"trg_StockBalances_NoNegative\" BEFORE UPDATE ON StockBalances " +
+                "WHEN NEW.QuantityOnHandScaled < -5 BEGIN SELECT RAISE(ABORT, 'Stock balance cannot go negative'); END;");
+        }
+
+        var initializer = new DatabaseInitializer(new SingleContextFactory(options), new TestClock());
+        await initializer.InitializeAsync();
+
+        string body = await ReadTriggerBodyAsync(options, "trg_StockBalances_NoNegative");
+
+        // The guard still has the body the test gave it: nothing took it down and put it back.
+        body.ShouldContain("-5");
+    }
+
+    [Fact]
     public async Task A_shop_whose_database_file_exists_but_is_empty_still_opens()
     {
         // The framework checks whether the database exists before it migrates it, and it opens
@@ -232,6 +292,22 @@ public sealed class MigrationTriggerTests : IDisposable
             .SqlQueryRaw<string>(
                 "SELECT \"name\" AS \"Value\" FROM \"sqlite_master\" WHERE \"type\" = 'trigger'")
             .ToListAsync();
+    }
+
+    /// <summary>Reads the statement that made a trigger.</summary>
+    private static async Task<string> ReadTriggerBodyAsync(
+        DbContextOptions<StoreFlowDbContext> options,
+        string triggerName)
+    {
+        await using StoreFlowDbContext context = new(options);
+
+        List<string> bodies = await context.Database
+            .SqlQueryRaw<string>(
+                "SELECT \"sql\" AS \"Value\" FROM \"sqlite_master\" WHERE \"name\" = $name",
+                new SqliteParameter("$name", triggerName))
+            .ToListAsync();
+
+        return bodies.Count > 0 ? bodies[0] : string.Empty;
     }
 
     private sealed class SingleContextFactory(DbContextOptions<StoreFlowDbContext> options)

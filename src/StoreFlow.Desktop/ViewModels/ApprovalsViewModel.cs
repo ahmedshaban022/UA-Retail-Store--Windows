@@ -29,8 +29,15 @@ public sealed class ApprovalRequestView
         RequestedBy = summary.RequestedByName;
         DecidedBy = summary.ApprovedByName ?? string.Empty;
         Status = StatusText(summary.Status, strings);
-        Discount = $"{summary.Percent.ToString("0.##", CultureInfo.InvariantCulture)}% — {theme.FormatMoney(summary.Amount)}";
-        CartTotal = theme.FormatMoney(summary.CartTotal);
+
+        // A held discount and a held stock adjustment are both waiting for the same decision, so
+        // the row says what it is about in the same place either way: the percentage and the money
+        // for a discount, the goods and the count for an adjustment.
+        Details = string.IsNullOrWhiteSpace(summary.Subject)
+            ? $"{summary.Percent.ToString("0.##", CultureInfo.InvariantCulture)}% — {theme.FormatMoney(summary.Amount)}"
+            : summary.Subject;
+
+        Value = theme.FormatMoney(summary.CartTotal);
         When = summary.CreatedUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
         Reason = summary.DecisionReason ?? string.Empty;
         IsPending = summary.Status == Domain.Enumerations.ApprovalStatus.Pending;
@@ -48,11 +55,11 @@ public sealed class ApprovalRequestView
     /// <summary>Where the request stands.</summary>
     public string Status { get; }
 
-    /// <summary>The discount that needs approving.</summary>
-    public string Discount { get; }
+    /// <summary>What the request is about.</summary>
+    public string Details { get; }
 
-    /// <summary>The total of the cart the discount applies to.</summary>
-    public string CartTotal { get; }
+    /// <summary>What the request is worth.</summary>
+    public string Value { get; }
 
     /// <summary>When the request was made.</summary>
     public string When { get; }
@@ -140,11 +147,11 @@ public sealed partial class ApprovalsViewModel : ObservableObject
     /// <summary>The label of the column that holds who asked.</summary>
     public string RequestedByLabel => _strings[StringKeys.ApprovalsRequestedBy];
 
-    /// <summary>The label of the column that holds the discount.</summary>
-    public string DiscountLabel => _strings[StringKeys.ApprovalsDiscount];
+    /// <summary>The label of the column that holds what the request is about.</summary>
+    public string DetailsLabel => _strings[StringKeys.ApprovalsDetails];
 
-    /// <summary>The label of the column that holds the cart total.</summary>
-    public string CartTotalLabel => _strings[StringKeys.ApprovalsCartTotal];
+    /// <summary>The label of the column that holds what the request is worth.</summary>
+    public string ValueLabel => _strings[StringKeys.ApprovalsValue];
 
     /// <summary>The label of the column that holds the time.</summary>
     public string WhenLabel => _strings[StringKeys.ApprovalsWhen];

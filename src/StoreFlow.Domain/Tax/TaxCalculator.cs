@@ -21,6 +21,12 @@ public static class TaxCalculator
     /// <summary>
     /// Tax for a line whose price <b>includes</b> tax: the tax is extracted from the gross amount.
     /// </summary>
+    /// <remarks>
+    /// The tax is worked out from the <i>rounded</i> net, not from the net before it was rounded.
+    /// The two roundings have to be of the same number: a line whose net is 27.78 and whose tax
+    /// is 5.56 adds up to 33.34, which is a piastre more than the 33.33 the customer paid, and
+    /// an invoice's net and tax columns would no longer add up to its total.
+    /// </remarks>
     public static decimal OnInclusiveAmount(decimal grossAmount, int rateBasisPoints)
     {
         if (rateBasisPoints < 0)
@@ -34,7 +40,7 @@ public static class TaxCalculator
         }
 
         var rate = rateBasisPoints / 10_000m;
-        var net = grossAmount / (1m + rate);
+        var net = MoneyMath.Round(grossAmount / (1m + rate));
 
         return MoneyMath.Round(grossAmount - net);
     }

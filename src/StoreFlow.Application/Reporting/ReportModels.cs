@@ -70,7 +70,21 @@ public sealed record ReportFilter
     /// <summary>The cashier to narrow the report to, when the report has cashiers.</summary>
     public int? CashierUserId { get; init; }
 
-    /// <summary>The category to narrow the report to, when the report has categories.</summary>
+    /// <summary>
+    /// The category to narrow the report to, when the report has categories.
+    /// </summary>
+    /// <remarks>
+    /// A category narrows the reports that are broken down by product — the sales by product and
+    /// the returns by product — and it narrows them by line. An invoice can hold lines from more
+    /// than one category, so a report that kept every line of a matching invoice would carry
+    /// another category's money into a report about this one.
+    /// <para>
+    /// The reports that are about the whole shop — the day's takings, the profit and loss, a
+    /// cashier's performance — are not broken down by category and are not narrowed by one. An
+    /// invoice's total cannot be split by category, and a report that mixed a narrowed figure
+    /// with an unnarrowed one would not add up.
+    /// </para>
+    /// </remarks>
     public int? CategoryId { get; init; }
 
     /// <summary>The product to narrow the report to, when the report has products.</summary>
@@ -81,6 +95,16 @@ public sealed record ReportFilter
 
     /// <summary>How many rows a ranked report keeps.</summary>
     public int TopCount { get; init; } = 10;
+
+    /// <summary>
+    /// The most rows a report may read, when the report can have more rows than a screen can
+    /// show. Nothing is left out when this is not set.
+    /// </summary>
+    /// <remarks>
+    /// A report that leaves rows out has to say so, and has to say how many there were: a shop
+    /// that reads a part of its ledger and is not told has been given a false picture of it.
+    /// </remarks>
+    public int? RowLimit { get; init; }
 
     /// <summary>True when a ranked report ranks by money rather than by units.</summary>
     public bool RankByRevenue { get; init; }
@@ -215,6 +239,24 @@ public sealed record StockMovementRow(
     Money UnitCost,
     decimal Balance,
     string? Reason);
+
+/// <summary>
+/// REP-06 — what came in and what went out, and how much of it there is.
+/// </summary>
+/// <param name="Rows">The movements that were read.</param>
+/// <param name="TotalCount">
+/// How many movements match the filter, whether or not they were all read.
+/// </param>
+/// <remarks>
+/// The stock ledger is the one report that can have more rows than a screen can show. When the
+/// rows were cut short, the count says how many there were, so the shop is never left with a
+/// part of its ledger and no idea that it is a part.
+/// </remarks>
+public sealed record StockMovementsReport(IReadOnlyList<StockMovementRow> Rows, int TotalCount)
+{
+    /// <summary>Whether movements were left out because there were more of them than were asked for.</summary>
+    public bool IsTruncated => Rows.Count < TotalCount;
+}
 
 /// <summary>REP-07 — what was bought from one supplier.</summary>
 /// <param name="SupplierId">The supplier.</param>
@@ -351,7 +393,7 @@ public interface IReportReader
         CancellationToken cancellationToken = default);
 
     /// <summary>REP-06 — what came in and what went out.</summary>
-    Task<IReadOnlyList<StockMovementRow>> ReadStockMovementsAsync(
+    Task<StockMovementsReport> ReadStockMovementsAsync(
         ReportFilter filter,
         CancellationToken cancellationToken = default);
 

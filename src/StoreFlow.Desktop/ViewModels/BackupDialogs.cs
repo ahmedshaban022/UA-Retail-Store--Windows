@@ -1,5 +1,6 @@
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using StoreFlow.Desktop.Localization;
 using StoreFlow.Desktop.Views;
 
 namespace StoreFlow.Desktop.ViewModels;
@@ -62,15 +63,27 @@ public sealed class BackupDialogs(IServiceProvider services) : IBackupDialogs
     /// <inheritdoc />
     public Task<string?> PickBackupFileAsync(CancellationToken cancellationToken = default)
     {
-        var dialog = new Microsoft.Win32.OpenFileDialog
+        Microsoft.Win32.OpenFileDialog dialog = CreateFilePicker();
+
+        return Task.FromResult(dialog.ShowDialog() == true ? dialog.FileName : null);
+    }
+
+    /// <summary>
+    /// Builds the file picker, with its title in the language the interface is in. The title is a
+    /// sentence the owner reads, so it does not stay English in an Arabic shop.
+    /// </summary>
+    /// <returns>The picker.</returns>
+    public Microsoft.Win32.OpenFileDialog CreateFilePicker()
+    {
+        IStrings strings = services.GetRequiredService<IStrings>();
+
+        return new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Choose a StoreFlow backup",
+            Title = strings[StringKeys.BackupPickFile],
             Filter = "StoreFlow backup (*.sfb)|*.sfb|All files (*.*)|*.*",
             CheckFileExists = true,
             Multiselect = false,
         };
-
-        return Task.FromResult(dialog.ShowDialog() == true ? dialog.FileName : null);
     }
 
     private static void Prepare(Window window)

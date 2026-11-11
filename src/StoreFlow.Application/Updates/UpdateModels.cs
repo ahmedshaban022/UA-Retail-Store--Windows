@@ -85,3 +85,13 @@ public interface IInstallerLauncher
     /// <returns>True when the installer was started.</returns>
     bool Start(string installerPath);
 }
+
+/// <summary>Decides whether a downloaded installer may be run.</summary>
+public interface IInstallerTrust
+{
+    /// <summary>Whether the installer may be run, and why not when it may not.</summary>
+    /// <param name="installerPath">The installer that was downloaded.</param>
+    /// <param name="problem">Why the installer was refused, when it was refused.</param>
+    /// <returns>Whether the installer may be run.</returns>
+    bool IsTrusted(string installerPath, out string? problem);
+}

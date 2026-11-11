@@ -136,7 +136,6 @@ public static class ServiceRegistration
         services.AddSingleton<ICommandHandler<ExportPurchasesCommand, Result<int>>, ExportPurchasesCommandHandler>();
         services.AddSingleton<ICommandHandler<RecordOpeningStockCommand, Result<int>>, RecordOpeningStockCommandHandler>();
         services.AddSingleton<ICommandHandler<PostStockAdjustmentCommand, Result<StockAdjustmentOutcome>>, PostStockAdjustmentCommandHandler>();
-        services.AddSingleton<ICommandHandler<ApproveStockAdjustmentCommand, Result<int>>, ApproveStockAdjustmentCommandHandler>();
         services.AddSingleton<ICommandHandler<SaveStockCountCommand, Result<int>>, SaveStockCountCommandHandler>();
         services.AddSingleton<ICommandHandler<SubmitStockCountCommand, Result>, SubmitStockCountCommandHandler>();
         services.AddSingleton<ICommandHandler<ApproveStockCountCommand, Result>, ApproveStockCountCommandHandler>();

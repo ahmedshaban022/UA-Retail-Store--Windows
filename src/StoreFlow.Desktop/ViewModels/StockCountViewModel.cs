@@ -18,6 +18,12 @@ public sealed partial class StockCountLineRow : ObservableObject
     [ObservableProperty]
     private string _countedQuantity = "0";
 
+    /// <summary>
+    /// How much of the product the books say is on the shelf. A stock count is not blind: the
+    /// counter can see what the shop believes it has.
+    /// </summary>
+    public string RecordedQuantity { get; set; } = string.Empty;
+
     /// <summary>The name of the chosen product.</summary>
     public string ProductName { get; set; } = string.Empty;
 
@@ -98,6 +104,11 @@ public sealed partial class StockCountViewModel : ObservableObject
     /// <summary>The label on the counted quantity column.</summary>
     public string CountedLabel => _strings[StringKeys.StockCountCounted];
 
+    /// <summary>
+    /// The label on the recorded quantity column: what the books say is on the shelf.
+    /// </summary>
+    public string RecordedLabel => _strings[StringKeys.StockCountRecorded];
+
     /// <summary>The label on the add-line command.</summary>
     public string AddLineText => _strings[StringKeys.StockCountAddLine];
 
@@ -140,7 +151,7 @@ public sealed partial class StockCountViewModel : ObservableObject
                     ? product.NameAr
                     : product.Name;
 
-                Products.Add(new InventoryOptionItem(product.Id, product.Sku + " - " + name, product.QuantityScale, product.CostPrice.Amount, product.UnitName));
+                Products.Add(new InventoryOptionItem(product.Id, product.Sku + " - " + name, product.QuantityScale, product.CostPrice.Amount, product.UnitName, product.QuantityOnHand));
             }
         }
         finally
@@ -268,6 +279,12 @@ public sealed partial class StockCountViewModel : ObservableObject
 
             row.ProductName = product?.DisplayName ?? string.Empty;
             row.UnitName = product?.UnitName ?? string.Empty;
+
+            // The recorded quantity goes beside the counted one, so that the counter can see what
+            // the shop believes it has. A stock count is not blind, and the screen has to show it.
+            row.RecordedQuantity = product is null
+                ? string.Empty
+                : InventoryInput.WriteNumber(product.QuantityOnHand);
         }
     }
 

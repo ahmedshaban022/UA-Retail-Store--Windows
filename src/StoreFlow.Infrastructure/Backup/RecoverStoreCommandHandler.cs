@@ -41,15 +41,27 @@ public sealed class RecoverStoreCommandHandler(
             createRestorePoint: true,
             cancellationToken);
 
-        await auditWriter.WriteAsync(
-            new AuditEntry(
-                outcome.IsSucceeded ? BackupAudit.Restored : BackupAudit.RestoreRefused,
-                nameof(BackupLog),
-                command.ArchivePath,
-                null,
-                outcome.Message,
-                null),
-            cancellationToken);
+        // The audit entry stands on its own rather than joining the restore's transaction, so a
+        // failure to write it must not swallow the answer the owner is waiting for. The shop's
+        // database may still be the damaged one, and the trail is not worth crashing over.
+#pragma warning disable CA1031 // The restore outcome matters more than the audit entry.
+        try
+        {
+            await auditWriter.WriteAsync(
+                new AuditEntry(
+                    outcome.IsSucceeded ? BackupAudit.Restored : BackupAudit.RestoreRefused,
+                    nameof(BackupLog),
+                    command.ArchivePath,
+                    null,
+                    outcome.Message,
+                    null),
+                cancellationToken);
+        }
+        catch (Exception)
+        {
+            // The trail could not be written. The restore still happened, or still did not.
+        }
+#pragma warning restore CA1031
 
         return outcome.IsSucceeded
             ? Result<RestoreOutcome>.Success(outcome)
@@ -59,6 +71,10 @@ public sealed class RecoverStoreCommandHandler(
     /// <summary>
     /// True when the shop's database is gone or cannot be read.
     /// </summary>
+    /// <remarks>
+    /// The health check answers rather than throwing: a file that is not a SQLite database, or one
+    /// so damaged that SQLite cannot read its header, is simply not healthy.
+    /// </remarks>
     private bool IsShopUnreadable()
     {
         if (!File.Exists(paths.DatabasePath))

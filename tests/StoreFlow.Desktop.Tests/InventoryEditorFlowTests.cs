@@ -149,6 +149,27 @@ public sealed class InventoryEditorFlowTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task The_stock_count_window_shows_what_the_books_say_is_on_the_shelf()
+    {
+        // A stock count is not blind: the counter can see the recorded quantity. The screen has to
+        // show it, or the documents that say a count is not blind are describing a screen that
+        // does not exist.
+        int productId = await CreateProductAsync("RICE-002");
+        await RecordOpeningStockAsync(productId, 20);
+
+        StockCountViewModel counter = _provider.GetRequiredService<StockCountViewModel>();
+
+        await counter.LoadAsync(CancellationToken.None);
+        counter.AddLineCommand.Execute(null);
+
+        StockCountLineRow row = counter.Lines.Single();
+
+        row.ProductId = productId;
+
+        row.RecordedQuantity.ShouldBe("20");
+    }
+
+    [Fact]
     public async Task The_stock_adjustment_window_posts_an_adjustment()
     {
         int productId = await CreateProductAsync("RICE-001");

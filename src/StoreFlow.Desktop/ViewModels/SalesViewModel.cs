@@ -5,6 +5,7 @@ using StoreFlow.Application.Common;
 using StoreFlow.Application.Sales;
 using StoreFlow.Domain.Enumerations;
 using StoreFlow.Domain.Money;
+using StoreFlow.Desktop.Composition;
 using StoreFlow.Desktop.Localization;
 
 namespace StoreFlow.Desktop.ViewModels;
@@ -30,6 +31,12 @@ public sealed partial class SalesViewModel : ObservableObject
     private readonly LanguageService _languageService;
 
     private CancellationTokenSource? _refreshCancellation;
+
+    /// <summary>
+    /// The load of the document that is on screen. It is cancelled when another document is picked,
+    /// so a slow answer cannot land on top of the document the owner has just chosen.
+    /// </summary>
+    private CancellationTokenSource? _detailCancellation;
 
     [ObservableProperty]
     private string _searchText = string.Empty;
@@ -452,7 +459,13 @@ public sealed partial class SalesViewModel : ObservableObject
         OnPropertyChanged(nameof(CanReturnSelected));
         OnPropertyChanged(nameof(CanReverseSelected));
 
-        _ = LoadDetailAsync(value);
+        // The load of the document that was on screen before is cancelled, so the lines of an older
+        // document can never be shown under a newer choice.
+        _detailCancellation?.Cancel();
+        _detailCancellation?.Dispose();
+        _detailCancellation = new CancellationTokenSource();
+
+        _ = LoadDetailAsync(value, _detailCancellation.Token);
     }
 
     partial void OnSearchTextChanged(string value)
@@ -471,89 +484,122 @@ public sealed partial class SalesViewModel : ObservableObject
     /// Loads the document the operator has picked, so the detail panel can show it.
     /// </summary>
     /// <param name="document">The document that was picked.</param>
-    private async Task LoadDetailAsync(SalesRegisterRow? document)
+    /// <param name="cancellationToken">The token that is cancelled when another document is picked.</param>
+    /// <remarks>
+    /// Only the document that is on screen now may fill the panel. A load that has been overtaken
+    /// stops as soon as its answer arrives, so the lines of an older document are never shown under
+    /// a newer choice.
+    /// </remarks>
+    private async Task LoadDetailAsync(SalesRegisterRow? document, CancellationToken cancellationToken)
     {
-        SelectedInvoice = null;
-        SelectedReturn = null;
-        DetailLines.Clear();
-        DetailReturns.Clear();
-
-        if (document is null)
+        try
         {
+            SelectedInvoice = null;
+            SelectedReturn = null;
+            DetailLines.Clear();
+            DetailReturns.Clear();
+
+            if (document is null)
+            {
+                RaiseDetailChanged();
+                return;
+            }
+
+            if (document.Kind == SalesDocumentKind.Return)
+            {
+                Result<SalesReturnDetails> detail = await _returnDetailHandler.HandleAsync(
+                    new GetSalesReturnQuery(document.Id),
+                    cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (detail.IsFailure)
+                {
+                    StatusMessage = SalesErrorMessages.Resolve(_strings, detail.Error.Code);
+                    OnPropertyChanged(nameof(StatusMessage));
+                    RaiseDetailChanged();
+                    return;
+                }
+
+                SelectedReturn = detail.Value;
+
+                foreach (ReturnLineSummary line in detail.Value.Lines)
+                {
+                    DetailLines.Add(new SalesDetailLine(
+                        line.Name,
+                        line.Quantity,
+                        0m,
+                        Money.Zero,
+                        Money.Zero,
+                        Money.Zero,
+                        line.RefundAmount));
+                }
+            }
+            else
+            {
+                Result<SalesInvoiceDetails> detail = await _invoiceHandler.HandleAsync(
+                    new GetSalesInvoiceQuery(document.Id),
+                    cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (detail.IsFailure)
+                {
+                    StatusMessage = SalesErrorMessages.Resolve(_strings, detail.Error.Code);
+                    OnPropertyChanged(nameof(StatusMessage));
+                    RaiseDetailChanged();
+                    return;
+                }
+
+                SelectedInvoice = detail.Value;
+
+                foreach (SalesLineDetails line in detail.Value.Lines)
+                {
+                    DetailLines.Add(new SalesDetailLine(
+                        line.Name,
+                        line.Quantity,
+                        SalesRules.Unscale(line.ReturnedQuantityScaled, line.QuantityScale),
+                        line.UnitPrice,
+                        line.Discount,
+                        line.Tax,
+                        line.Total));
+                }
+
+                foreach (SalesReturnSummary salesReturn in detail.Value.Returns)
+                {
+                    DetailReturns.Add(new SalesReturnRow(
+                        salesReturn.Number,
+                        salesReturn.BusinessDate.ToString("yyyy-MM-dd"),
+                        salesReturn.CashierName,
+                        salesReturn.Reason,
+                        MethodName(salesReturn.RefundMethod),
+                        salesReturn.RefundTotal,
+                        salesReturn.IsFullReturn));
+                }
+            }
+
             RaiseDetailChanged();
-            return;
         }
-
-        if (document.Kind == SalesDocumentKind.Return)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            Result<SalesReturnDetails> detail = await _returnDetailHandler.HandleAsync(
-                new GetSalesReturnQuery(document.Id),
-                CancellationToken.None);
-
-            if (detail.IsFailure)
-            {
-                StatusMessage = SalesErrorMessages.Resolve(_strings, detail.Error.Code);
-                OnPropertyChanged(nameof(StatusMessage));
-                RaiseDetailChanged();
-                return;
-            }
-
-            SelectedReturn = detail.Value;
-
-            foreach (ReturnLineSummary line in detail.Value.Lines)
-            {
-                DetailLines.Add(new SalesDetailLine(
-                    line.Name,
-                    line.Quantity,
-                    0m,
-                    Money.Zero,
-                    Money.Zero,
-                    Money.Zero,
-                    line.RefundAmount));
-            }
+            // Another document has been picked while this one was loading. The answer is stale and
+            // is dropped; the load that took over owns the panel.
         }
-        else
+#pragma warning disable CA1031 // A load that fails must not take the screen down with it.
+        catch (Exception ex)
         {
-            Result<SalesInvoiceDetails> detail = await _invoiceHandler.HandleAsync(
-                new GetSalesInvoiceQuery(document.Id),
-                CancellationToken.None);
+            // A load that fails outright must not lose its exception in the void. The log keeps the
+            // detail for whoever looks after the shop, and the owner is told that the document
+            // could not be read.
+            StartupDiagnostics.Write("The sales detail could not be loaded.", ex);
 
-            if (detail.IsFailure)
+            if (!cancellationToken.IsCancellationRequested)
             {
-                StatusMessage = SalesErrorMessages.Resolve(_strings, detail.Error.Code);
+                StatusMessage = _strings[StringKeys.ErrorUnexpected];
                 OnPropertyChanged(nameof(StatusMessage));
-                RaiseDetailChanged();
-                return;
-            }
-
-            SelectedInvoice = detail.Value;
-
-            foreach (SalesLineDetails line in detail.Value.Lines)
-            {
-                DetailLines.Add(new SalesDetailLine(
-                    line.Name,
-                    line.Quantity,
-                    SalesRules.Unscale(line.ReturnedQuantityScaled, line.QuantityScale),
-                    line.UnitPrice,
-                    line.Discount,
-                    line.Tax,
-                    line.Total));
-            }
-
-            foreach (SalesReturnSummary salesReturn in detail.Value.Returns)
-            {
-                DetailReturns.Add(new SalesReturnRow(
-                    salesReturn.Number,
-                    salesReturn.BusinessDate.ToString("yyyy-MM-dd"),
-                    salesReturn.CashierName,
-                    salesReturn.Reason,
-                    MethodName(salesReturn.RefundMethod),
-                    salesReturn.RefundTotal,
-                    salesReturn.IsFullReturn));
             }
         }
-
-        RaiseDetailChanged();
+#pragma warning restore CA1031
     }
 
     /// <summary>The name of a way of paying, in the running language.</summary>

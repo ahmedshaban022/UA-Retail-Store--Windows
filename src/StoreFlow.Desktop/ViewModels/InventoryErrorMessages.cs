@@ -65,6 +65,7 @@ public static class InventoryErrorMessages
         InventoryErrorCodes.ApprovalNotPending => StringKeys.ErrorInventoryNotPending,
         InventoryErrorCodes.SelfApproval => StringKeys.ErrorInventorySelfApproval,
         InventoryErrorCodes.NoActor => StringKeys.ErrorInventoryNoActor,
+        InventoryErrorCodes.NumberClash => StringKeys.ErrorInventoryNumberClash,
         NotAuthorizedCode => StringKeys.ErrorNotAuthorized,
         _ => StringKeys.ErrorUnexpected,
     };

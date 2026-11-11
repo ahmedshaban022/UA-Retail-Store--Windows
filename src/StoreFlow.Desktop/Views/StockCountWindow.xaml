@@ -75,6 +75,21 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
+          <DataGridTemplateColumn Width="120">
+            <DataGridTemplateColumn.Header>
+              <TextBlock Text="{Binding RecordedLabel}" Style="{StaticResource Type.SectionLabel}" />
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <!-- What the books say is on the shelf. A stock count is not blind, and the
+                     counter has to be able to see it while counting. -->
+                <TextBlock Text="{Binding RecordedQuantity}"
+                           VerticalAlignment="Center"
+                           AutomationProperties.AutomationId="StockCount.Line.Recorded" AutomationProperties.Name="{Binding DataContext.RecordedLabel, Source={x:Reference LinesGrid}}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
           <DataGridTemplateColumn Width="130">
             <DataGridTemplateColumn.Header>
               <TextBlock Text="{Binding CountedLabel}" Style="{StaticResource Type.SectionLabel}" />

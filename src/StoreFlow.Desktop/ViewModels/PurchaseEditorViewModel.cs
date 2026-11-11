@@ -15,12 +15,14 @@ namespace StoreFlow.Desktop.ViewModels;
 /// <param name="Precision">The number of decimal places a quantity in this unit may carry.</param>
 /// <param name="CostPrice">The current cost price, used as the default cost on a new line.</param>
 /// <param name="UnitName">The name of the selling unit.</param>
+/// <param name="QuantityOnHand">How much of the product the books say is on the shelf.</param>
 public sealed record InventoryOptionItem(
     int Id,
     string DisplayName,
     int Precision = 0,
     decimal CostPrice = 0m,
-    string UnitName = "")
+    string UnitName = "",
+    decimal QuantityOnHand = 0m)
 {
     /// <summary>The name a select shows for this entry.</summary>
     public override string ToString() => DisplayName;

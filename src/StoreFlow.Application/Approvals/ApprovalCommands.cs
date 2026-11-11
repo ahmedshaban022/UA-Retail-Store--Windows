@@ -41,6 +41,7 @@ public static class ApprovalErrorCodes
 /// <param name="Amount">The money that needs approving.</param>
 /// <param name="Percent">The discount, as a percentage.</param>
 /// <param name="CartTotal">The total of the cart the approval applies to.</param>
+/// <param name="Subject">What the request is about, for a request that is not about a discount.</param>
 public sealed record ApprovalRequestSummary(
     int Id,
     ApprovalKind Kind,
@@ -54,7 +55,8 @@ public sealed record ApprovalRequestSummary(
     string? DecisionReason,
     Money Amount,
     decimal Percent,
-    Money CartTotal);
+    Money CartTotal,
+    string Subject = "");
 
 /// <summary>
 /// Asks a manager to approve a discount that is over the shop's limit. The request is held; no

@@ -131,7 +131,7 @@ public sealed partial class ReceiptViewModel : ObservableObject
 
         if (printers.Count == 0)
         {
-            StatusMessage = "There is no printer on this machine.";
+            StatusMessage = _strings[StringKeys.PosNoPrinter];
             return;
         }
 

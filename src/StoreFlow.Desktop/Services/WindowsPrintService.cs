@@ -23,6 +23,9 @@ namespace StoreFlow.Desktop.Services;
 /// <para>The Arabic face ships inside the application, so the receipt prints in Arabic on a shop
 /// PC that has never had a font installed for it. The faces are added to the printer as private
 /// fonts, which is why they do not appear in the list of installed fonts.</para>
+/// <para>The spooler is given the document on a thread of its own. Printing blocks until the
+/// spooler has taken the page, and a till that waits for that cannot be used while the paper is
+/// coming out.</para>
 /// </remarks>
 public sealed class WindowsPrintService : IPrintService
 {
@@ -40,6 +43,41 @@ public sealed class WindowsPrintService : IPrintService
     private static readonly Lazy<FontFamily> Face = new(
         ResolveFace,
         LazyThreadSafetyMode.ExecutionAndPublication);
+
+    /// <summary>Sends a document to the printer.</summary>
+    private readonly Action<PrinterInfo, PrintDocumentKind, PrintDocumentData> _sendToPrinter;
+
+    /// <summary>Creates the service, which sends documents to the printer itself.</summary>
+    public WindowsPrintService()
+        : this(static (printer, kind, data) => PrintNow(printer, kind, data))
+    {
+    }
+
+    /// <summary>
+    /// Creates the service that sends documents through the given action.
+    /// </summary>
+    /// <param name="sendToPrinter">Sends the document on.</param>
+    private WindowsPrintService(Action<PrinterInfo, PrintDocumentKind, PrintDocumentData> sendToPrinter)
+    {
+        _sendToPrinter = sendToPrinter;
+    }
+
+    /// <summary>
+    /// Creates the service that sends documents through the given action instead of to a printer.
+    /// </summary>
+    /// <param name="sendToPrinter">
+    /// Sends the document on. The application always uses the printer itself; this is the way a
+    /// test puts a slow printer in its place and shows that the till is not held up while the
+    /// paper comes out.
+    /// </param>
+    /// <returns>The service.</returns>
+    public static WindowsPrintService SendingThrough(
+        Action<PrinterInfo, PrintDocumentKind, PrintDocumentData> sendToPrinter)
+    {
+        ArgumentNullException.ThrowIfNull(sendToPrinter);
+
+        return new WindowsPrintService(sendToPrinter);
+    }
 
     /// <inheritdoc />
     public Task<IReadOnlyList<PrinterInfo>> GetPrintersAsync(CancellationToken cancellationToken = default)
@@ -80,53 +118,86 @@ public sealed class WindowsPrintService : IPrintService
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        // The spooler takes as long as it takes, and the till must not wait for it. The print runs
+        // on a thread of its own, so the window keeps answering the cashier while the paper is
+        // coming out.
+        return Task.Run(() => Print(printer, kind, data, cancellationToken), cancellationToken);
+    }
+
+    /// <summary>
+    /// Hands the document to the printer and waits for the spooler to take it.
+    /// </summary>
+    /// <param name="printer">The printer the document goes to.</param>
+    /// <param name="kind">The shape of the document.</param>
+    /// <param name="data">The document itself.</param>
+    /// <param name="cancellationToken">The token that gives the print up.</param>
+    /// <returns>The outcome of the print.</returns>
+    private Result Print(
+        PrinterInfo printer,
+        PrintDocumentKind kind,
+        PrintDocumentData data,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
         try
         {
-            using var document = new PrintDocument
-            {
-                DocumentName = data.Title,
-                PrinterSettings = { PrinterName = printer.Name },
-            };
+            _sendToPrinter(printer, kind, data);
 
-            document.DefaultPageSettings.Landscape = false;
-            document.DefaultPageSettings.Margins = new Margins(0, 0, 0, 0);
-
-            if (kind is PrintDocumentKind.Receipt58 or PrintDocumentKind.Receipt80)
-            {
-                document.DefaultPageSettings.PaperSize = new PaperSize(
-                    kind == PrintDocumentKind.Receipt58 ? "58 mm" : "80 mm",
-                    kind == PrintDocumentKind.Receipt58 ? 163 : 315,
-                    1200);
-            }
-            else
-            {
-                document.DefaultPageSettings.PaperSize = new PaperSize("A4", 595, 842);
-            }
-
-            double contentWidth = kind is PrintDocumentKind.Receipt58 or PrintDocumentKind.Receipt80
-                ? (kind == PrintDocumentKind.Receipt58 ? 145d : 204d)
-                : 481d;
-
-            IReadOnlyList<PrintTextLine> layout = PrintLayout.Build(data, contentWidth);
-
-            document.PrintPage += (_, args) =>
-            {
-                if (args.Graphics is { } graphics)
-                {
-                    Draw(graphics, layout, contentWidth);
-                }
-            };
-
-            document.Print();
-
-            return Task.FromResult(Result.Success());
+            return Result.Success();
         }
 #pragma warning disable CA1031 // A printer that is switched off must not take the till down.
         catch (Exception ex)
         {
-            return Task.FromResult(Result.Failure("print.failed", ex.Message));
+            return Result.Failure("print.failed", ex.Message);
         }
 #pragma warning restore CA1031
+    }
+
+    /// <summary>
+    /// Lays the document out on the paper and sends it to the printer.
+    /// </summary>
+    /// <param name="printer">The printer the document goes to.</param>
+    /// <param name="kind">The shape of the document.</param>
+    /// <param name="data">The document itself.</param>
+    private static void PrintNow(PrinterInfo printer, PrintDocumentKind kind, PrintDocumentData data)
+    {
+        using var document = new PrintDocument
+        {
+            DocumentName = data.Title,
+            PrinterSettings = { PrinterName = printer.Name },
+        };
+
+        document.DefaultPageSettings.Landscape = false;
+        document.DefaultPageSettings.Margins = new Margins(0, 0, 0, 0);
+
+        if (kind is PrintDocumentKind.Receipt58 or PrintDocumentKind.Receipt80)
+        {
+            document.DefaultPageSettings.PaperSize = new PaperSize(
+                kind == PrintDocumentKind.Receipt58 ? "58 mm" : "80 mm",
+                kind == PrintDocumentKind.Receipt58 ? 163 : 315,
+                1200);
+        }
+        else
+        {
+            document.DefaultPageSettings.PaperSize = new PaperSize("A4", 595, 842);
+        }
+
+        double contentWidth = kind is PrintDocumentKind.Receipt58 or PrintDocumentKind.Receipt80
+            ? (kind == PrintDocumentKind.Receipt58 ? 145d : 204d)
+            : 481d;
+
+        IReadOnlyList<PrintTextLine> layout = PrintLayout.Build(data, contentWidth);
+
+        document.PrintPage += (_, args) =>
+        {
+            if (args.Graphics is { } graphics)
+            {
+                Draw(graphics, layout, contentWidth);
+            }
+        };
+
+        document.Print();
     }
 
     /// <inheritdoc />

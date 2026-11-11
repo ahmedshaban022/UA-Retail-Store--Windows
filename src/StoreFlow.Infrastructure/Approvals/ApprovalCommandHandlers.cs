@@ -1,14 +1,18 @@
 using System.Globalization;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using StoreFlow.Application.Abstractions;
 using StoreFlow.Application.Approvals;
 using StoreFlow.Application.Authorization;
 using StoreFlow.Application.Common;
+using StoreFlow.Application.Inventory;
 using StoreFlow.Application.Pos;
 using StoreFlow.Domain.Authorization;
 using StoreFlow.Domain.Entities;
 using StoreFlow.Domain.Enumerations;
 using StoreFlow.Domain.Money;
+using StoreFlow.Domain.Quantity;
+using StoreFlow.Infrastructure.Inventory;
 using StoreFlow.Infrastructure.Persistence;
 using StoreFlow.Infrastructure.Pos;
 
@@ -164,6 +168,13 @@ public sealed class RequestDiscountApprovalCommandHandler(
 /// Decides on a request. The approver may not be the cashier who asked, so that the second pair of
 /// eyes really is a second pair of eyes.
 /// </summary>
+/// <remarks>
+/// <para>Not every request is decided by writing a status. A held discount is decided by the status
+/// alone; the sale happens later, when the cashier confirms the cart again. A stock adjustment is
+/// different: the whole point of the request is that the stock has not moved yet, so approving it
+/// has to move the stock. The two kinds are therefore handled apart, and the permission that lets
+/// somebody decide is the one that belongs to the kind (PRD §5.3, §5.7).</para>
+/// </remarks>
 public sealed class DecideApprovalRequestCommandHandler(
     IDbContextFactory<StoreFlowDbContext> contextFactory,
     IAuthorizationService authorization,
@@ -178,13 +189,6 @@ public sealed class DecideApprovalRequestCommandHandler(
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
-
-        Result permitted = await authorization.RequireAsync(Permission.SalesDiscountOverLimit, cancellationToken);
-
-        if (permitted.IsFailure)
-        {
-            return Result<ApprovalRequestSummary>.Failure(permitted.Error);
-        }
 
         int approverId = session.Current?.UserId ?? 0;
 
@@ -207,11 +211,28 @@ public sealed class DecideApprovalRequestCommandHandler(
                 "That request has already been decided.");
         }
 
+        // The permission that opens this request depends on what the request is about. A stock
+        // adjustment is the shop's stock and is guarded by the stock approver, not by the
+        // permission that guards a discount over the limit.
+        Result permitted = await authorization.RequireAsync(
+            PermissionFor(request.Kind),
+            cancellationToken);
+
+        if (permitted.IsFailure)
+        {
+            return Result<ApprovalRequestSummary>.Failure(permitted.Error);
+        }
+
         if (request.RequestedByUserId == approverId)
         {
             return Result<ApprovalRequestSummary>.Failure(
                 ApprovalErrorCodes.SelfApproval,
                 "You asked for this approval, so somebody else has to give it.");
+        }
+
+        if (request.Kind == ApprovalKind.StockAdjustment && command.Approve)
+        {
+            return await ApproveStockAdjustmentAsync(context, request, command, approverId, cancellationToken);
         }
 
         request.Status = command.Approve ? ApprovalStatus.Approved : ApprovalStatus.Rejected;
@@ -232,6 +253,124 @@ public sealed class DecideApprovalRequestCommandHandler(
         await context.BeforeWriteAsync(WritePoint.DecideApprovalRequest, cancellationToken);
         await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+
+        string requestedByName = await ApprovalReaders.ReadUserNameAsync(
+            context, request.RequestedByUserId, cancellationToken);
+
+        string approverName = await ApprovalReaders.ReadUserNameAsync(context, approverId, cancellationToken);
+
+        return Result<ApprovalRequestSummary>.Success(
+            ApprovalReaders.ToSummary(request, requestedByName, approverName));
+    }
+
+    /// <summary>
+    /// The permission that lets somebody decide a request of the given kind.
+    /// </summary>
+    /// <param name="kind">The kind of request.</param>
+    /// <returns>The permission the approver has to hold.</returns>
+    private static Permission PermissionFor(ApprovalKind kind) => kind switch
+    {
+        ApprovalKind.StockAdjustment => Permission.StockApprove,
+        _ => Permission.SalesDiscountOverLimit,
+    };
+
+    /// <summary>
+    /// Approves a stock adjustment and writes the movement to the ledger, in the same transaction as
+    /// the decision. The stock has not moved while the request was waiting, so the shelf and the
+    /// books only agree again once this has run.
+    /// </summary>
+    /// <param name="context">The unit of work.</param>
+    /// <param name="request">The request being decided.</param>
+    /// <param name="command">The decision.</param>
+    /// <param name="approverId">The person deciding.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The decided request.</returns>
+    private async Task<Result<ApprovalRequestSummary>> ApproveStockAdjustmentAsync(
+        StoreFlowDbContext context,
+        ApprovalRequest request,
+        DecideApprovalRequestCommand command,
+        int approverId,
+        CancellationToken cancellationToken)
+    {
+        StockAdjustmentPayload? payload = JsonSerializer.Deserialize<StockAdjustmentPayload>(request.PayloadJson);
+
+        if (payload is null)
+        {
+            return Result<ApprovalRequestSummary>.Failure(
+                ApprovalErrorCodes.NotFound,
+                "This approval request is no longer readable.");
+        }
+
+        Product? product = await context.Products
+            .Include(candidate => candidate.Unit)
+            .FirstOrDefaultAsync(candidate => candidate.Id == payload.ProductId, cancellationToken);
+
+        if (product is null)
+        {
+            return Result<ApprovalRequestSummary>.Failure(
+                InventoryErrorCodes.NotFound,
+                "This product no longer exists.");
+        }
+
+        int scale = product.Unit?.Precision ?? 0;
+        DateTimeOffset now = clock.UtcNow;
+
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+        (StockMovement? movement, string? errorCode, string? errorMessage) = await InventoryLedger.ApplyAsync(
+            context,
+            product,
+            scale,
+            StockMovementType.Adjustment,
+            payload.Disposition,
+            new UnitQuantity(payload.QuantityDelta, scale).ToScaledLong(),
+            new Money(payload.UnitCost),
+            clock.LocalToday,
+            payload.Reason,
+            approverId,
+            null,
+            null,
+            now);
+
+        if (movement is null)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+
+            return Result<ApprovalRequestSummary>.Failure(errorCode!, errorMessage!);
+        }
+
+        request.Status = ApprovalStatus.Approved;
+        request.ApprovedByUserId = approverId;
+        request.DecisionReason = command.Reason;
+        request.DecidedUtc = now;
+
+        auditWriter.AddTo(
+            context,
+            new AuditEntry(
+                ApprovalAudit.Approved,
+                nameof(ApprovalRequest),
+                request.Id.ToString(CultureInfo.InvariantCulture),
+                null,
+                command.Reason,
+                approverId));
+
+        // The movement only has an id once it has been saved, so the audit entry joins the same
+        // transaction and is made permanent together with the movement it describes.
+        auditWriter.AddTo(
+            context,
+            new AuditEntry(
+                InventoryAudit.AdjustmentApprove,
+                nameof(StockMovement),
+                movement.Id.ToString(CultureInfo.InvariantCulture),
+                null,
+                $"{product.Name}: {payload.QuantityDelta} units approved and posted",
+                approverId));
+
+        await context.BeforeWriteAsync(WritePoint.ApproveStockAdjustment, cancellationToken);
+        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        await context.BeforeCommitAsync(WritePoint.ApproveStockAdjustmentCommit, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         string requestedByName = await ApprovalReaders.ReadUserNameAsync(
             context, request.RequestedByUserId, cancellationToken);
@@ -354,6 +493,24 @@ internal static class ApprovalReaders
     {
         DiscountApprovalPayload? payload = DiscountApproval.ReadPayload(request.PayloadJson);
 
+        Money amount = Money.FromMinorUnits(payload?.DiscountMinor ?? 0);
+        decimal percent = payload?.DiscountPercent ?? 0m;
+        Money cartTotal = Money.FromMinorUnits(payload?.CartTotalMinor ?? 0);
+        string subject = string.Empty;
+
+        if (request.Kind == ApprovalKind.StockAdjustment)
+        {
+            // A stock adjustment is not a discount, so the columns about percentages and cart totals
+            // would say nothing about it. The request says what it is about instead, and what it is
+            // worth stands in for the cart total.
+            StockAdjustmentPayload? adjustment = JsonSerializer.Deserialize<StockAdjustmentPayload>(request.PayloadJson);
+
+            subject = adjustment?.Description ?? string.Empty;
+            amount = Money.FromMinorUnits(adjustment?.ValueMinor ?? 0);
+            percent = 0m;
+            cartTotal = amount;
+        }
+
         return new ApprovalRequestSummary(
             request.Id,
             request.Kind,
@@ -365,9 +522,10 @@ internal static class ApprovalReaders
             request.CreatedUtc,
             request.DecidedUtc,
             request.DecisionReason,
-            Money.FromMinorUnits(payload?.DiscountMinor ?? 0),
-            payload?.DiscountPercent ?? 0m,
-            Money.FromMinorUnits(payload?.CartTotalMinor ?? 0));
+            amount,
+            percent,
+            cartTotal,
+            subject);
     }
 
     /// <summary>Reads a user's name.</summary>

@@ -53,7 +53,8 @@ public sealed class ReceiptBuilder(IStrings strings, IThemeService themeService)
 
         if (isCopy)
         {
-            header.Add(new("COPY", "bold", "center"));
+            // The stamp is printed on paper, so it is written in the language the shop reads.
+            header.Add(new(strings[StringKeys.PosCopyStamp], "bold", "center"));
         }
 
         PrintTable table = wide

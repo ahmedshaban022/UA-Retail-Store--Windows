@@ -186,24 +186,39 @@ public sealed class SavePurchaseCommandHandler(
 
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-        await context.BeforeWriteAsync(WritePoint.SavePurchase, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.BeforeWriteAsync(WritePoint.SavePurchase, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
-        // A new document has no id until its row has been saved, so the audit entry joins the same
-        // transaction and is made permanent together with the document it describes.
-        auditWriter.AddTo(
-            context,
-            new AuditEntry(
-                InventoryAudit.PurchaseSave,
-                nameof(PurchaseDocument),
-                document.Id.ToString(),
-                null,
-                $"{document.Number} with {document.Lines.Count} lines, total {document.Total}",
-                session.Current?.UserId));
+            // A new document has no id until its row has been saved, so the audit entry joins the same
+            // transaction and is made permanent together with the document it describes.
+            auditWriter.AddTo(
+                context,
+                new AuditEntry(
+                    InventoryAudit.PurchaseSave,
+                    nameof(PurchaseDocument),
+                    document.Id.ToString(),
+                    null,
+                    $"{document.Number} with {document.Lines.Count} lines, total {document.Total}",
+                    session.Current?.UserId));
 
-        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+            await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (UniqueConstraintClash.IsClash(exception))
+        {
+            // The number is worked out before the transaction opens, so two clerks saving at the
+            // same moment can work out the same number, and the index refuses the second. The
+            // refusal is rolled back and the shop is asked to save again: the next number is then
+            // free, and the document the clerk wrote is still on their screen.
+            await transaction.RollbackAsync(cancellationToken);
+
+            return Result<int>.Failure(
+                InventoryErrorCodes.NumberClash,
+                "Another purchase was saved at the same moment and took this number. Save the document again and it will be given the next number.");
+        }
 
         return Result<int>.Success(document.Id);
     }

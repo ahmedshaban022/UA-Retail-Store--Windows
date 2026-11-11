@@ -195,6 +195,9 @@
   <data name="Backup.Test" xml:space="preserve">
     <value>Test</value>
   </data>
+  <data name="Backup.PickFile" xml:space="preserve">
+    <value>Choose a StoreFlow backup</value>
+  </data>
 <data name="Backup.Title" xml:space="preserve">
     <value>Backup and cloud</value>
   </data>
@@ -303,6 +306,9 @@
   <data name="Error.InventoryNotPosted" xml:space="preserve">
     <value>Only a posted purchase can be reversed.</value>
   </data>
+  <data name="Error.InventoryNumberClash" xml:space="preserve">
+    <value>Another document was saved at the same moment and took this number. Save it again and it will be given the next number.</value>
+  </data>
   <data name="Error.InventoryQuantity" xml:space="preserve">
     <value>Enter a valid quantity.</value>
   </data>
@@ -314,6 +320,9 @@
   </data>
   <data name="Error.Unexpected" xml:space="preserve">
     <value>Something went wrong. Close this message and try again.</value>
+  </data>
+  <data name="Error.UnitLocked" xml:space="preserve">
+    <value>This product's selling unit cannot be changed once it has stock. Count the product again to bring the books back in line.</value>
   </data>
   <data name="FirstRun.Address" xml:space="preserve">
     <value>Address</value>
@@ -1048,6 +1057,9 @@
   <data name="Error.Required" xml:space="preserve">
     <value>{0} is required.</value>
   </data>
+  <data name="Error.StockChanged" xml:space="preserve">
+    <value>Somebody else changed this stock while you were working. Nothing was saved, so please try again.</value>
+  </data>
   <data name="Error.TooLong" xml:space="preserve">
     <value>This value cannot be longer than {0} characters.</value>
   </data>
@@ -1218,6 +1230,9 @@
   </data>
   <data name="StockCount.Counted" xml:space="preserve">
     <value>Counted</value>
+  </data>
+  <data name="StockCount.Recorded" xml:space="preserve">
+    <value>Recorded</value>
   </data>
   <data name="StockCount.Date" xml:space="preserve">
     <value>Date</value>
@@ -1432,6 +1447,9 @@
   <data name="Pos.ReceiptItems" xml:space="preserve">
     <value>Items</value>
   </data>
+  <data name="Pos.CopyStamp" xml:space="preserve">
+    <value>COPY</value>
+  </data>
   <data name="Pos.Print" xml:space="preserve">
     <value>Print</value>
   </data>
@@ -1440,6 +1458,9 @@
   </data>
   <data name="Pos.PrintA4" xml:space="preserve">
     <value>A4 invoice</value>
+  </data>
+  <data name="Pos.NoPrinter" xml:space="preserve">
+    <value>There is no printer on this machine.</value>
   </data>
   <data name="Pos.Close" xml:space="preserve">
     <value>Close</value>
@@ -1880,6 +1901,9 @@
   <data name="Reports.Exported" xml:space="preserve">
     <value>The report was written to {0}.</value>
   </data>
+  <data name="Reports.Truncated" xml:space="preserve">
+    <value>This report shows the newest {0} of {1} stock movements. Narrow the dates to see the rest.</value>
+  </data>
   <data name="Reports.NoAccess" xml:space="preserve">
     <value>You may not look at the reports.</value>
   </data>
@@ -2036,11 +2060,11 @@
   <data name="Approvals.RequestedBy" xml:space="preserve">
     <value>Asked by</value>
   </data>
-  <data name="Approvals.Discount" xml:space="preserve">
-    <value>Discount</value>
+  <data name="Approvals.Details" xml:space="preserve">
+    <value>Details</value>
   </data>
-  <data name="Approvals.CartTotal" xml:space="preserve">
-    <value>Cart total</value>
+  <data name="Approvals.Value" xml:space="preserve">
+    <value>Value</value>
   </data>
   <data name="Approvals.When" xml:space="preserve">
     <value>When</value>

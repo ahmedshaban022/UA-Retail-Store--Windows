@@ -2,6 +2,7 @@ using StoreFlow.Application.Inventory;
 using StoreFlow.Domain.Entities;
 using StoreFlow.Domain.Enumerations;
 using StoreFlow.Domain.Money;
+using StoreFlow.Domain.Quantity;
 using StoreFlow.Domain.Valuation;
 using StoreFlow.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -156,5 +157,26 @@ internal static class InventoryLedger
         decimal quantity = quantityScaled / (decimal)Math.Pow(10, quantityScale);
 
         return new Money(decimal.Round(quantity * averageUnitCost.Amount, 2, MidpointRounding.AwayFromZero));
+    }
+
+    /// <summary>
+    /// Brings a scaled quantity into another scale, so two numbers written in different units can be
+    /// compared. A scale that cannot hold the quantity exactly is rounded, because the shop counts
+    /// goods that cannot be counted in fractions of a piece.
+    /// </summary>
+    /// <param name="value">The quantity, scaled by <paramref name="fromScale"/>.</param>
+    /// <param name="fromScale">The precision the quantity was written in.</param>
+    /// <param name="toScale">The precision it is needed in.</param>
+    /// <returns>The quantity, scaled by <paramref name="toScale"/>.</returns>
+    public static long Rescale(long value, int fromScale, int toScale)
+    {
+        if (fromScale == toScale)
+        {
+            return value;
+        }
+
+        decimal quantity = value / QuantityScale.PowerOfTen(fromScale);
+
+        return (long)Math.Round(quantity * QuantityScale.PowerOfTen(toScale), 0, MidpointRounding.AwayFromZero);
     }
 }

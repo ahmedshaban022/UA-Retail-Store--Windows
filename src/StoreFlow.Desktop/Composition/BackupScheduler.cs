@@ -67,35 +67,45 @@ public sealed class BackupScheduler(IServiceProvider services) : IDisposable
             return 0;
         }
 
-        await _gate.WaitAsync();
-
+#pragma warning disable CA1031 // A background timer must never take the shop down.
         try
         {
-            var handler = services.GetService(typeof(ICommandHandler<RunScheduledBackupsCommand, Result<int>>))
-                as ICommandHandler<RunScheduledBackupsCommand, Result<int>>;
+            // The gate is taken inside the try, because the shop may close between the check above
+            // and the wait. A gate that has already been given away throws, and a throw here would
+            // land on a task nobody is watching.
+            await _gate.WaitAsync();
 
-            if (handler is null)
+            try
             {
-                return 0;
+                var handler = services.GetService(typeof(ICommandHandler<RunScheduledBackupsCommand, Result<int>>))
+                    as ICommandHandler<RunScheduledBackupsCommand, Result<int>>;
+
+                if (handler is null)
+                {
+                    return 0;
+                }
+
+                Result<int> result = await handler.HandleAsync(new RunScheduledBackupsCommand(), CancellationToken.None);
+
+                if (result.IsFailure)
+                {
+                    StartupDiagnostics.Write("The scheduled backup failed: " + result.Error.Message);
+
+                    return 0;
+                }
+
+                if (result.Value > 0)
+                {
+                    StartupDiagnostics.Write($"The scheduler took {result.Value} backup(s).");
+                }
+
+                return result.Value;
             }
-
-            Result<int> result = await handler.HandleAsync(new RunScheduledBackupsCommand(), CancellationToken.None);
-
-            if (result.IsFailure)
+            finally
             {
-                StartupDiagnostics.Write("The scheduled backup failed: " + result.Error.Message);
-
-                return 0;
+                Release();
             }
-
-            if (result.Value > 0)
-            {
-                StartupDiagnostics.Write($"The scheduler took {result.Value} backup(s).");
-            }
-
-            return result.Value;
         }
-#pragma warning disable CA1031 // A background timer must never take the shop down.
         catch (Exception ex)
         {
             StartupDiagnostics.Write("The scheduled backup failed.", ex);
@@ -103,9 +113,21 @@ public sealed class BackupScheduler(IServiceProvider services) : IDisposable
             return 0;
         }
 #pragma warning restore CA1031
-        finally
+    }
+
+    /// <summary>
+    /// Gives the gate back, if the shop has not closed in the meantime.
+    /// </summary>
+    private void Release()
+    {
+        try
         {
             _gate.Release();
+        }
+        catch (ObjectDisposedException)
+        {
+            // The shop closed while the backup was running. The gate went with the scheduler, and
+            // there is nothing left to give back.
         }
     }
 }

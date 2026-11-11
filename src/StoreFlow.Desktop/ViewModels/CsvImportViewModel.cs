@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StoreFlow.Application.Catalog;
 using StoreFlow.Application.Common;
+using StoreFlow.Desktop.Composition;
 using StoreFlow.Desktop.Localization;
 
 namespace StoreFlow.Desktop.ViewModels;
@@ -36,6 +37,12 @@ public sealed partial class CsvImportViewModel : ObservableObject
     private readonly ICommandHandler<ImportProductsCommand, Result<ImportSummary>> _importHandler;
     private readonly IStrings _strings;
     private readonly LanguageService _languageService;
+
+    /// <summary>
+    /// The read of the file that is on its way. It is cancelled when the file is read again, so
+    /// the rows on screen are always the rows of the file the owner has chosen.
+    /// </summary>
+    private CancellationTokenSource? _previewCancellation;
 
     [ObservableProperty]
     private string _filePath = string.Empty;
@@ -184,6 +191,14 @@ public sealed partial class CsvImportViewModel : ObservableObject
             return;
         }
 
+        // A read that is already on its way is cancelled, because the newest mode is the one the
+        // owner means. The old source is not disposed: the read it belongs to may still be handing
+        // the token to the database.
+        _previewCancellation?.Cancel();
+        _previewCancellation = new CancellationTokenSource();
+
+        CancellationToken token = _previewCancellation.Token;
+
         IsBusy = true;
 
         try
@@ -193,7 +208,9 @@ public sealed partial class CsvImportViewModel : ObservableObject
                     FilePath,
                     UpdateExisting ? ProductImportMode.UpsertBySku : ProductImportMode.CreateOnly,
                     CatalogHeaders.Build(_strings)),
-                cancellationToken);
+                token);
+
+            token.ThrowIfCancellationRequested();
 
             if (result.IsFailure)
             {
@@ -205,9 +222,31 @@ public sealed partial class CsvImportViewModel : ObservableObject
             ApplyPreview(result.Value);
             StatusMessage = string.Empty;
         }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // Another read of the file has taken over; this answer is stale and is dropped.
+        }
+#pragma warning disable CA1031 // A read that fails must not take the screen down with it.
+        catch (Exception ex)
+        {
+            // A read that fails outright must not lose its exception in the void. The log keeps the
+            // detail and the owner is told that the file could not be read.
+            StartupDiagnostics.Write("The import file could not be read.", ex);
+
+            if (!token.IsCancellationRequested)
+            {
+                StatusMessage = _strings[StringKeys.ErrorUnexpected];
+            }
+        }
+#pragma warning restore CA1031
         finally
         {
-            IsBusy = false;
+            // A read that has been overtaken leaves the busy flag to the read that took over.
+            if (!token.IsCancellationRequested)
+            {
+                IsBusy = false;
+            }
+
             RaiseSummaryChanged();
         }
     }
@@ -353,8 +392,13 @@ public sealed partial class CsvImportViewModel : ObservableObject
         OnPropertyChanged(nameof(SummaryText));
     }
 
-    partial void OnUpdateExistingChanged(bool value) =>
-        _ = RefreshPreviewAsync(CancellationToken.None);
+    partial void OnUpdateExistingChanged(bool value) => SchedulePreviewLoad();
+
+    /// <summary>
+    /// Reads the file again, and forgets the read that was waiting, so the rows on screen are the
+    /// rows of the mode the owner has just chosen.
+    /// </summary>
+    private void SchedulePreviewLoad() => _ = RefreshPreviewAsync(CancellationToken.None);
 
     private void OnLanguageChanged(object? sender, EventArgs e) =>
         OnPropertyChanged(string.Empty);

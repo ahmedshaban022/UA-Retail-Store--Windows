@@ -90,6 +90,47 @@ public sealed class ProductCsvMapperTests
     }
 
     [Fact]
+    public void A_price_written_with_a_decimal_comma_is_read_as_a_price()
+    {
+        // A shopkeeper whose spreadsheet writes "12,50" means twelve and a half. Read with the
+        // invariant culture alone the comma is a thousands separator and the price becomes 1250.
+        IReadOnlyList<string[]> rows =
+        [
+            ["SKU", "Name", "Category", "Unit", "SalePrice", "CostPrice"],
+            ["RICE-001", "Rice", "Grocery", "Piece", "12,50", "10,00"],
+        ];
+
+        IReadOnlyList<ProductImportRow> result = ProductCsvMapper.BuildRows(
+            rows,
+            Map(rows[0]),
+            Snapshot(),
+            ProductImportMode.CreateOnly);
+
+        ProductImportRow row = result.ShouldHaveSingleItem();
+        row.IsValid.ShouldBeTrue();
+        row.Resolved.ShouldNotBeNull();
+        row.Resolved.SalePrice.ShouldBe(12.50m);
+        row.Resolved.CostPrice.ShouldBe(10.00m);
+    }
+
+    [Fact]
+    public void A_price_with_a_decimal_comma_and_its_currency_attached_is_read_as_a_price()
+    {
+        IReadOnlyList<string[]> rows = [["SKU", "Name", "SalePrice"], ["RICE-001", "Rice", "450,00 EGP"]];
+
+        IReadOnlyList<ProductImportRow> result = ProductCsvMapper.BuildRows(
+            rows,
+            Map(rows[0]),
+            Snapshot(),
+            ProductImportMode.CreateOnly);
+
+        ProductImportRow row = result.ShouldHaveSingleItem();
+        row.IsValid.ShouldBeTrue();
+        row.Resolved.ShouldNotBeNull();
+        row.Resolved.SalePrice.ShouldBe(450.00m);
+    }
+
+    [Fact]
     public void A_row_without_a_code_is_refused()
     {
         IReadOnlyList<string[]> rows = [["SKU", "Name", "SalePrice"], ["", "Rice", "450.00"]];

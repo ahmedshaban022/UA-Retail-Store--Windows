@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using StoreFlow.Application.Common;
 using StoreFlow.Application.Inventory;
 using StoreFlow.Domain.Enumerations;
+using StoreFlow.Desktop.Composition;
 using StoreFlow.Desktop.Localization;
 
 namespace StoreFlow.Desktop.ViewModels;
@@ -26,6 +27,24 @@ public sealed partial class InventoryViewModel : ObservableObject
     private readonly IInventoryDialogs _dialogs;
     private readonly IStrings _strings;
     private readonly LanguageService _languageService;
+
+    /// <summary>
+    /// The read of the stock on hand that is on its way. It is cancelled when the owner changes the
+    /// filter, so the rows on screen are always the rows the filter asks for.
+    /// </summary>
+    private CancellationTokenSource? _balancesCancellation;
+
+    /// <summary>
+    /// The read of the ledger that is on its way. It is cancelled when the owner narrows the
+    /// ledger down, so an older answer cannot land on top of a newer one.
+    /// </summary>
+    private CancellationTokenSource? _movementsCancellation;
+
+    /// <summary>
+    /// The read of the valuation that is on its way. It is cancelled when the owner changes the
+    /// date the valuation is taken at.
+    /// </summary>
+    private CancellationTokenSource? _valuationCancellation;
 
     [ObservableProperty]
     private string _searchText = string.Empty;
@@ -432,49 +451,109 @@ public sealed partial class InventoryViewModel : ObservableObject
 
     private async Task LoadBalancesAsync(CancellationToken cancellationToken)
     {
-        Result<IReadOnlyList<StockBalanceSummary>> result = await _balancesHandler.HandleAsync(
-            new ListStockBalancesQuery(SearchText, OnlyLowStock),
-            cancellationToken);
+        // A read that is already on its way is cancelled, because the newest filter is the one the
+        // owner means. The old source is not disposed: the read it belongs to may still be handing
+        // the token to the database.
+        _balancesCancellation?.Cancel();
+        _balancesCancellation = new CancellationTokenSource();
 
-        if (result.IsFailure)
+        CancellationToken token = _balancesCancellation.Token;
+
+        try
         {
-            StatusMessage = InventoryErrorMessages.Resolve(_strings, result.Error.Code);
-            return;
+            Result<IReadOnlyList<StockBalanceSummary>> result = await _balancesHandler.HandleAsync(
+                new ListStockBalancesQuery(SearchText, OnlyLowStock),
+                token);
+
+            token.ThrowIfCancellationRequested();
+
+            if (result.IsFailure)
+            {
+                StatusMessage = InventoryErrorMessages.Resolve(_strings, result.Error.Code);
+                return;
+            }
+
+            Balances.Clear();
+
+            foreach (StockBalanceSummary balance in result.Value)
+            {
+                Balances.Add(balance);
+            }
+
+            OnPropertyChanged(nameof(HasNoBalances));
         }
-
-        Balances.Clear();
-
-        foreach (StockBalanceSummary balance in result.Value)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            Balances.Add(balance);
+            // Another read of the stock on hand has taken over; this answer is stale and is dropped.
         }
+#pragma warning disable CA1031 // A read that fails must not take the screen down with it.
+        catch (Exception ex)
+        {
+            // A read that fails outright must not lose its exception in the void. The log keeps the
+            // detail and the owner is told that the stock could not be read.
+            StartupDiagnostics.Write("The stock on hand could not be read.", ex);
 
-        OnPropertyChanged(nameof(HasNoBalances));
+            if (!token.IsCancellationRequested)
+            {
+                StatusMessage = _strings[StringKeys.ErrorUnexpected];
+            }
+        }
+#pragma warning restore CA1031
     }
 
     private async Task LoadMovementsAsync(CancellationToken cancellationToken)
     {
-        Result<IReadOnlyList<StockMovementSummary>> result = await _movementsHandler.HandleAsync(
-            new ListStockMovementsQuery(
-                MovementProductId == 0 ? null : MovementProductId,
-                InventoryInput.TryReadDate(FromDateText, out DateOnly from) ? from : null,
-                InventoryInput.TryReadDate(ToDateText, out DateOnly to) ? to : null),
-            cancellationToken);
+        // A read that is already on its way is cancelled, because the newest filter is the one the
+        // owner means. The old source is not disposed: the read it belongs to may still be handing
+        // the token to the database.
+        _movementsCancellation?.Cancel();
+        _movementsCancellation = new CancellationTokenSource();
 
-        if (result.IsFailure)
+        CancellationToken token = _movementsCancellation.Token;
+
+        try
         {
-            StatusMessage = InventoryErrorMessages.Resolve(_strings, result.Error.Code);
-            return;
+            Result<IReadOnlyList<StockMovementSummary>> result = await _movementsHandler.HandleAsync(
+                new ListStockMovementsQuery(
+                    MovementProductId == 0 ? null : MovementProductId,
+                    InventoryInput.TryReadDate(FromDateText, out DateOnly from) ? from : null,
+                    InventoryInput.TryReadDate(ToDateText, out DateOnly to) ? to : null),
+                token);
+
+            token.ThrowIfCancellationRequested();
+
+            if (result.IsFailure)
+            {
+                StatusMessage = InventoryErrorMessages.Resolve(_strings, result.Error.Code);
+                return;
+            }
+
+            Movements.Clear();
+
+            foreach (StockMovementSummary movement in result.Value)
+            {
+                Movements.Add(movement);
+            }
+
+            OnPropertyChanged(nameof(HasNoMovements));
         }
-
-        Movements.Clear();
-
-        foreach (StockMovementSummary movement in result.Value)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            Movements.Add(movement);
+            // Another read of the ledger has taken over; this answer is stale and is dropped.
         }
+#pragma warning disable CA1031 // A read that fails must not take the screen down with it.
+        catch (Exception ex)
+        {
+            // A read that fails outright must not lose its exception in the void. The log keeps the
+            // detail and the owner is told that the ledger could not be read.
+            StartupDiagnostics.Write("The stock ledger could not be read.", ex);
 
-        OnPropertyChanged(nameof(HasNoMovements));
+            if (!token.IsCancellationRequested)
+            {
+                StatusMessage = _strings[StringKeys.ErrorUnexpected];
+            }
+        }
+#pragma warning restore CA1031
     }
 
     private async Task LoadCountsAsync(CancellationToken cancellationToken)
@@ -507,36 +586,81 @@ public sealed partial class InventoryViewModel : ObservableObject
 
     private async Task LoadValuationAsync(CancellationToken cancellationToken)
     {
-        Result<InventoryValuation> result = await _valuationHandler.HandleAsync(
-            new GetInventoryValuationQuery(
-                InventoryInput.TryReadDate(AsOfDateText, out DateOnly asOf) ? asOf : null),
-            cancellationToken);
+        // A read that is already on its way is cancelled, because the newest date is the one the
+        // owner means. The old source is not disposed: the read it belongs to may still be handing
+        // the token to the database.
+        _valuationCancellation?.Cancel();
+        _valuationCancellation = new CancellationTokenSource();
 
-        if (result.IsFailure)
+        CancellationToken token = _valuationCancellation.Token;
+
+        try
         {
-            StatusMessage = InventoryErrorMessages.Resolve(_strings, result.Error.Code);
-            return;
+            Result<InventoryValuation> result = await _valuationHandler.HandleAsync(
+                new GetInventoryValuationQuery(
+                    InventoryInput.TryReadDate(AsOfDateText, out DateOnly asOf) ? asOf : null),
+                token);
+
+            token.ThrowIfCancellationRequested();
+
+            if (result.IsFailure)
+            {
+                StatusMessage = InventoryErrorMessages.Resolve(_strings, result.Error.Code);
+                return;
+            }
+
+            Valuation = result.Value;
+
+            OnPropertyChanged(nameof(ValuationProductCount));
+            OnPropertyChanged(nameof(ValuationTotalQuantity));
+            OnPropertyChanged(nameof(ValuationTotalValue));
+            OnPropertyChanged(nameof(ValuationLowStockCount));
         }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // Another read of the valuation has taken over; this answer is stale and is dropped.
+        }
+#pragma warning disable CA1031 // A read that fails must not take the screen down with it.
+        catch (Exception ex)
+        {
+            // A read that fails outright must not lose its exception in the void. The log keeps the
+            // detail and the owner is told that the valuation could not be read.
+            StartupDiagnostics.Write("The stock valuation could not be read.", ex);
 
-        Valuation = result.Value;
-
-        OnPropertyChanged(nameof(ValuationProductCount));
-        OnPropertyChanged(nameof(ValuationTotalQuantity));
-        OnPropertyChanged(nameof(ValuationTotalValue));
-        OnPropertyChanged(nameof(ValuationLowStockCount));
+            if (!token.IsCancellationRequested)
+            {
+                StatusMessage = _strings[StringKeys.ErrorUnexpected];
+            }
+        }
+#pragma warning restore CA1031
     }
 
-    partial void OnSearchTextChanged(string value) => _ = LoadBalancesAsync(CancellationToken.None);
+    partial void OnSearchTextChanged(string value) => ScheduleBalancesLoad();
 
-    partial void OnOnlyLowStockChanged(bool value) => _ = LoadBalancesAsync(CancellationToken.None);
+    partial void OnOnlyLowStockChanged(bool value) => ScheduleBalancesLoad();
 
-    partial void OnMovementProductIdChanged(int value) => _ = LoadMovementsAsync(CancellationToken.None);
+    partial void OnMovementProductIdChanged(int value) => ScheduleMovementsLoad();
 
-    partial void OnFromDateTextChanged(string value) => _ = LoadMovementsAsync(CancellationToken.None);
+    partial void OnFromDateTextChanged(string value) => ScheduleMovementsLoad();
 
-    partial void OnToDateTextChanged(string value) => _ = LoadMovementsAsync(CancellationToken.None);
+    partial void OnToDateTextChanged(string value) => ScheduleMovementsLoad();
 
-    partial void OnAsOfDateTextChanged(string value) => _ = LoadValuationAsync(CancellationToken.None);
+    partial void OnAsOfDateTextChanged(string value) => ScheduleValuationLoad();
+
+    /// <summary>
+    /// Reads the stock on hand again, and forgets the read that was waiting.
+    /// </summary>
+    private void ScheduleBalancesLoad() => _ = LoadBalancesAsync(CancellationToken.None);
+
+    /// <summary>
+    /// Reads the ledger again, and forgets the read that was waiting.
+    /// </summary>
+    private void ScheduleMovementsLoad() => _ = LoadMovementsAsync(CancellationToken.None);
+
+    /// <summary>
+    /// Reads the valuation again, and forgets the read that was waiting.
+    /// </summary>
+    private void ScheduleValuationLoad() => _ = LoadValuationAsync(CancellationToken.None);
 
     partial void OnSelectedCountChanged(StockCountSummary? value)
     {

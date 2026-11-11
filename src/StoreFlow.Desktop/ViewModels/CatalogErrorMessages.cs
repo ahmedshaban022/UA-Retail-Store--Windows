@@ -48,6 +48,7 @@ public static class CatalogErrorMessages
         CatalogValidation.DuplicateBarcodeCode => StringKeys.ErrorDuplicateBarcode,
         CatalogValidation.DuplicateSkuCode => StringKeys.ErrorDuplicateSku,
         CatalogValidation.InvalidPrecisionCode => StringKeys.ErrorInvalidPrecision,
+        CatalogValidation.UnitLockedCode => StringKeys.ErrorUnitLocked,
         ProductCsvMapper.BarcodeInUseCode => StringKeys.ErrorBarcodeInUse,
         ProductCsvMapper.MissingValueCode => StringKeys.ErrorImportMissingValue,
         ProductCsvMapper.NotANumberCode => StringKeys.ErrorImportNotANumber,

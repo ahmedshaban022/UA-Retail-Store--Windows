@@ -1,6 +1,7 @@
 namespace StoreFlow.Application.Catalog;
 
 using System.Globalization;
+using StoreFlow.Application.Common;
 
 /// <summary>
 /// The catalogue as it stands at the moment an import is planned. The mapper reads it so a row can
@@ -573,18 +574,21 @@ public static class ProductCsvMapper
 
         string trimmed = text.Trim();
 
-        if (decimal.TryParse(trimmed, NumberStyles.Number, CultureInfo.InvariantCulture, out value))
+        // The price is read the same way as every other number the shop enters, so a price typed
+        // with a decimal comma is read as a decimal comma and not as a thousands separator.
+        if (NumberInput.TryReadDecimal(trimmed, out value))
         {
             return true;
         }
 
         // A shop owner often types the price with its currency attached. Dropping everything that
-        // cannot be part of a number reads "450.00 EGP" as 450, which is what they meant.
+        // cannot be part of a number reads "450.00 EGP" as 450, which is what they meant. The comma
+        // is kept, so the shared rule still tells a decimal comma from a thousands separator.
         var builder = new System.Text.StringBuilder(trimmed.Length);
 
         foreach (char character in trimmed)
         {
-            if (char.IsDigit(character) || character is '.' or '-' or '+')
+            if (char.IsDigit(character) || character is '.' or ',' or '-' or '+')
             {
                 builder.Append(character);
             }
@@ -592,8 +596,7 @@ public static class ProductCsvMapper
 
         string cleaned = builder.ToString();
 
-        return cleaned.Length > 0
-            && decimal.TryParse(cleaned, NumberStyles.Number, CultureInfo.InvariantCulture, out value);
+        return cleaned.Length > 0 && NumberInput.TryReadDecimal(cleaned, out value);
     }
 
     private static bool TryParseBoolean(string text, out bool value)

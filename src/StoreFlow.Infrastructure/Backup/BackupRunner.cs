@@ -188,9 +188,25 @@ public sealed class BackupRunner(
         }
         finally
         {
-            if (File.Exists(staging))
+            // The staged copy is taken away when it can be. A file that something else has open
+            // for a moment — a virus scanner, most often — is left where it is: the backup has
+            // already been written and read back, and a file that cannot be deleted must not
+            // turn a finished backup into a failure.
+            try
             {
-                File.Delete(staging);
+                if (File.Exists(staging))
+                {
+                    File.Delete(staging);
+                }
+            }
+            catch (IOException)
+            {
+                // Something else has the file open. It is a copy of the backup, and the next
+                // backup writes over it.
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // This account may not delete it. The next backup writes over it.
             }
         }
     }

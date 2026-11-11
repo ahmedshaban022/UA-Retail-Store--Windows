@@ -17,7 +17,8 @@ namespace StoreFlow.Tools.ShopDigest;
 /// that hold the same data print exactly the same text.</para>
 /// <para>Usage: <c>ShopDigest &lt;database file&gt; [dump file]</c>. The digest goes to the
 /// standard output; the dump, when a path is given, is written next to it as the evidence a
-/// person can read.</para>
+/// person can read. The tool also names the products whose stock was written in a different unit
+/// from the one they are sold in now, and touches nothing.</para>
 /// </remarks>
 internal static class Program
 {
@@ -83,7 +84,50 @@ internal static class Program
         // Every table is hashed on its own as well, so that a difference can be named.
         PrintTableHashes(databasePath);
 
+        // A product whose selling unit was changed after its stock had moved carries a balance
+        // written in the old unit's precision. The shop can no longer change a unit that has
+        // stock, so these are the shops that changed one before the rule was put in place. They
+        // are named, and nothing is touched: a count brings the books back in line.
+        PrintScaleDrift(databasePath);
+
         return 0;
+    }
+
+    /// <summary>
+    /// Prints the products whose balance is written in a different precision from the selling unit
+    /// they are sold in. The tool only reads: the repair is a stock count, done by the shop.
+    /// </summary>
+    /// <param name="databasePath">The database file.</param>
+    private static void PrintScaleDrift(string databasePath)
+    {
+        using SqliteConnection connection = OpenReadOnly(databasePath);
+
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText =
+            "SELECT p.Id, p.Sku, b.QuantityScale, COALESCE(u.Precision, 0), b.QuantityOnHandScaled " +
+            "FROM StockBalances b " +
+            "JOIN Products p ON p.Id = b.ProductId " +
+            "LEFT JOIN Units u ON u.Id = p.UnitId " +
+            "WHERE b.QuantityScale <> COALESCE(u.Precision, 0) " +
+            "ORDER BY p.Id;";
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        int count = 0;
+
+        while (reader.Read())
+        {
+            count += 1;
+
+            Console.WriteLine(
+                "drift=product=" + reader.GetInt32(0).ToString(CultureInfo.InvariantCulture) +
+                " sku=" + reader.GetString(1) +
+                " balance_scale=" + reader.GetInt32(2).ToString(CultureInfo.InvariantCulture) +
+                " unit_scale=" + reader.GetInt32(3).ToString(CultureInfo.InvariantCulture) +
+                " on_hand=" + reader.GetInt64(4).ToString(CultureInfo.InvariantCulture));
+        }
+
+        Console.WriteLine("scale_drift=" + count.ToString(CultureInfo.InvariantCulture));
     }
 
     /// <summary>Opens the database without the possibility of writing to it.</summary>

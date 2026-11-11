@@ -250,15 +250,86 @@ public sealed class ReportingTests : IAsyncLifetime
         int productId = await CreateProductAsync("REP-007", 100m);
         await PostPurchaseAsync(productId, 10m, 50m, day);
 
-        IReadOnlyList<StockMovementRow> rows = await Reader().ReadStockMovementsAsync(
+        StockMovementsReport report = await Reader().ReadStockMovementsAsync(
             new ReportFilter { From = day, To = day, ProductId = productId });
 
-        StockMovementRow row = rows.Single(candidate => candidate.Sku == "REP-007");
+        StockMovementRow row = report.Rows.Single(candidate => candidate.Sku == "REP-007");
 
         row.Date.ShouldBe(day);
         row.Quantity.ShouldBe(10m);
         row.UnitCost.ShouldBe(new Money(50m));
         row.Balance.ShouldBe(10m);
+    }
+
+    [Fact]
+    public async Task A_report_narrowed_to_one_category_leaves_the_other_categories_out()
+    {
+        // An invoice can hold lines from more than one category. A report about one category
+        // must not carry the money of another one, and the returns are narrowed the same way,
+        // so that the two halves of the report agree with each other.
+        DateOnly day = new(2026, 3, 21);
+
+        int drinks = await CreateCategoryAsync("REP Drinks");
+        int news = await CreateCategoryAsync("REP News");
+
+        int cola = await CreateProductAsync("REP-COLA", 100m, drinks);
+        int paper = await CreateProductAsync("REP-PAPER", 100m, news);
+
+        await PostPurchaseAsync(cola, 10m, 50m, day);
+        await PostPurchaseAsync(paper, 10m, 50m, day);
+
+        // One invoice, two lines, two categories.
+        await PostSaleAsync(
+            [new SaleLineInput(cola, 2m, new Money(100m), DiscountSpec.None),
+             new SaleLineInput(paper, 1m, new Money(100m), DiscountSpec.None)],
+            day);
+
+        IReadOnlyList<SalesByProductRow> rows = await Reader().ReadSalesByProductAsync(
+            new ReportFilter { From = day, To = day, CategoryId = drinks }, CancellationToken.None);
+
+        SalesByProductRow row = rows.Single();
+
+        row.ProductId.ShouldBe(cola);
+        row.NetRevenue.ShouldBe(new Money(200m));
+    }
+
+    [Fact]
+    public async Task The_stock_movement_report_says_how_many_movements_there_were()
+    {
+        // The ledger is the one report that can have more rows than a screen can show. A shop
+        // that is shown a part of it has to be told how big the whole of it is.
+        DateOnly day = new(2026, 3, 22);
+
+        int productId = await CreateProductAsync("REP-022", 100m);
+
+        await PostPurchaseAsync(productId, 10m, 50m, day);
+        await PostPurchaseAsync(productId, 5m, 50m, day);
+        await PostPurchaseAsync(productId, 5m, 50m, day);
+
+        StockMovementsReport report = await Reader().ReadStockMovementsAsync(
+            new ReportFilter { From = day, To = day, ProductId = productId, RowLimit = 2 });
+
+        report.Rows.Count.ShouldBe(2);
+        report.TotalCount.ShouldBe(3);
+        report.IsTruncated.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task The_stock_movement_report_leaves_nothing_out_when_no_limit_is_asked_for()
+    {
+        DateOnly day = new(2026, 3, 23);
+
+        int productId = await CreateProductAsync("REP-023", 100m);
+
+        await PostPurchaseAsync(productId, 10m, 50m, day);
+        await PostPurchaseAsync(productId, 5m, 50m, day);
+
+        StockMovementsReport report = await Reader().ReadStockMovementsAsync(
+            new ReportFilter { From = day, To = day, ProductId = productId });
+
+        report.Rows.Count.ShouldBe(2);
+        report.TotalCount.ShouldBe(2);
+        report.IsTruncated.ShouldBeFalse();
     }
 
     [Fact]
@@ -543,7 +614,7 @@ public sealed class ReportingTests : IAsyncLifetime
     }
 
     /// <summary>Creates a product that sells for a hundred and cost fifty.</summary>
-    private async Task<int> CreateProductAsync(string sku, decimal salePrice)
+    private async Task<int> CreateProductAsync(string sku, decimal salePrice, int? categoryId = null)
     {
         await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
 
@@ -555,6 +626,7 @@ public sealed class ReportingTests : IAsyncLifetime
             Sku = sku,
             Name = sku,
             UnitId = unit.Id,
+            CategoryId = categoryId,
             TaxCategoryId = taxCategory.Id,
             SalePrice = new Money(salePrice),
             CostPrice = new Money(50m),
@@ -567,6 +639,25 @@ public sealed class ReportingTests : IAsyncLifetime
         await context.SaveChangesAsync();
 
         return product.Id;
+    }
+
+    /// <summary>Creates a category for the products to be put in.</summary>
+    private async Task<int> CreateCategoryAsync(string name)
+    {
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        var category = new Category
+        {
+            Name = name,
+            CreatedUtc = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            UpdatedUtc = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
+        };
+
+        context.Categories.Add(category);
+
+        await context.SaveChangesAsync();
+
+        return category.Id;
     }
 
     /// <summary>Puts stock on the shelf the way the shop does it: a posted purchase.</summary>
@@ -599,8 +690,16 @@ public sealed class ReportingTests : IAsyncLifetime
     }
 
     /// <summary>Sells something at the till.</summary>
-    private async Task<int> PostSaleAsync(int productId, decimal quantity, decimal unitPrice, DateOnly businessDate)
+    private async Task<int> PostSaleAsync(int productId, decimal quantity, decimal unitPrice, DateOnly businessDate) =>
+        await PostSaleAsync(
+            [new SaleLineInput(productId, quantity, new Money(unitPrice), DiscountSpec.None)],
+            businessDate);
+
+    /// <summary>Sells things at the till, on one invoice.</summary>
+    private async Task<int> PostSaleAsync(IReadOnlyList<SaleLineInput> lines, DateOnly businessDate)
     {
+        decimal total = lines.Sum(line => line.Quantity * line.UnitPrice.Amount);
+
         Result<SaleReceipt> posted = await new PostSaleCommandHandler(
             _fixture.Factory,
             _authorization,
@@ -613,9 +712,9 @@ public sealed class ReportingTests : IAsyncLifetime
                 new PostSaleCommand(
                     Guid.NewGuid(),
                     businessDate,
-                    [new SaleLineInput(productId, quantity, new Money(unitPrice), DiscountSpec.None)],
+                    lines,
                     DiscountSpec.None,
-                    [new PaymentInput(PaymentMethod.Cash, new Money(quantity * unitPrice), new Money(quantity * unitPrice), null)]),
+                    [new PaymentInput(PaymentMethod.Cash, new Money(total), new Money(total), null)]),
                 CancellationToken.None);
 
         posted.IsFailure.ShouldBeFalse(posted.Error.Message);

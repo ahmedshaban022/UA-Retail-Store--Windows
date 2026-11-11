@@ -111,6 +111,7 @@ public static class StringKeys
     public const string ErrorInventoryNotDraft = "Error.InventoryNotDraft";
     public const string ErrorInventoryNotPending = "Error.InventoryNotPending";
     public const string ErrorInventoryNotPosted = "Error.InventoryNotPosted";
+    public const string ErrorInventoryNumberClash = "Error.InventoryNumberClash";
     public const string ErrorInventoryQuantity = "Error.InventoryQuantity";
     public const string ErrorInventoryRequired = "Error.InventoryRequired";
     public const string ErrorInventorySelfApproval = "Error.InventorySelfApproval";
@@ -120,8 +121,10 @@ public static class StringKeys
     public const string ErrorNotFound = "Error.NotFound";
     public const string ErrorPrecisionInUse = "Error.PrecisionInUse";
     public const string ErrorRequired = "Error.Required";
+    public const string ErrorStockChanged = "Error.StockChanged";
     public const string ErrorTooLong = "Error.TooLong";
     public const string ErrorUnexpected = "Error.Unexpected";
+    public const string ErrorUnitLocked = "Error.UnitLocked";
 
     public const string FirstRunAddress = "FirstRun.Address";
     public const string FirstRunConfirmPassword = "FirstRun.ConfirmPassword";
@@ -349,6 +352,7 @@ public static class StringKeys
     public const string StockCountCounted = "StockCount.Counted";
     public const string StockCountDate = "StockCount.Date";
     public const string StockCountDifference = "StockCount.Difference";
+    public const string StockCountRecorded = "StockCount.Recorded";
     public const string StockCountEmpty = "StockCount.Empty";
     public const string StockCountExpected = "StockCount.Expected";
     public const string StockCountProduct = "StockCount.Product";
@@ -426,9 +430,11 @@ public static class StringKeys
     public const string PosReceiptDate = "Pos.ReceiptDate";
     public const string PosReceiptCashier = "Pos.ReceiptCashier";
     public const string PosReceiptItems = "Pos.ReceiptItems";
+    public const string PosCopyStamp = "Pos.CopyStamp";
     public const string PosPrint = "Pos.Print";
     public const string PosPrintThermal = "Pos.PrintThermal";
     public const string PosPrintA4 = "Pos.PrintA4";
+    public const string PosNoPrinter = "Pos.NoPrinter";
     public const string PosClose = "Pos.Close";
     public const string PosRemoveLine = "Pos.RemoveLine";
     public const string PosIncreaseQuantity = "Pos.IncreaseQuantity";
@@ -549,6 +555,7 @@ public static class StringKeys
     public const string ReportsEmpty = "Reports.Empty";
     public const string ReportsInvalidDate = "Reports.InvalidDate";
     public const string ReportsExported = "Reports.Exported";
+    public const string ReportsTruncated = "Reports.Truncated";
     public const string ReportsNoAccess = "Reports.NoAccess";
     public const string ReportsCashier = "Reports.Cashier";
     public const string ReportsDrawerOpening = "Reports.DrawerOpening";
@@ -622,8 +629,8 @@ public static class StringKeys
     public const string ApprovalsReject = "Approvals.Reject";
     public const string ApprovalsStatus = "Approvals.Status";
     public const string ApprovalsRequestedBy = "Approvals.RequestedBy";
-    public const string ApprovalsDiscount = "Approvals.Discount";
-    public const string ApprovalsCartTotal = "Approvals.CartTotal";
+    public const string ApprovalsDetails = "Approvals.Details";
+    public const string ApprovalsValue = "Approvals.Value";
     public const string ApprovalsWhen = "Approvals.When";
     public const string ApprovalsDecidedBy = "Approvals.DecidedBy";
     public const string ApprovalsPending = "Approvals.Pending";
@@ -691,6 +698,7 @@ public static class StringKeys
     public const string BackupRestore = "Backup.Restore";
     public const string BackupRecover = "Backup.Recover";
     public const string BackupTest = "Backup.Test";
+    public const string BackupPickFile = "Backup.PickFile";
     public const string BackupColumnWhen = "Backup.Column.When";
     public const string BackupColumnTarget = "Backup.Column.Target";
     public const string BackupColumnPath = "Backup.Column.Path";

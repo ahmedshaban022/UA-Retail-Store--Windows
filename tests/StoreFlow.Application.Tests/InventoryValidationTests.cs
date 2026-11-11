@@ -62,18 +62,33 @@ public sealed class InventoryValidationTests
     [Fact]
     public void An_adjustment_needs_a_reason()
     {
-        InventoryValidation.ValidateAdjustment(1m, new Money(10m), "  ")
+        InventoryValidation.ValidateAdjustment(1m, new Money(10m), "  ", 0)
             .ShouldContain(issue => issue.Code == InventoryValidation.RequiredCode);
 
-        InventoryValidation.ValidateAdjustment(1m, new Money(10m), "Broken")
+        InventoryValidation.ValidateAdjustment(1m, new Money(10m), "Broken", 0)
             .ShouldBeEmpty();
     }
 
     [Fact]
     public void An_adjustment_needs_a_quantity_that_is_not_zero()
     {
-        InventoryValidation.ValidateAdjustment(0m, new Money(10m), "Broken")
+        InventoryValidation.ValidateAdjustment(0m, new Money(10m), "Broken", 0)
             .ShouldContain(issue => issue.Code == InventoryValidation.NonPositiveQuantityCode);
+    }
+
+    [Fact]
+    public void An_adjustment_refuses_a_quantity_the_unit_cannot_express()
+    {
+        // A quantity the selling unit cannot express is rounded on its way to the ledger, and the
+        // book would then say something the counter never wrote. It has to be refused instead.
+        InventoryValidation.ValidateAdjustment(2.6m, new Money(10m), "Found in the back store", 0)
+            .ShouldContain(issue => issue.Code == InventoryValidation.QuantityTooPreciseCode);
+
+        InventoryValidation.ValidateAdjustment(-2.6m, new Money(10m), "Found in the back store", 0)
+            .ShouldContain(issue => issue.Code == InventoryValidation.QuantityTooPreciseCode);
+
+        InventoryValidation.ValidateAdjustment(2.6m, new Money(10m), "Found in the back store", 1)
+            .ShouldBeEmpty();
     }
 
     [Fact]

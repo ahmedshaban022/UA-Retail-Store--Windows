@@ -49,19 +49,33 @@ public sealed class DatabaseInitializer(
         // table rebuilds it. Without this, a shop that has run the programme at least once cannot
         // be migrated at all: the migration fails with "no such table", and the shop cannot open.
         //
-        // The guards are only taken down when the shop has run the programme before, because that
-        // is the only time they are there to be taken down. A shop that has never run has no
-        // triggers, and it does not get an empty database file created before its first schema.
+        // The guards are only taken down when a migration is actually waiting, because that is the
+        // only time they can be in the way. Taking them down on every start would open a window in
+        // which the shop's own rules are not enforced, and the window would come back on every
+        // launch.
+        //
+        // They are also only taken down when the shop has run the programme before. A shop that has
+        // never run has no triggers, and running the script would bring its database file into being
+        // before its first schema.
         IReadOnlyList<string> applied = (await context.Database.GetAppliedMigrationsAsync(cancellationToken)).ToList();
+        IReadOnlyList<string> pending = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
 
-        if (applied.Count > 0)
+        if (applied.Count > 0 && pending.Count > 0)
         {
             await context.Database.ExecuteSqlRawAsync(SchemaTriggers.DropScript, cancellationToken);
         }
 
-        await context.Database.MigrateAsync(cancellationToken);
-
-        await context.Database.ExecuteSqlRawAsync(SchemaTriggers.Script, cancellationToken);
+        try
+        {
+            await context.Database.MigrateAsync(cancellationToken);
+        }
+        finally
+        {
+            // The guards come back even when the migration failed. A shop whose guards are down can
+            // be written to in ways the shop would have refused, and it would carry on like that
+            // until somebody noticed.
+            await context.Database.ExecuteSqlRawAsync(SchemaTriggers.Script, cancellationToken);
+        }
 
         await SeedAsync(context, cancellationToken);
     }
@@ -119,7 +133,19 @@ public sealed class DatabaseInitializer(
             Message = message.Length > 2000 ? message[..2000] : message,
         });
 
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+#pragma warning disable CA1031 // The record of the failure must not become a second failure.
+        catch (Exception)
+        {
+            // The shop's own table may not be there yet: a shop that has never run has no tables at
+            // all, and this is the very first thing that happens to it. The backup failure has
+            // already been reported to the caller, and losing the record of it is better than
+            // losing the shop's start-up.
+        }
+#pragma warning restore CA1031
     }
 
     /// <summary>Runs the integrity check that tells the user whether the database is healthy.</summary>

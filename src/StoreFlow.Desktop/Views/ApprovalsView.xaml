@@ -35,9 +35,9 @@
           </DataGridTextColumn>
 
           <DataGridTextColumn Width="1*" MinWidth="160"
-                              Binding="{Binding Discount}">
+                              Binding="{Binding Details}">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding DiscountLabel}" Style="{StaticResource Type.ColumnValue}" />
+              <TextBlock Text="{Binding DetailsLabel}" Style="{StaticResource Type.ColumnValue}" />
             </DataGridTextColumn.Header>
 
             <DataGridTextColumn.ElementStyle>
@@ -46,10 +46,10 @@
           </DataGridTextColumn>
 
           <DataGridTextColumn Width="130"
-                              Binding="{Binding CartTotal}"
+                              Binding="{Binding Value}"
                               ElementStyle="{StaticResource Type.Numeric}">
             <DataGridTextColumn.Header>
-              <TextBlock Text="{Binding CartTotalLabel}" Style="{StaticResource Type.SectionLabel}" />
+              <TextBlock Text="{Binding ValueLabel}" Style="{StaticResource Type.SectionLabel}" />
             </DataGridTextColumn.Header>
           </DataGridTextColumn>
 

@@ -146,6 +146,17 @@ public sealed partial class StockAdjustmentViewModel : ObservableObject
             return;
         }
 
+        // The quantity has to be expressible in the product's own selling unit. A quantity it
+        // cannot express would be rounded on its way to the ledger, and the book would then say
+        // something the counter never wrote.
+        InventoryOptionItem? product = Products.FirstOrDefault(candidate => candidate.Id == ProductId);
+
+        if (product is not null && !InventoryValidation.FitsScale(quantity, product.Precision))
+        {
+            StatusMessage = _strings[StringKeys.ErrorInventoryQuantity];
+            return;
+        }
+
         if (!InventoryInput.TryReadMoney(UnitCostText, out decimal unitCost))
         {
             StatusMessage = _strings[StringKeys.ErrorNegativePrice];

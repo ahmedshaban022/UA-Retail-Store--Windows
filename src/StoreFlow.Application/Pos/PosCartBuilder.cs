@@ -296,6 +296,18 @@ public static class PosCartBuilder
 
         shares[dearest] += remainder;
 
+        // A share cannot be negative. When the rounded shares add up to more than the discount,
+        // the remainder takes the dearest line below zero, and a line whose share is negative is
+        // charged more than it is worth. The shop then grants a fraction of a piastre less than
+        // it meant to, which is the safer side to be wrong on.
+        for (int index = 0; index < shares.Length; index++)
+        {
+            if (shares[index].IsNegative)
+            {
+                shares[index] = Money.Zero;
+            }
+        }
+
         return shares;
     }
 

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StoreFlow.Application.Backup;
 using StoreFlow.Application.Common;
+using StoreFlow.Desktop.Composition;
 using StoreFlow.Desktop.Localization;
 
 namespace StoreFlow.Desktop.ViewModels;
@@ -150,6 +151,18 @@ public sealed partial class RecoveryWizardViewModel : ObservableObject
 
             RestartRequested?.Invoke(this, EventArgs.Empty);
         }
+#pragma warning disable CA1031 // The wizard is the last way into the shop; it must never throw out of the window.
+        catch (Exception ex)
+        {
+            // This screen exists for the worst day in the shop's life. A failure here has to be shown
+            // to the owner as a message, not thrown out of the window: an exception would take the
+            // programme down with it and leave the owner with neither the shop nor the tool that
+            // could bring it back.
+            StartupDiagnostics.Write("The restore failed.", ex);
+
+            StatusMessage = _strings[StringKeys.BackupErrorRestoreFailed];
+        }
+#pragma warning restore CA1031
         finally
         {
             IsBusy = false;

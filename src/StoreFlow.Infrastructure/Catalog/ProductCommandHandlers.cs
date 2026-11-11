@@ -72,6 +72,18 @@ public sealed class SaveProductCommandHandler(
             return Result<int>.Failure(InvalidReferenceCode, "Choose a selling unit for this product.");
         }
 
+        if (product is not null && product.UnitId != command.UnitId && await CarriesStockAsync(context, product.Id, cancellationToken))
+        {
+            // The stock a product holds is written down as a scaled number whose meaning depends on
+            // the precision of the selling unit. Changing the unit once the goods have moved would
+            // leave every number in the shop's books standing for a different quantity — a shelf of
+            // ten kilograms read as ten thousand pieces — so the change is refused and the shop is
+            // told to count the product instead.
+            return Result<int>.Failure(
+                CatalogValidation.UnitLockedCode,
+                "This product's selling unit cannot be changed once it has stock. Count the product again to bring the books back in line.");
+        }
+
         if (command.CategoryId is int categoryId
             && !await context.Categories.AnyAsync(category => category.Id == categoryId, cancellationToken))
         {
@@ -182,26 +194,110 @@ public sealed class SaveProductCommandHandler(
 
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-        await context.BeforeWriteAsync(WritePoint.SaveProduct, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.BeforeWriteAsync(WritePoint.SaveProduct, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
-        // A new product has no id until its row has been saved, so the audit entry joins the same
-        // transaction and is made permanent together with the product it describes.
-        auditWriter.AddTo(
-            context,
-            new AuditEntry(
-                isNew ? CatalogAudit.ProductCreate : CatalogAudit.ProductUpdate,
-                nameof(Product),
-                product.Id.ToString(),
-                beforeHash,
-                $"{product.Name} ({product.Sku})",
-                null));
+            // A new product has no id until its row has been saved, so the audit entry joins the same
+            // transaction and is made permanent together with the product it describes.
+            auditWriter.AddTo(
+                context,
+                new AuditEntry(
+                    isNew ? CatalogAudit.ProductCreate : CatalogAudit.ProductUpdate,
+                    nameof(Product),
+                    product.Id.ToString(),
+                    beforeHash,
+                    $"{product.Name} ({product.Sku})",
+                    null));
 
-        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+            await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (UniqueConstraintClash.IsClash(exception))
+        {
+            // Two clerks saved the same code, or the same barcode, at the same moment. The checks
+            // above let both of them through and the index refused the second. The refusal is
+            // rolled back and the shop is told which value is taken, so the owner can change it
+            // instead of watching the programme fall over.
+            await transaction.RollbackAsync(cancellationToken);
+
+            string code = await DuplicateCodeAsync(
+                context,
+                sku,
+                additionalBarcodes,
+                currentProductId,
+                cancellationToken);
+
+            return Result<int>.Failure(
+                code,
+                code == DuplicateBarcodeCode
+                    ? "A barcode of this product was saved by another clerk a moment ago."
+                    : $"The stock-keeping unit code {sku} was saved by another clerk a moment ago.");
+        }
 
         return Result<int>.Success(product.Id);
+    }
+
+    /// <summary>
+    /// Finds which value another clerk has just taken, after the unique index refused the write.
+    /// </summary>
+    /// <param name="context">The unit of work.</param>
+    /// <param name="sku">The stock-keeping unit code being saved.</param>
+    /// <param name="barcodes">The barcodes being saved.</param>
+    /// <param name="currentProductId">The product being edited, when there is one.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The error code that names the value which is taken.</returns>
+    private static async Task<string> DuplicateCodeAsync(
+        StoreFlowDbContext context,
+        string sku,
+        IReadOnlyList<string> barcodes,
+        int? currentProductId,
+        CancellationToken cancellationToken)
+    {
+        bool skuTaken = await context.Products.AnyAsync(
+            existing => existing.Sku == sku && (currentProductId == null || existing.Id != currentProductId),
+            cancellationToken);
+
+        if (skuTaken)
+        {
+            return DuplicateSkuCode;
+        }
+
+        foreach (string barcode in barcodes)
+        {
+            if (await BarcodeBelongsToAnotherProductAsync(context, barcode, currentProductId, cancellationToken))
+            {
+                return DuplicateBarcodeCode;
+            }
+        }
+
+        return DuplicateSkuCode;
+    }
+
+    /// <summary>
+    /// True when the product carries stock that a change of selling unit would misread: either the
+    /// goods have already moved, or the books still hold some of them.
+    /// </summary>
+    /// <param name="context">The unit of work.</param>
+    /// <param name="productId">The product being looked at.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>True when the product carries stock.</returns>
+    private static async Task<bool> CarriesStockAsync(
+        StoreFlowDbContext context,
+        int productId,
+        CancellationToken cancellationToken)
+    {
+        if (await context.StockMovements.AnyAsync(movement => movement.ProductId == productId, cancellationToken))
+        {
+            return true;
+        }
+
+        StockBalance? balance = await context.StockBalances
+            .FirstOrDefaultAsync(candidate => candidate.ProductId == productId, cancellationToken);
+
+        return balance is not null && (balance.QuantityOnHandScaled != 0 || balance.DamagedQuantityScaled != 0);
     }
 
     /// <summary>

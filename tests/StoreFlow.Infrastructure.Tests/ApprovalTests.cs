@@ -131,6 +131,94 @@ public sealed class ApprovalTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_large_stock_adjustment_reaches_the_ledger_when_the_manager_approves_it()
+    {
+        // A large adjustment is not posted straight away: it is held for a second pair of eyes, and
+        // nothing moves until the manager says yes.
+        int productId = await CreateProductAsync("RICE-001", 100m);
+        await PostPurchaseAsync(productId, 20m, 50m);
+
+        Result<StockAdjustmentOutcome> asked = await new PostStockAdjustmentCommandHandler(
+            _fixture.Factory,
+            _managerAuthorization,
+            _auditWriter,
+            new TestClock(),
+            _cashierSession)
+            .HandleAsync(
+                new PostStockAdjustmentCommand(productId, 150m, StockDisposition.Sellable, new Money(50m), "Found in the back store"),
+                CancellationToken.None);
+
+        asked.IsFailure.ShouldBeFalse(asked.Error.Message);
+        asked.Value.Posted.ShouldBeFalse();
+        asked.Value.ApprovalRequestId.ShouldNotBeNull();
+
+        await using (StoreFlowDbContext whileWaiting = await _fixture.Factory.CreateDbContextAsync())
+        {
+            StockBalance balance = await whileWaiting.StockBalances.SingleAsync();
+
+            balance.QuantityOnHandScaled.ShouldBe(20);
+
+            (await whileWaiting.StockMovements.CountAsync()).ShouldBe(1);
+        }
+
+        Result<ApprovalRequestSummary> decided = await DecideAsync(asked.Value.ApprovalRequestId!.Value, approve: true);
+
+        decided.IsFailure.ShouldBeFalse(decided.Error.Message);
+        decided.Value.Status.ShouldBe(ApprovalStatus.Approved);
+
+        // The manager has to be able to see what they are approving.
+        decided.Value.Subject.ShouldContain("RICE-001");
+        decided.Value.Subject.ShouldContain("150");
+
+        await using StoreFlowDbContext after = await _fixture.Factory.CreateDbContextAsync();
+
+        StockBalance balanceAfter = await after.StockBalances.SingleAsync();
+
+        // The clerk found a hundred and fifty more on the shelf, and the books now say so.
+        // Approving the request without moving the stock would leave the shop selling goods it does
+        // not know it has.
+        balanceAfter.QuantityOnHandScaled.ShouldBe(170);
+
+        StockMovement movement = await after.StockMovements.SingleAsync(
+            candidate => candidate.MovementType == StockMovementType.Adjustment);
+
+        movement.QuantityDeltaScaled.ShouldBe(150);
+        movement.Reason.ShouldBe("Found in the back store");
+    }
+
+    [Fact]
+    public async Task A_rejected_stock_adjustment_leaves_the_stock_where_it_is()
+    {
+        int productId = await CreateProductAsync("RICE-002", 100m);
+        await PostPurchaseAsync(productId, 20m, 50m);
+
+        Result<StockAdjustmentOutcome> asked = await new PostStockAdjustmentCommandHandler(
+            _fixture.Factory,
+            _managerAuthorization,
+            _auditWriter,
+            new TestClock(),
+            _cashierSession)
+            .HandleAsync(
+                new PostStockAdjustmentCommand(productId, 150m, StockDisposition.Sellable, new Money(50m), "Found in the back store"),
+                CancellationToken.None);
+
+        asked.IsFailure.ShouldBeFalse(asked.Error.Message);
+
+        Result<ApprovalRequestSummary> decided = await DecideAsync(asked.Value.ApprovalRequestId!.Value, approve: false);
+
+        decided.IsFailure.ShouldBeFalse(decided.Error.Message);
+        decided.Value.Status.ShouldBe(ApprovalStatus.Rejected);
+
+        await using StoreFlowDbContext after = await _fixture.Factory.CreateDbContextAsync();
+
+        StockBalance balance = await after.StockBalances.SingleAsync();
+
+        balance.QuantityOnHandScaled.ShouldBe(20);
+
+        (await after.StockMovements.CountAsync()).ShouldBe(1);
+    }
+
+    [Fact]
     public async Task A_manager_may_not_approve_their_own_request()
     {
         // The second pair of eyes has to be a second pair of eyes.

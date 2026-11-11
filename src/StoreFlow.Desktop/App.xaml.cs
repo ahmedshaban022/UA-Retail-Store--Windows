@@ -1,7 +1,9 @@
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using StoreFlow.Application.Theming;
 using StoreFlow.Desktop.Composition;
+using StoreFlow.Desktop.Localization;
 using StoreFlow.Desktop.Theming;
 
 namespace StoreFlow.Desktop;
@@ -84,10 +86,49 @@ public partial class App : System.Windows.Application
 #pragma warning restore CA1031
     }
 
-    /// <summary>Records any exception that escapes the dispatcher, then lets WPF handle it.</summary>
+    /// <summary>
+    /// Keeps the shop's programme alive when a screen throws, and says so.
+    /// </summary>
+    /// <remarks>
+    /// The programme must not end because a screen threw. The exception is written down, the owner
+    /// is told that something went wrong, and the shop carries on trading. Without this, any
+    /// exception that escaped a command took the programme down with it and the owner was left with
+    /// no till at all — which is how a single fault in the recovery wizard cost a shop its
+    /// programme on the day it needed it most.
+    /// </remarks>
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        StartupDiagnostics.Write("Unhandled dispatcher exception.", e.Exception);
+        FailureDecision decision = DispatcherFailure.Decide(
+            e.Exception,
+            Host?.Services.GetService<IStrings>());
+
+        e.Handled = decision.KeepRunning;
+
+        // The owner is told when there is a window to tell them on. A fault during start-up has no
+        // window yet, and the start-up path reports its own failures.
+        if (MainWindow is not null)
+        {
+            MessageBox.Show(
+                decision.Message,
+                "StoreFlow",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override async void OnExit(ExitEventArgs e)
+    {
+        base.OnExit(e);
+
+        // The host owns the database connections and the backup scheduler. Closing the shop has to
+        // shut them down, or the next start finds a shop that was never closed properly.
+        if (_host is not null)
+        {
+            await _host.DisposeAsync();
+
+            _host = null;
+        }
     }
 
     /// <summary>Lists what each of the application's resource dictionaries holds.</summary>

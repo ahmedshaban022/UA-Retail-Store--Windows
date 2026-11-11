@@ -29,6 +29,10 @@ public static class MigrationSafety
         "20261101140727_AddHeldCarts",
         "20261101161754_AddInvoiceDiscountShare",
         "20261101193637_AddSalesReturnsAndReversals",
+
+        // The version of the stock balance became a real concurrency token. The shape of the table
+        // is unchanged and the rows are untouched, so there is nothing for the shop to miss.
+        "20261110231741_MakeBalanceVersionAConcurrencyToken",
     };
 
     /// <summary>

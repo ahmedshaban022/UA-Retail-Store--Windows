@@ -59,4 +59,10 @@ public static class InventoryErrorCodes
 
     /// <summary>Nobody is signed in to own the request.</summary>
     public const string NoActor = "inventory.no_actor";
+
+    /// <summary>
+    /// Another clerk saved a document at the same moment and took the number this document was
+    /// given. The document itself was not written, and saving it again gives it the next number.
+    /// </summary>
+    public const string NumberClash = "inventory.number_clash";
 }

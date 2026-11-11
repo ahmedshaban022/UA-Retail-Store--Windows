@@ -843,6 +843,7 @@ namespace StoreFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<long>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("INTEGER");
 
                     b.HasKey("ProductId");

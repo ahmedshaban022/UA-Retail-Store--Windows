@@ -138,11 +138,13 @@ public static class InventoryValidation
     /// <param name="quantityDelta">The signed quantity the adjustment carries.</param>
     /// <param name="unitCost">The cost per unit used to value the adjustment.</param>
     /// <param name="reason">The reason for the adjustment.</param>
+    /// <param name="unitPrecision">The precision of the product's selling unit.</param>
     /// <returns>Every problem found, in field order.</returns>
     public static IReadOnlyList<InventoryValidationIssue> ValidateAdjustment(
         decimal quantityDelta,
         Money unitCost,
-        string? reason)
+        string? reason,
+        int unitPrecision)
     {
         var issues = new List<InventoryValidationIssue>();
 
@@ -152,6 +154,16 @@ public static class InventoryValidation
                 "quantityDelta",
                 NonPositiveQuantityCode,
                 "Enter a quantity other than zero."));
+        }
+        else if (!FitsScale(quantityDelta, unitPrecision))
+        {
+            // A quantity the selling unit cannot express would be rounded on its way to the ledger,
+            // and the book would then say something the counter never wrote. It is refused here, the
+            // same way every other quantity path refuses it.
+            issues.Add(new InventoryValidationIssue(
+                "quantityDelta",
+                QuantityTooPreciseCode,
+                "The quantity cannot be expressed in this product's unit."));
         }
 
         if (unitCost.IsNegative)

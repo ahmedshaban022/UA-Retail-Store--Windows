@@ -5,6 +5,7 @@ using StoreFlow.Application.Catalog;
 using StoreFlow.Application.Common;
 using StoreFlow.Domain.Authorization;
 using StoreFlow.Domain.Entities;
+using StoreFlow.Domain.Enumerations;
 using StoreFlow.Domain.Money;
 using StoreFlow.Infrastructure.Catalog;
 using StoreFlow.Infrastructure.Export;
@@ -425,6 +426,73 @@ public sealed class CatalogTests : IAsyncLifetime
         }
     }
 
+    [Fact]
+    public async Task A_product_that_has_stock_cannot_change_its_selling_unit()
+    {
+        Result<int> created = await SaveProductAsync("RICE-001", "Rice", null);
+
+        await RecordStockAsync(created.Value);
+
+        Result<int> changed = await UpdateProductAsync(created.Value, "RICE-001", "Rice", await KilogramUnitIdAsync());
+
+        // The stock is written down as a scaled number whose meaning depends on the selling unit's
+        // precision. Changing the unit now would leave every number in the books standing for a
+        // different quantity.
+        changed.IsFailure.ShouldBeTrue();
+        changed.Error.Code.ShouldBe(CatalogValidation.UnitLockedCode);
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        Product product = await context.Products.SingleAsync(candidate => candidate.Id == created.Value);
+
+        product.UnitId.ShouldBe(await DefaultUnitIdAsync());
+    }
+
+    [Fact]
+    public async Task A_product_whose_books_still_hold_stock_cannot_change_its_selling_unit()
+    {
+        Result<int> created = await SaveProductAsync("RICE-001", "Rice", null);
+
+        // A balance with stock in it but without a movement behind it: the books hold something the
+        // shop has not explained, and a change of unit would misread it just the same.
+        await using (StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync())
+        {
+            context.StockBalances.Add(new StockBalance
+            {
+                ProductId = created.Value,
+                QuantityOnHandScaled = 10,
+                DamagedQuantityScaled = 0,
+                AverageUnitCost = new Money(400m),
+                QuantityScale = 0,
+                Version = 1,
+                UpdatedUtc = DateTimeOffset.UnixEpoch,
+            });
+
+            await context.SaveChangesAsync();
+        }
+
+        Result<int> changed = await UpdateProductAsync(created.Value, "RICE-001", "Rice", await KilogramUnitIdAsync());
+
+        changed.IsFailure.ShouldBeTrue();
+        changed.Error.Code.ShouldBe(CatalogValidation.UnitLockedCode);
+    }
+
+    [Fact]
+    public async Task A_product_with_no_stock_may_change_its_selling_unit()
+    {
+        Result<int> created = await SaveProductAsync("RICE-001", "Rice", null);
+
+        Result<int> changed = await UpdateProductAsync(created.Value, "RICE-001", "Rice", await KilogramUnitIdAsync());
+
+        changed.IsSuccess.ShouldBeTrue(changed.Error.Message);
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        Product product = await context.Products.SingleAsync(candidate => candidate.Id == created.Value);
+
+        product.UnitId.ShouldBe(await KilogramUnitIdAsync());
+    }
+
     private async Task<Result<int>> SaveProductAsync(
         string sku,
         string name,
@@ -466,6 +534,80 @@ public sealed class CatalogTests : IAsyncLifetime
         await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
 
         return await context.Units.Where(unit => unit.Name == "Piece").Select(unit => unit.Id).FirstAsync();
+    }
+
+    private async Task<int> KilogramUnitIdAsync()
+    {
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        return await context.Units.Where(unit => unit.Name == "Kilogram").Select(unit => unit.Id).FirstAsync();
+    }
+
+    /// <summary>
+    /// Gives a product a movement and a balance, so that it carries stock.
+    /// </summary>
+    private async Task RecordStockAsync(int productId)
+    {
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        context.StockMovements.Add(new StockMovement
+        {
+            ProductId = productId,
+            MovementType = StockMovementType.PurchaseReceipt,
+            Disposition = StockDisposition.Sellable,
+            QuantityDeltaScaled = 10,
+            QuantityScale = 0,
+            UnitCost = new Money(400m),
+            RunningBalanceScaled = 10,
+            Reason = "Opening stock",
+            PostedUtc = DateTimeOffset.UnixEpoch,
+            BusinessDate = new DateOnly(2026, 1, 1),
+        });
+
+        context.StockBalances.Add(new StockBalance
+        {
+            ProductId = productId,
+            QuantityOnHandScaled = 10,
+            DamagedQuantityScaled = 0,
+            AverageUnitCost = new Money(400m),
+            QuantityScale = 0,
+            Version = 1,
+            UpdatedUtc = DateTimeOffset.UnixEpoch,
+        });
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Saves an existing product again, with a different selling unit.
+    /// </summary>
+    private async Task<Result<int>> UpdateProductAsync(int productId, string sku, string name, int unitId)
+    {
+        var handler = new SaveProductCommandHandler(
+            _fixture.Factory,
+            _authorization,
+            _auditWriter,
+            new TestClock(),
+            _imageStore);
+
+        return await handler.HandleAsync(
+            new SaveProductCommand(
+                productId,
+                sku,
+                name,
+                null,
+                null,
+                null,
+                unitId,
+                await DefaultTaxCategoryIdAsync(),
+                new Money(450m),
+                new Money(400m),
+                0m,
+                null,
+                [],
+                null,
+                true),
+            CancellationToken.None);
     }
 
     private async Task<int> DefaultTaxCategoryIdAsync()

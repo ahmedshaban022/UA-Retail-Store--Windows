@@ -212,7 +212,8 @@ public sealed class PostStockAdjustmentCommandHandler(
         IReadOnlyList<InventoryValidationIssue> issues = InventoryValidation.ValidateAdjustment(
             command.QuantityDelta,
             command.UnitCost,
-            command.Reason);
+            command.Reason,
+            scale);
 
         if (issues.Count > 0)
         {
@@ -230,7 +231,9 @@ public sealed class PostStockAdjustmentCommandHandler(
                 command.QuantityDelta,
                 command.Disposition,
                 command.UnitCost.Amount,
-                command.Reason.Trim());
+                command.Reason.Trim(),
+                $"{product.Name}: {command.QuantityDelta} units",
+                valueImpact.ToMinorUnits());
 
             var request = new ApprovalRequest
             {
@@ -327,154 +330,19 @@ public sealed class PostStockAdjustmentCommandHandler(
     }
 }
 
-/// <summary>
-/// Approves a pending large stock adjustment and posts it to the ledger.
-/// </summary>
-public sealed class ApproveStockAdjustmentCommandHandler(
-    IDbContextFactory<StoreFlowDbContext> contextFactory,
-    IAuthorizationService authorization,
-    IAuditWriter auditWriter,
-    IClock clock,
-    IUserSession session) : ICommandHandler<ApproveStockAdjustmentCommand, Result<int>>
-{
-    /// <summary>The error code when the approval request does not exist.</summary>
-    public const string NotFoundCode = InventoryErrorCodes.ApprovalNotFound;
-
-    /// <summary>The error code when the approval request is not pending.</summary>
-    public const string NotPendingCode = InventoryErrorCodes.ApprovalNotPending;
-
-    /// <summary>The error code when the approver is the person who asked for the adjustment.</summary>
-    public const string SelfApprovalCode = InventoryErrorCodes.SelfApproval;
-
-    /// <inheritdoc />
-    public async Task<Result<int>> HandleAsync(
-        ApproveStockAdjustmentCommand command,
-        CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-
-        Result permitted = await authorization.RequireAsync(Permission.StockApprove, cancellationToken);
-
-        if (permitted.IsFailure)
-        {
-            return Result<int>.Failure(permitted.Error);
-        }
-
-        int? actorId = session.Current?.UserId;
-
-        if (actorId is null)
-        {
-            return Result<int>.Failure(InventoryErrorCodes.NoActor, "Sign in to continue.");
-        }
-
-        await using StoreFlowDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken);
-
-        ApprovalRequest? request = await context.ApprovalRequests
-            .FirstOrDefaultAsync(candidate => candidate.Id == command.ApprovalRequestId, cancellationToken);
-
-        if (request is null)
-        {
-            return Result<int>.Failure(NotFoundCode, "This approval request no longer exists.");
-        }
-
-        if (request.Kind != ApprovalKind.StockAdjustment)
-        {
-            return Result<int>.Failure(NotPendingCode, "This request is not a stock adjustment.");
-        }
-
-        if (request.Status != ApprovalStatus.Pending)
-        {
-            return Result<int>.Failure(NotPendingCode, "This request has already been decided.");
-        }
-
-        if (request.RequestedByUserId == actorId.Value && session.Current?.IsAdministrator != true)
-        {
-            return Result<int>.Failure(
-                SelfApprovalCode,
-                "A stock adjustment has to be approved by somebody other than the person who requested it.");
-        }
-
-        StockAdjustmentPayload? payload = JsonSerializer.Deserialize<StockAdjustmentPayload>(request.PayloadJson);
-
-        if (payload is null)
-        {
-            return Result<int>.Failure(NotFoundCode, "This approval request is no longer readable.");
-        }
-
-        Product? product = await context.Products
-            .Include(candidate => candidate.Unit)
-            .FirstOrDefaultAsync(candidate => candidate.Id == payload.ProductId, cancellationToken);
-
-        if (product is null)
-        {
-            return Result<int>.Failure(InventoryErrorCodes.NotFound, "This product no longer exists.");
-        }
-
-        int scale = product.Unit?.Precision ?? 0;
-        DateTimeOffset now = clock.UtcNow;
-
-        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-
-        (StockMovement? movement, string? errorCode, string? errorMessage) = await InventoryLedger.ApplyAsync(
-            context,
-            product,
-            scale,
-            StockMovementType.Adjustment,
-            payload.Disposition,
-            new UnitQuantity(payload.QuantityDelta, scale).ToScaledLong(),
-            new Money(payload.UnitCost),
-            clock.LocalToday,
-            payload.Reason,
-            actorId,
-            null,
-            null,
-            now);
-
-        if (movement is null)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-
-            return Result<int>.Failure(errorCode!, errorMessage!);
-        }
-
-        request.Status = ApprovalStatus.Approved;
-        request.ApprovedByUserId = actorId;
-        request.DecidedUtc = now;
-        request.DecisionReason = string.IsNullOrWhiteSpace(command.Reason) ? null : command.Reason.Trim();
-
-        await context.BeforeWriteAsync(WritePoint.ApproveStockAdjustment, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        // The movement only has an id once it has been saved, so the audit entry joins the same
-        // transaction and is made permanent together with the movement it describes.
-        auditWriter.AddTo(
-            context,
-            new AuditEntry(
-                InventoryAudit.AdjustmentApprove,
-                nameof(StockMovement),
-                movement.Id.ToString(),
-                null,
-                $"{product.Name}: {payload.QuantityDelta} units approved and posted",
-                actorId));
-
-        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-        await context.BeforeCommitAsync(WritePoint.ApproveStockAdjustmentCommit, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-
-        return Result<int>.Success(movement.Id);
-    }
-}
-
 /// <summary>The payload of a pending stock adjustment approval.</summary>
 /// <param name="ProductId">The product being adjusted.</param>
 /// <param name="QuantityDelta">The signed quantity the adjustment carries.</param>
 /// <param name="Disposition">Whether the change affects the sellable quantity or the damaged bucket.</param>
 /// <param name="UnitCost">The cost per unit used to value the adjustment.</param>
 /// <param name="Reason">Why the adjustment is being made.</param>
+/// <param name="Description">What the adjustment is about, in words the manager can read.</param>
+/// <param name="ValueMinor">What the adjustment is worth, in minor units.</param>
 internal sealed record StockAdjustmentPayload(
     int ProductId,
     decimal QuantityDelta,
     StockDisposition Disposition,
     decimal UnitCost,
-    string Reason);
+    string Reason,
+    string Description,
+    long ValueMinor);

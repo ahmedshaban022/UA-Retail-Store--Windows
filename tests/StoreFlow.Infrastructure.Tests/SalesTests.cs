@@ -217,6 +217,30 @@ public sealed class SalesTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Two_return_lines_against_the_same_line_add_up()
+    {
+        // Two lines of one command may name the same line of the invoice. What the first one
+        // takes back counts towards the second one, or the shop could take back more of the
+        // goods than it ever sold.
+        int productId = await CreateProductAsync("RET-007", 100m);
+        await PostPurchaseAsync(productId, 10m, 50m);
+        int invoiceId = await PostSaleAsync(productId, 3m, 100m);
+        int lineId = await LineId(invoiceId);
+
+        Result<RefundReceipt> posted = await PostReturnAsync(
+            invoiceId,
+            [new ReturnLineInput(lineId, 2m, true), new ReturnLineInput(lineId, 2m, true)]);
+
+        posted.IsFailure.ShouldBeTrue();
+        posted.Error.Code.ShouldBe(SalesErrorCodes.QuantityExceedsRemaining);
+
+        await using StoreFlowDbContext context = await _fixture.Factory.CreateDbContextAsync();
+
+        // Nothing was written: the shop did not take back four of the three it sold.
+        (await context.SalesReturns.CountAsync()).ShouldBe(0);
+    }
+
+    [Fact]
     public async Task A_return_without_a_reason_is_refused()
     {
         int productId = await CreateProductAsync("RET-006", 100m);

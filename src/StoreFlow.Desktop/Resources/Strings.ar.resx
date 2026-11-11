@@ -195,6 +195,9 @@
   <data name="Backup.Test" xml:space="preserve">
     <value>اختبار</value>
   </data>
+  <data name="Backup.PickFile" xml:space="preserve">
+    <value>اختر ملف نسخة احتياطية من StoreFlow</value>
+  </data>
 <data name="Backup.Title" xml:space="preserve">
     <value>النسخ الاحتياطي والسحابة</value>
   </data>
@@ -303,6 +306,9 @@
   <data name="Error.InventoryNotPosted" xml:space="preserve">
     <value>يمكن عكس فاتورة شراء منشورة فقط.</value>
   </data>
+  <data name="Error.InventoryNumberClash" xml:space="preserve">
+    <value>حُفظ مستند آخر في اللحظة نفسها وأخذ هذا الرقم. احفظه مرة أخرى وسيأخذ الرقم التالي.</value>
+  </data>
   <data name="Error.InventoryQuantity" xml:space="preserve">
     <value>أدخل كمية صحيحة.</value>
   </data>
@@ -314,6 +320,9 @@
   </data>
   <data name="Error.Unexpected" xml:space="preserve">
     <value>حدث خطأ ما. أغلق هذه الرسالة وحاول مرة أخرى.</value>
+  </data>
+  <data name="Error.UnitLocked" xml:space="preserve">
+    <value>لا يمكن تغيير وحدة بيع هذا المنتج بعد أن أصبح له مخزون. أعد جرد المنتج ليطابق الكتاب.</value>
   </data>
   <data name="FirstRun.Address" xml:space="preserve">
     <value>العنوان</value>
@@ -1048,6 +1057,9 @@
   <data name="Error.Required" xml:space="preserve">
     <value>{0} مطلوب.</value>
   </data>
+  <data name="Error.StockChanged" xml:space="preserve">
+    <value>غيّر شخص آخر هذا المخزون أثناء عملك. لم يُحفظ شيء، فيرجى المحاولة مرة أخرى.</value>
+  </data>
   <data name="Error.TooLong" xml:space="preserve">
     <value>لا يمكن أن يكون طول هذه القيمة أكثر من {0} حرفًا.</value>
   </data>
@@ -1218,6 +1230,9 @@
   </data>
   <data name="StockCount.Counted" xml:space="preserve">
     <value>الكمية المعدودة</value>
+  </data>
+  <data name="StockCount.Recorded" xml:space="preserve">
+    <value>الكمية المسجلة</value>
   </data>
   <data name="StockCount.Date" xml:space="preserve">
     <value>التاريخ</value>
@@ -1432,6 +1447,9 @@
   <data name="Pos.ReceiptItems" xml:space="preserve">
     <value>الأصناف</value>
   </data>
+  <data name="Pos.CopyStamp" xml:space="preserve">
+    <value>نسخة</value>
+  </data>
   <data name="Pos.Print" xml:space="preserve">
     <value>طباعة</value>
   </data>
@@ -1440,6 +1458,9 @@
   </data>
   <data name="Pos.PrintA4" xml:space="preserve">
     <value>فاتورة A4</value>
+  </data>
+  <data name="Pos.NoPrinter" xml:space="preserve">
+    <value>لا توجد طابعة على هذا الجهاز.</value>
   </data>
   <data name="Pos.Close" xml:space="preserve">
     <value>إغلاق</value>
@@ -1880,6 +1901,9 @@
   <data name="Reports.Exported" xml:space="preserve">
     <value>تم كتابة التقرير في {0}.</value>
   </data>
+  <data name="Reports.Truncated" xml:space="preserve">
+    <value>يعرض هذا التقرير أحدث {0} من أصل {1} حركة في المخزون. ضيّق نطاق التاريخ لرؤية الباقي.</value>
+  </data>
   <data name="Reports.NoAccess" xml:space="preserve">
     <value>لا تملك صلاحية عرض التقارير.</value>
   </data>
@@ -2036,11 +2060,11 @@
   <data name="Approvals.RequestedBy" xml:space="preserve">
     <value>طلبها</value>
   </data>
-  <data name="Approvals.Discount" xml:space="preserve">
-    <value>الخصم</value>
+  <data name="Approvals.Details" xml:space="preserve">
+    <value>التفاصيل</value>
   </data>
-  <data name="Approvals.CartTotal" xml:space="preserve">
-    <value>إجمالي السلة</value>
+  <data name="Approvals.Value" xml:space="preserve">
+    <value>القيمة</value>
   </data>
   <data name="Approvals.When" xml:space="preserve">
     <value>التاريخ</value>

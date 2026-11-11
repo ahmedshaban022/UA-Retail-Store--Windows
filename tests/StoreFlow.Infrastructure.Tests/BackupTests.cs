@@ -322,6 +322,71 @@ public sealed class BackupTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_restore_that_could_not_swap_the_database_leaves_the_shop_s_data_alone()
+    {
+        await SeedShopAsync();
+
+        string path = Path.Combine(_shop.Root, "backups", "storeflow-manual.sfb");
+
+        await CaptureAsync(_shop, path);
+
+        // The shop sells something after the backup was taken.
+        await PostSaleAsync(productId: 1, quantity: 1m);
+
+        // The shop's own database cannot be written over, so the swap cannot happen. The restore
+        // has to fail loudly and leave the shop's data exactly as it was.
+        File.SetAttributes(_shop.Paths.DatabasePath, FileAttributes.ReadOnly);
+
+        try
+        {
+            RestoreOutcome outcome = await RestoreAsync(_shop, path);
+
+            outcome.IsSucceeded.ShouldBeFalse();
+            outcome.RequiresRestart.ShouldBeFalse();
+        }
+        finally
+        {
+            File.SetAttributes(_shop.Paths.DatabasePath, FileAttributes.Normal);
+        }
+
+        // The shop's own sales are still there: the restore did not half-happen.
+        await using (StoreFlowDbContext after = await _shop.Factory.CreateDbContextAsync())
+        {
+            (await after.SalesInvoices.CountAsync()).ShouldBe(2);
+        }
+
+        // And the staged copy of the shop's data is not left lying beside it.
+        File.Exists(_shop.Paths.DatabasePath + ".restore").ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task A_restore_whose_pictures_cannot_be_restored_still_puts_the_shop_back()
+    {
+        await SeedShopAsync();
+
+        string path = Path.Combine(_shop.Root, "backups", "storeflow-manual.sfb");
+
+        await CaptureAsync(_shop, path);
+
+        // The folder the pictures go in is taken by a file, so it cannot be created. By then the
+        // shop's data has already been put back, and a picture that cannot be written must not
+        // undo that, and must not stop the programme from restarting on the restored shop.
+        Directory.Delete(_shop.Paths.MediaDirectory, recursive: true);
+
+        await File.WriteAllTextAsync(_shop.Paths.MediaDirectory, "this is a file, not a folder");
+
+        RestoreOutcome outcome = await RestoreAsync(_shop, path);
+
+        outcome.IsSucceeded.ShouldBeTrue(outcome.Message);
+        outcome.RequiresRestart.ShouldBeTrue();
+        outcome.Message.ShouldContain("picture", Case.Insensitive);
+
+        await using StoreFlowDbContext after = await _shop.Factory.CreateDbContextAsync();
+
+        (await after.SalesInvoices.CountAsync()).ShouldBe(1);
+    }
+
+    [Fact]
     public async Task A_restore_that_cannot_keep_a_restore_point_still_puts_the_shop_back()
     {
         await SeedShopAsync();

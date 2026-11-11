@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using StoreFlow.Application.Abstractions;
@@ -76,7 +77,7 @@ public sealed class CrashRecoveryTests : IAsyncLifetime
         string marker = Path.Combine(Path.GetDirectoryName(_fixture.DatabasePath) ?? throw new InvalidOperationException(), "ready");
         var start = new ProcessStartInfo
         {
-            FileName = Path.Combine(Environment.GetEnvironmentVariable("DOTNET_ROOT") ?? @"D:\dotnet", "dotnet.exe"),
+            FileName = DotnetExecutable(),
             UseShellExecute = false,
             RedirectStandardError = true,
             CreateNoWindow = true,
@@ -126,6 +127,46 @@ public sealed class CrashRecoveryTests : IAsyncLifetime
                 await process.WaitForExitAsync();
             }
         }
+    }
+
+    /// <summary>
+    /// The dotnet that runs this test. The probe is a process of its own, so it needs the muxer
+    /// of an installed .NET, and the folder that holds it is asked of the machine rather than
+    /// assumed: a path that exists on one computer and nowhere else fails the test for a reason
+    /// that has nothing to do with the crash.
+    /// </summary>
+    private static string DotnetExecutable()
+    {
+        string? root = Environment.GetEnvironmentVariable("DOTNET_ROOT");
+        if (!string.IsNullOrWhiteSpace(root))
+        {
+            string installed = Path.Combine(root, "dotnet.exe");
+            if (File.Exists(installed))
+            {
+                return installed;
+            }
+        }
+
+        // The runtime that is running this test knows where its own installation is, and the
+        // muxer sits at the root of that installation.
+        DirectoryInfo? installation = new(RuntimeEnvironment.GetRuntimeDirectory());
+        for (int level = 0; level < 3 && installation is not null; level++)
+        {
+            installation = installation.Parent;
+        }
+
+        if (installation is not null)
+        {
+            string installed = Path.Combine(installation.FullName, "dotnet.exe");
+            if (File.Exists(installed))
+            {
+                return installed;
+            }
+        }
+
+        throw new InvalidOperationException(
+            "The crash probe needs the dotnet muxer of an installed .NET and none was found. "
+            + "Set DOTNET_ROOT to the folder that holds dotnet.exe, or install the .NET SDK.");
     }
 
     private async Task CheckLedgerAsync(int expected, long stock)

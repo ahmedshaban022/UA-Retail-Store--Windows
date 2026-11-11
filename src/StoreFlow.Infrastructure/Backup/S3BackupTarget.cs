@@ -53,6 +53,13 @@ public sealed class S3BackupTarget : IBackupTarget, IDisposable
             return new BackupTargetStatus(false, "The cloud target has not been set up yet.");
         }
 
+        string? problem = AddressProblem(configuration);
+
+        if (problem is not null)
+        {
+            return new BackupTargetStatus(false, problem);
+        }
+
         try
         {
             AmazonS3Client client = await GetClientAsync(configuration, cancellationToken);
@@ -190,8 +197,57 @@ public sealed class S3BackupTarget : IBackupTarget, IDisposable
     {
         CloudBackupConfiguration? configuration = await _configurationProvider.GetAsync(cancellationToken);
 
-        return configuration ?? throw new InvalidOperationException(
-            "The cloud target has not been set up yet.");
+        if (configuration is null)
+        {
+            throw new InvalidOperationException(
+                "The cloud target has not been set up yet.");
+        }
+
+        // The address is checked here, where the shop is told, rather than being quietly
+        // accepted. The backup file holds the shop's ledger in the clear, so a connection that
+        // anyone on the network can read is refused: the shop has to say that it wants one.
+        string? problem = AddressProblem(configuration);
+
+        if (problem is not null)
+        {
+            throw new InvalidOperationException(problem);
+        }
+
+        return configuration;
+    }
+
+    /// <summary>
+    /// Why the shop's backup may not travel to this address, or null when it may.
+    /// </summary>
+    /// <param name="configuration">The cloud target's settings.</param>
+    /// <returns>The problem with the address, when there is one.</returns>
+    private static string? AddressProblem(CloudBackupConfiguration configuration)
+    {
+        if (!configuration.Endpoint.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        // The one exception is the shop's own machine. A store on the same computer never crosses
+        // a network, so there is nothing on the way for anyone to read.
+        if (IsOnTheShopOwnMachine(configuration.Endpoint))
+        {
+            return null;
+        }
+
+        return "The cloud backup address must use https. The backup file is not encrypted, so the " +
+               "shop's data must not travel over a connection that anyone can read.";
+    }
+
+    /// <summary>Whether the address points at the shop's own computer.</summary>
+    private static bool IsOnTheShopOwnMachine(string endpoint)
+    {
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out Uri? address))
+        {
+            return false;
+        }
+
+        return address.IsLoopback;
     }
 
     private async Task<AmazonS3Client> GetClientAsync(
@@ -213,7 +269,13 @@ public sealed class S3BackupTarget : IBackupTarget, IDisposable
                 AuthenticationRegion = string.IsNullOrWhiteSpace(configuration.Region)
                     ? "us-east-1"
                     : configuration.Region,
-                UseHttp = configuration.Endpoint.StartsWith("http://", StringComparison.OrdinalIgnoreCase),
+
+                // The backup file is not encrypted — the design for that is ADR-0005 and it is
+                // deliberately not in this release — so the whole of the shop's ledger would
+                // cross the network in the clear. A plain address is refused rather than quietly
+                // downgraded: a shop that cannot see that its data is travelling in the open
+                // cannot make the decision to allow it.
+                UseHttp = false,
                 ForcePathStyle = true,
                 Timeout = TimeSpan.FromMinutes(10),
             };

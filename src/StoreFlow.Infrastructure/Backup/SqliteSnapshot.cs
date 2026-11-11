@@ -37,6 +37,13 @@ public static class SqliteSnapshot
     /// <summary>
     /// Runs SQLite's own integrity check over a database file.
     /// </summary>
+    /// <remarks>
+    /// This check answers; it never throws. A file that is not a SQLite database at all, or one so
+    /// damaged that SQLite cannot read its header, is not sound — and that is the only answer the
+    /// caller can act on. The recovery wizard exists for exactly the case where the shop's own
+    /// file cannot be read, so an exception here would take the programme down on the one day the
+    /// owner needs it.
+    /// </remarks>
     /// <param name="databasePath">The database to check.</param>
     /// <param name="message">What the check said.</param>
     /// <returns>True when the database is sound.</returns>
@@ -44,16 +51,38 @@ public static class SqliteSnapshot
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(databasePath);
 
-        using SqliteConnection connection = Open(databasePath, readOnly: true);
-        connection.Open();
+        try
+        {
+            using SqliteConnection connection = Open(databasePath, readOnly: true);
+            connection.Open();
 
-        using SqliteCommand command = connection.CreateCommand();
-        command.CommandText = "PRAGMA integrity_check;";
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "PRAGMA integrity_check;";
 
-        object? value = command.ExecuteScalar();
-        message = value as string ?? string.Empty;
+            object? value = command.ExecuteScalar();
+            message = value as string ?? string.Empty;
 
-        return string.Equals(message, "ok", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(message, "ok", StringComparison.OrdinalIgnoreCase);
+        }
+        catch (SqliteException exception)
+        {
+            // SQLite could not read the file at all: it is not a database, or its header is broken.
+            message = $"The file could not be read as a SQLite database ({exception.Message}).";
+
+            return false;
+        }
+        catch (IOException exception)
+        {
+            message = $"The file could not be opened ({exception.Message}).";
+
+            return false;
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            message = $"The file could not be opened ({exception.Message}).";
+
+            return false;
+        }
     }
 
     /// <summary>

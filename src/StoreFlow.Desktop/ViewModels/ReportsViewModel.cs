@@ -54,6 +54,13 @@ public sealed record ReportColumnView(string PropertyName, string Header, Report
 /// </summary>
 public sealed partial class ReportsViewModel : ObservableObject
 {
+    /// <summary>
+    /// The most rows of the stock ledger the screen shows at once. The ledger is the one report
+    /// that can hold more rows than a screen can show, and it is the one report the shop may
+    /// want in full, so the screen is bounded and the exported file is not.
+    /// </summary>
+    private const int ScreenRowLimit = 5000;
+
     private readonly IReportReader _reader;
     private readonly IQueryHandler<ListAuditEntriesQuery, Result<IReadOnlyList<AuditEntryView>>> _auditQuery;
     private readonly IQueryHandler<ListSalesCashiersQuery, Result<IReadOnlyList<SalesCashierOption>>> _cashiersQuery;
@@ -63,6 +70,9 @@ public sealed partial class ReportsViewModel : ObservableObject
     private readonly LanguageService _languageService;
 
     private IReadOnlyList<object> _rows = [];
+    private ReportFilter? _lastFilter;
+    private int _totalRowCount;
+    private string _truncatedNote = string.Empty;
 
     [ObservableProperty]
     private ReportKindOption? _selectedKind;
@@ -201,6 +211,10 @@ public sealed partial class ReportsViewModel : ObservableObject
                 CashierUserId = SelectedCashier?.Id,
             };
 
+            _lastFilter = filter;
+            _totalRowCount = 0;
+            _truncatedNote = string.Empty;
+
             if (kind.Kind == ReportKind.AuditTrail)
             {
                 await RunAuditAsync(filter, cancellationToken);
@@ -210,7 +224,7 @@ public sealed partial class ReportsViewModel : ObservableObject
                 await RunFiguresAsync(kind.Kind, filter, cancellationToken);
             }
 
-            StatusMessage = string.Empty;
+            StatusMessage = _truncatedNote;
         }
         finally
         {
@@ -249,9 +263,24 @@ public sealed partial class ReportsViewModel : ObservableObject
             columns.Add(new ExportColumn(column.PropertyName, column.Header));
         }
 
-        var rows = new List<IReadOnlyList<object?>>(_rows.Count);
+        IReadOnlyList<object> source = _rows;
 
-        foreach (object row in _rows)
+        // A report that was cut short on screen is read again in full, so that the file the
+        // shop takes away is the whole report and not the part that fitted on the screen.
+        if (_totalRowCount > _rows.Count
+            && SelectedKind is ReportKindOption { Kind: ReportKind.StockMovements }
+            && _lastFilter is not null)
+        {
+            StockMovementsReport full = await _reader.ReadStockMovementsAsync(
+                _lastFilter with { RowLimit = null },
+                cancellationToken);
+
+            source = full.Rows.Cast<object>().ToList();
+        }
+
+        var rows = new List<IReadOnlyList<object?>>(source.Count);
+
+        foreach (object row in source)
         {
             var values = new List<object?>(columns.Count);
 
@@ -310,8 +339,25 @@ public sealed partial class ReportsViewModel : ObservableObject
                 break;
 
             case ReportKind.StockMovements:
-                IReadOnlyList<StockMovementRow> movements = await _reader.ReadStockMovementsAsync(filter, cancellationToken);
-                SetRows(movements, StockMovementColumns());
+                // The ledger is the one report that can have more rows than a screen can show, so
+                // it is read with a limit. The shop is told how many there were in all, and the
+                // file it exports is the whole report rather than the part on the screen.
+                StockMovementsReport movements = await _reader.ReadStockMovementsAsync(
+                    filter with { RowLimit = ScreenRowLimit },
+                    cancellationToken);
+
+                SetRows(movements.Rows, StockMovementColumns());
+
+                _totalRowCount = movements.TotalCount;
+
+                if (movements.IsTruncated)
+                {
+                    _truncatedNote = _strings.Format(
+                        StringKeys.ReportsTruncated,
+                        movements.Rows.Count,
+                        movements.TotalCount);
+                }
+
                 break;
 
             case ReportKind.PurchasesBySupplier:

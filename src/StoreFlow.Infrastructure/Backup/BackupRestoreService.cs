@@ -109,13 +109,47 @@ public sealed class BackupRestoreService(
         {
             return new RestoreOutcome(false, restorePoint, $"The shop's data could not be replaced: {ex.Message}", false, []);
         }
+        catch (InvalidDataException ex)
+        {
+            // The archive carries no database to restore. The shop's own data is untouched.
+            return new RestoreOutcome(false, restorePoint, $"The shop's data could not be replaced: {ex.Message}", false, []);
+        }
 
-        IReadOnlyList<string> removed = RestoreMedia(archivePath);
+        // The pictures are restored after the database, because the database is the shop's data.
+        // A picture that cannot be written must not undo a restore that has already worked, and
+        // it must not throw out of the restore either: the shop was restored, and it has to be
+        // told so.
+        IReadOnlyList<string> removed = [];
+        string? mediaProblem = null;
+
+        try
+        {
+            removed = RestoreMedia(archivePath);
+        }
+        catch (IOException ex)
+        {
+            mediaProblem = ex.Message;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            mediaProblem = ex.Message;
+        }
+        catch (InvalidDataException ex)
+        {
+            mediaProblem = ex.Message;
+        }
 
         string message = restorePoint is null
             ? "The shop was restored from the backup. StoreFlow will restart now."
             : "The shop was restored from the backup, and the data it replaced was kept as a restore " +
               "point. StoreFlow will restart now.";
+
+        if (mediaProblem is not null)
+        {
+            message =
+                "The shop was restored from the backup, but its pictures could not be restored: " +
+                mediaProblem + " StoreFlow will restart now.";
+        }
 
         return new RestoreOutcome(true, restorePoint, message, true, removed);
     }
@@ -170,30 +204,47 @@ public sealed class BackupRestoreService(
     {
         string staged = paths.DatabasePath + ".restore";
 
-        using (ZipArchive archive = BackupArchive.OpenRead(archivePath))
+        try
         {
-            ZipArchiveEntry entry = archive.GetEntry(BackupArchive.DatabaseEntryPath)
-                ?? throw new InvalidDataException("The backup file carries no database.");
-
-            Directory.CreateDirectory(Path.GetDirectoryName(paths.DatabasePath)!);
-
-            using (Stream source = entry.Open())
-            using (FileStream target = new(staged, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (ZipArchive archive = BackupArchive.OpenRead(archivePath))
             {
-                source.CopyTo(target);
+                ZipArchiveEntry entry = archive.GetEntry(BackupArchive.DatabaseEntryPath)
+                    ?? throw new InvalidDataException("The backup file carries no database.");
+
+                Directory.CreateDirectory(Path.GetDirectoryName(paths.DatabasePath)!);
+
+                using (Stream source = entry.Open())
+                using (FileStream target = new(staged, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    source.CopyTo(target);
+                }
             }
+
+            // The shop's own connections must let go of the old file before it is replaced, or the
+            // write-ahead log of the old database would be applied to the new one.
+            SqliteConnection.ClearAllPools();
+
+            DeleteIfPresent(paths.DatabasePath + "-wal");
+            DeleteIfPresent(paths.DatabasePath + "-shm");
+
+            // The restore is called off before the shop's data is touched, not after. A restore
+            // that has already replaced the database cannot be taken back, so the cancellation is
+            // asked for while the shop's own database is still the one on disk.
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // The move is the last thing that happens to the shop's data. Windows puts the new
+            // file in place in one step, so the shop's database is either the old one or the new
+            // one and never a mixture of the two. The old one was copied to the restore points
+            // before the swap, and that is how the owner undoes a restore that turned out to be
+            // the wrong one.
+            File.Move(staged, paths.DatabasePath, overwrite: true);
         }
-
-        // The shop's own connections must let go of the old file before it is replaced, or the
-        // write-ahead log of the old database would be applied to the new one.
-        SqliteConnection.ClearAllPools();
-
-        DeleteIfPresent(paths.DatabasePath + "-wal");
-        DeleteIfPresent(paths.DatabasePath + "-shm");
-
-        File.Move(staged, paths.DatabasePath, overwrite: true);
-
-        cancellationToken.ThrowIfCancellationRequested();
+        finally
+        {
+            // The staged copy is a whole shop's data lying beside the shop's data. When the move
+            // did not happen it is deleted, so that a restore that failed leaves nothing behind.
+            DeleteIfPresentQuietly(staged);
+        }
     }
 
     private IReadOnlyList<string> RestoreMedia(string archivePath)
@@ -280,6 +331,31 @@ public sealed class BackupRestoreService(
         if (File.Exists(path))
         {
             File.Delete(path);
+        }
+    }
+
+    /// <summary>
+    /// Deletes a file, and does not mind when it cannot be deleted.
+    /// </summary>
+    /// <remarks>
+    /// The staged copy of the shop's data is taken away after the restore. A file that will not
+    /// be deleted — because something else has it open — is left where it is rather than turning
+    /// a finished restore into a failure. It is a copy of data the shop already has, so nothing
+    /// is lost, and the next restore writes over it.
+    /// </remarks>
+    private static void DeleteIfPresentQuietly(string path)
+    {
+        try
+        {
+            DeleteIfPresent(path);
+        }
+        catch (IOException)
+        {
+            // Something else has the file open. The next restore writes over it.
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // This account may not delete it. The next restore writes over it.
         }
     }
 }

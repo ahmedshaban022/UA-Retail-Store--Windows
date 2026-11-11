@@ -127,6 +127,20 @@ public sealed class S3BackupTargetTests : IAsyncLifetime
             () => target.ListAsync());
     }
 
+    [Fact]
+    public async Task A_cloud_target_that_would_travel_in_the_open_is_refused()
+    {
+        // The backup file is not encrypted — the design for that is ADR-0005 and it is
+        // deliberately not in this release — so the whole of the shop's ledger would cross the
+        // network in the clear. A plain address is refused rather than quietly downgraded.
+        using var target = new S3BackupTarget(new StubConfiguration("http://backup.example.com"));
+
+        BackupTargetStatus status = await target.TestConnectionAsync();
+
+        status.IsReachable.ShouldBeFalse();
+        status.Message.ShouldContain("https", Case.Insensitive);
+    }
+
     private async Task ListenAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Reflection;
 
 namespace StoreFlow.Desktop.Localization;
 
@@ -30,6 +31,9 @@ public sealed class LanguageService
         new("en", "English"),
     ];
 
+    private readonly List<WeakListener> _listeners = [];
+    private readonly object _gate = new();
+
     private string _currentLanguage = "ar";
 
     /// <summary>Creates the service and applies the default language's culture.</summary>
@@ -41,7 +45,55 @@ public sealed class LanguageService
     public LanguageService() => ApplyCulture(_currentLanguage);
 
     /// <summary>Raised after the language changes.</summary>
-    public event EventHandler? LanguageChanged;
+    /// <remarks>
+    /// The listeners are held weakly, and that is the whole point of the event.
+    /// <para>
+    /// A screen is built fresh every time the owner opens it, and this service lives for as long
+    /// as the programme does. A plain event would therefore keep every screen the owner has ever
+    /// opened alive for the rest of the session, and every change of language would go on
+    /// refreshing screens nobody is looking at — which is database work for nothing, on a shop
+    /// computer that is already busy.
+    /// </para>
+    /// <para>
+    /// Holding the listener weakly means the service forgets a screen as soon as the screen
+    /// itself is gone. A listener that is still there is still told.
+    /// </para>
+    /// </remarks>
+    public event EventHandler? LanguageChanged
+    {
+        add
+        {
+            if (value is null)
+            {
+                return;
+            }
+
+            lock (_gate)
+            {
+                _listeners.Add(new WeakListener(value));
+            }
+        }
+
+        remove
+        {
+            if (value is null)
+            {
+                return;
+            }
+
+            lock (_gate)
+            {
+                for (int index = 0; index < _listeners.Count; index++)
+                {
+                    if (_listeners[index].Matches(value))
+                    {
+                        _listeners.RemoveAt(index);
+                        return;
+                    }
+                }
+            }
+        }
+    }
 
     /// <summary>The languages the application offers.</summary>
     public static IReadOnlyList<LanguageOption> Available => Options;
@@ -59,7 +111,7 @@ public sealed class LanguageService
 
             _currentLanguage = value;
             ApplyCulture(value);
-            LanguageChanged?.Invoke(this, EventArgs.Empty);
+            RaiseLanguageChanged();
         }
     }
 
@@ -95,5 +147,109 @@ public sealed class LanguageService
         CultureInfo.DefaultThreadCurrentCulture = culture;
         CultureInfo.CurrentUICulture = culture;
         CultureInfo.CurrentCulture = culture;
+    }
+
+    /// <summary>Tells the listeners that are still there that the language has changed.</summary>
+    private void RaiseLanguageChanged()
+    {
+        List<WeakListener> live = [];
+
+        lock (_gate)
+        {
+            List<WeakListener> gone = [];
+
+            foreach (WeakListener listener in _listeners)
+            {
+                if (listener.IsAlive)
+                {
+                    live.Add(listener);
+                }
+                else
+                {
+                    gone.Add(listener);
+                }
+            }
+
+            // A screen that has been left behind is taken off the list, so the list does not grow
+            // for ever as the owner opens more and more screens.
+            foreach (WeakListener listener in gone)
+            {
+                _listeners.Remove(listener);
+            }
+        }
+
+        foreach (WeakListener listener in live)
+        {
+            listener.Raise(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// A listener the service does not keep alive.
+    /// </summary>
+    /// <remarks>
+    /// What has to be held weakly is the object the handler belongs to, because that object is a
+    /// screen the application builds and then throws away. The method itself is held strongly:
+    /// a method does not keep its object alive, and holding it is what lets the handler be raised
+    /// again for as long as the object is still there.
+    /// </remarks>
+    private sealed class WeakListener
+    {
+        private readonly WeakReference<object?>? _target;
+        private readonly MethodInfo _method;
+        private readonly EventHandler? _stateless;
+
+        public WeakListener(EventHandler handler)
+        {
+            _method = handler.Method;
+            object? target = handler.Target;
+
+            if (target is null)
+            {
+                // A handler that belongs to no object keeps nothing alive, so it can be held as it is.
+                _stateless = handler;
+            }
+            else
+            {
+                _target = new WeakReference<object?>(target);
+            }
+        }
+
+        /// <summary>Whether the object behind the handler is still there.</summary>
+        public bool IsAlive => _stateless is not null || _target!.TryGetTarget(out _);
+
+        /// <summary>Calls the handler, if the object behind it is still there.</summary>
+        public void Raise(object? sender, EventArgs e)
+        {
+            if (_stateless is not null)
+            {
+                _stateless(sender, e);
+                return;
+            }
+
+            if (_target!.TryGetTarget(out object? target))
+            {
+                EventHandler handler = (EventHandler)_method.CreateDelegate(typeof(EventHandler), target);
+                handler(sender, e);
+            }
+        }
+
+        /// <summary>Whether this listener is the one behind the given handler.</summary>
+        public bool Matches(EventHandler handler)
+        {
+            if (_method != handler.Method)
+            {
+                return false;
+            }
+
+            if (_stateless is not null)
+            {
+                return handler.Target is null;
+            }
+
+            return handler.Target is not null
+                && _target!.TryGetTarget(out object? target)
+                && ReferenceEquals(target, handler.Target);
+        }
     }
 }

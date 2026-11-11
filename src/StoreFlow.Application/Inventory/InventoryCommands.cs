@@ -104,15 +104,6 @@ public sealed record PostStockAdjustmentCommand(
     string Reason) : ICommand<Result<StockAdjustmentOutcome>>;
 
 /// <summary>
-/// Approves a pending large stock adjustment and posts it to the ledger.
-/// </summary>
-/// <param name="ApprovalRequestId">The approval request to decide.</param>
-/// <param name="Reason">The approver's note.</param>
-public sealed record ApproveStockAdjustmentCommand(
-    int ApprovalRequestId,
-    string? Reason = null) : ICommand<Result<int>>;
-
-/// <summary>
 /// Creates or updates a stock count session. Counting never changes posted stock; the difference
 /// becomes an auditable adjustment only after approval (PRD INV-05).
 /// </summary>

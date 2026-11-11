@@ -220,11 +220,13 @@ public sealed class EfReportReader(
         {
             positions.TryGetValue(product.ProductId, out Position position);
 
-            decimal quantity = ReportRules.Quantity(position.Quantity, product.Precision);
+            // The position is read in the scale the movements were written in, which is the scale the
+            // balance carries and not necessarily the product's current unit.
+            decimal quantity = ReportRules.Quantity(position.Quantity, position.Scale);
             decimal reorderLevel = ReportRules.Quantity(product.ReorderLevelScaled, product.Precision);
 
             bool belowReorder = product.ReorderLevelScaled > 0 &&
-                                position.Quantity <= product.ReorderLevelScaled;
+                                position.Quantity <= InventoryLedger.Rescale(product.ReorderLevelScaled, product.Precision, position.Scale);
 
             bool keep = filter.StockStatus switch
             {
@@ -288,13 +290,13 @@ public sealed class EfReportReader(
             }
 
             Money average = Money.FromMinorUnits(position.AverageMinor);
-            Money value = InventoryLedger.ValueOf(position.Quantity, product.Precision, average);
+            Money value = InventoryLedger.ValueOf(position.Quantity, position.Scale, average);
 
             rows.Add(new StockValuationRow(
                 product.ProductId,
                 product.Sku,
                 product.Name,
-                ReportRules.Quantity(position.Quantity, product.Precision),
+                ReportRules.Quantity(position.Quantity, position.Scale),
                 average,
                 value));
         }
@@ -306,7 +308,7 @@ public sealed class EfReportReader(
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<StockMovementRow>> ReadStockMovementsAsync(
+    public async Task<StockMovementsReport> ReadStockMovementsAsync(
         ReportFilter filter,
         CancellationToken cancellationToken = default)
     {
@@ -333,11 +335,21 @@ public sealed class EfReportReader(
             movements = movements.Where(movement => movement.BusinessDate <= filter.To);
         }
 
-        List<StockMovement> rows = await movements
+        // How many movements there are in all. The ledger is the one report that can hold more
+        // rows than a screen can show, and a shop that is shown a part of it has to be told how
+        // big the whole of it is.
+        int total = await movements.CountAsync(cancellationToken);
+
+        IQueryable<StockMovement> newest = movements
             .OrderByDescending(movement => movement.BusinessDate)
-            .ThenByDescending(movement => movement.Id)
-            .Take(5000)
-            .ToListAsync(cancellationToken);
+            .ThenByDescending(movement => movement.Id);
+
+        if (filter.RowLimit is int limit)
+        {
+            newest = newest.Take(limit);
+        }
+
+        List<StockMovement> rows = await newest.ToListAsync(cancellationToken);
 
         var result = new List<StockMovementRow>(rows.Count);
 
@@ -358,7 +370,7 @@ public sealed class EfReportReader(
                 movement.Reason));
         }
 
-        return result;
+        return new StockMovementsReport(result, total);
     }
 
     /// <inheritdoc />
@@ -455,8 +467,14 @@ public sealed class EfReportReader(
 
         List<SaleAmountRow> invoices = await ReadSaleAmountsAsync(context, filter, cancellationToken);
         List<ReturnAmountRow> returns = await ReadReturnAmountsAsync(context, filter, cancellationToken);
-        List<LineAmountRow> lines = await ReadSaleLinesAsync(context, filter, cancellationToken);
-        List<ReturnLineAmountRow> returnLines = await ReadReturnLinesAsync(context, filter, cancellationToken);
+
+        // The profit and loss is a statement about the whole shop. An invoice's total cannot be
+        // split by category, so the report is not narrowed by one: a report that took its net
+        // sales from every invoice and its cost of goods from one category would not add up.
+        ReportFilter wholeShop = filter with { CategoryId = null };
+
+        List<LineAmountRow> lines = await ReadSaleLinesAsync(context, wholeShop, cancellationToken);
+        List<ReturnLineAmountRow> returnLines = await ReadReturnLinesAsync(context, wholeShop, cancellationToken);
 
         Money netSales = Money.Zero;
         Money discounts = Money.Zero;
@@ -850,16 +868,22 @@ public sealed class EfReportReader(
             invoices = invoices.Where(invoice => invoice.UserId == cashierUserId);
         }
 
-        if (filter.CategoryId is int categoryId)
-        {
-            invoices = invoices.Where(invoice => invoice.Lines.Any(line => line.Product != null && line.Product.CategoryId == categoryId));
-        }
-
         // The lines are read on their own, so that the query stays a plain EXISTS: SQLite cannot
         // translate a correlated projection.
-        List<LineAmountRow> rows = await context.SalesInvoiceLines
+        IQueryable<SalesInvoiceLine> saleLines = context.SalesInvoiceLines
             .AsNoTracking()
-            .Where(line => invoices.Any(invoice => invoice.Id == line.SalesInvoiceId))
+            .Where(line => invoices.Any(invoice => invoice.Id == line.SalesInvoiceId));
+
+        if (filter.CategoryId is int categoryId)
+        {
+            // The category narrows the lines, not the invoices. An invoice can hold lines from
+            // more than one category, and a report that kept every line of a matching invoice
+            // would carry another category's money into a report about this one. The returns are
+            // narrowed the same way, so the two halves of a report agree.
+            saleLines = saleLines.Where(line => line.Product != null && line.Product.CategoryId == categoryId);
+        }
+
+        List<LineAmountRow> rows = await saleLines
             .OrderBy(line => line.Id)
             .Select(line => new LineAmountRow
             {
@@ -980,14 +1004,14 @@ public sealed class EfReportReader(
             .OrderBy(movement => movement.Id)
             .ToListAsync(cancellationToken);
 
-        IReadOnlyDictionary<int, (long Quantity, long AverageMinor)> replayed =
+        IReadOnlyDictionary<int, ReplayedPosition> replayed =
             InventoryLedgerReplay.Replay(movements);
 
         var positions = new Dictionary<int, Position>();
 
-        foreach (KeyValuePair<int, (long Quantity, long AverageMinor)> entry in replayed)
+        foreach (KeyValuePair<int, ReplayedPosition> entry in replayed)
         {
-            positions[entry.Key] = new Position(entry.Value.Quantity, entry.Value.AverageMinor);
+            positions[entry.Key] = new Position(entry.Value.Quantity, entry.Value.AverageMinor, entry.Value.Scale);
         }
 
         return positions;
@@ -1157,7 +1181,7 @@ public sealed class EfReportReader(
     }
 
     /// <summary>A product's position on the shelf.</summary>
-    private readonly record struct Position(long Quantity, long AverageMinor);
+    private readonly record struct Position(long Quantity, long AverageMinor, int Scale);
 
     /// <summary>What one day added up to.</summary>
     private sealed class DayAccumulator

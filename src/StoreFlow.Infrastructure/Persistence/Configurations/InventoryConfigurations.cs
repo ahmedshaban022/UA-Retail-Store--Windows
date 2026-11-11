@@ -46,6 +46,12 @@ internal sealed class StockBalanceConfiguration : IEntityTypeConfiguration<Stock
         builder.Property(balance => balance.AverageUnitCost).HasConversion(Converters.MoneyToMinorUnits);
         builder.Property(balance => balance.UpdatedUtc).HasColumnType("TEXT");
 
+        // The version is a real concurrency token: the update carries the version it read, so a
+        // write that landed on a balance somebody else has already moved is refused instead of
+        // quietly overwriting it. The ledger and the balance have to agree, and this is what keeps
+        // them agreeing when two people move the same stock at once (PRD §5.4 invariant 1).
+        builder.Property(balance => balance.Version).IsConcurrencyToken();
+
         builder.HasIndex(balance => balance.QuantityOnHandScaled);
 
         builder.HasOne(balance => balance.Product)

@@ -75,6 +75,17 @@ public static class CatalogValidation
     /// <summary>The error code for a reference record that does not exist.</summary>
     public const string NotFoundCode = "catalog.not_found";
 
+    /// <summary>
+    /// The error code for a change to the selling unit of a product that already carries stock.
+    /// </summary>
+    /// <remarks>
+    /// The stock a product holds is written down as a scaled number whose meaning depends on the
+    /// precision of the selling unit. Changing the unit after the goods have moved would leave
+    /// every number in the shop's books standing for a different quantity — a shelf of ten
+    /// kilograms read as ten thousand pieces — so the change is refused.
+    /// </remarks>
+    public const string UnitLockedCode = "catalog.unit_locked";
+
     /// <summary>Checks a product.</summary>
     /// <param name="sku">The stock-keeping unit code.</param>
     /// <param name="name">The product name.</param>

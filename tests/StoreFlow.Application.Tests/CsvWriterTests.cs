@@ -46,6 +46,30 @@ public sealed class CsvWriterTests
     }
 
     [Fact]
+    public void A_negative_number_stays_a_number()
+    {
+        // The formula guard is for text. A number that begins with a minus sign is a number, and
+        // turning it into text would make a spreadsheet ignore it in a sum or in a pivot — and a
+        // loss-making product's margin is exactly the figure that is negative.
+        CsvWriter.Escape(-12.50m).ShouldBe("-12.50");
+        CsvWriter.Escape(-12.50f).ShouldBe("-12.5");
+        CsvWriter.Escape(-12).ShouldBe("-12");
+    }
+
+    [Fact]
+    public void A_negative_number_in_an_export_is_written_as_a_number()
+    {
+        var table = new ExportTable(
+            [new ExportColumn("margin", "Margin")],
+            [new object?[] { -12.50m }]);
+
+        string csv = CsvWriter.Write(table);
+
+        csv.ShouldContain("-12.50");
+        csv.ShouldNotContain("'-12.50");
+    }
+
+    [Fact]
     public void The_byte_order_mark_is_written_for_excel()
     {
         CsvWriter.ByteOrderMark.ShouldBe(new byte[] { 0xEF, 0xBB, 0xBF });

@@ -176,24 +176,39 @@ public sealed class SaveStockCountCommandHandler(
 
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-        await context.BeforeWriteAsync(WritePoint.SaveStockCount, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.BeforeWriteAsync(WritePoint.SaveStockCount, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
-        // A new count has no id until its row has been saved, so the audit entry joins the same
-        // transaction and is made permanent together with the count it describes.
-        auditWriter.AddTo(
-            context,
-            new AuditEntry(
-                InventoryAudit.CountSave,
-                nameof(StockCount),
-                count.Id.ToString(),
-                null,
-                $"{count.Number} with {count.Lines.Count} counted products",
-                session.Current?.UserId));
+            // A new count has no id until its row has been saved, so the audit entry joins the same
+            // transaction and is made permanent together with the count it describes.
+            auditWriter.AddTo(
+                context,
+                new AuditEntry(
+                    InventoryAudit.CountSave,
+                    nameof(StockCount),
+                    count.Id.ToString(),
+                    null,
+                    $"{count.Number} with {count.Lines.Count} counted products",
+                    session.Current?.UserId));
 
-        await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+            await context.BeforeWriteAsync(WritePoint.WriteAuditEntryInTransaction, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (UniqueConstraintClash.IsClash(exception))
+        {
+            // The number is worked out before the transaction opens, so two counters saving at the
+            // same moment can work out the same number, and the index refuses the second. The
+            // refusal is rolled back and the shop is asked to save again: the next number is then
+            // free, and the count the counter wrote is still on their screen.
+            await transaction.RollbackAsync(cancellationToken);
+
+            return Result<int>.Failure(
+                InventoryErrorCodes.NumberClash,
+                "Another count was saved at the same moment and took this number. Save the count again and it will be given the next number.");
+        }
 
         return Result<int>.Success(count.Id);
     }
@@ -430,11 +445,6 @@ public sealed class PostStockCountCommandHandler(
 
         foreach (StockCountLine line in count.Lines.OrderBy(candidate => candidate.Id))
         {
-            if (line.DifferenceScaled == 0)
-            {
-                continue;
-            }
-
             Product? product = products.FirstOrDefault(candidate => candidate.Id == line.ProductId);
 
             if (product is null)
@@ -446,13 +456,53 @@ public sealed class PostStockCountCommandHandler(
                     "One of the counted products no longer exists.");
             }
 
+            int scale = product.Unit?.Precision ?? 0;
+
+            // The balance is read again here, inside the posting transaction, because the count is a
+            // statement about the shelf as it stands — not about the shelf as it stood when the
+            // counter wrote the number down. Between counting and posting the goods usually move,
+            // and replaying the difference captured at save time would leave the books claiming a
+            // quantity the counter never saw.
+            StockBalance? balance = await context.StockBalances
+                .FirstOrDefaultAsync(candidate => candidate.ProductId == line.ProductId, cancellationToken);
+
+            // Both numbers are brought into the product's own scale before they are compared, so the
+            // correction is a real difference and not an artefact of two different units.
+            long counted = InventoryLedger.Rescale(line.CountedQuantityScaled, line.QuantityScale, scale);
+            long onHand = InventoryLedger.Rescale(balance?.QuantityOnHandScaled ?? 0, balance?.QuantityScale ?? scale, scale);
+
+            long correction = counted - onHand;
+
+            // The line now carries what happened at posting, in the product's own scale, so the
+            // count document and the ledger tell the same story.
+            line.QuantityScale = scale;
+            line.ExpectedQuantityScaled = onHand;
+            line.CountedQuantityScaled = counted;
+            line.DifferenceScaled = correction;
+            line.DifferenceValue = InventoryLedger.ValueOf(Math.Abs(correction), scale, line.UnitCost);
+
+            if (correction == 0)
+            {
+                continue;
+            }
+
+            // A balance left at another scale means the product's unit was changed before the shop's
+            // rule about that was put in place. The count is the occasion to bring it back into the
+            // product's own scale, so that the correction lands on the number the counter wrote.
+            if (balance is not null && balance.QuantityScale != scale)
+            {
+                balance.QuantityOnHandScaled = onHand;
+                balance.DamagedQuantityScaled = InventoryLedger.Rescale(balance.DamagedQuantityScaled, balance.QuantityScale, scale);
+                balance.QuantityScale = scale;
+            }
+
             (StockMovement? movement, string? errorCode, string? errorMessage) = await InventoryLedger.ApplyAsync(
                 context,
                 product,
-                line.QuantityScale,
+                scale,
                 StockMovementType.CountCorrection,
                 StockDisposition.Sellable,
-                line.DifferenceScaled,
+                correction,
                 line.UnitCost,
                 count.BusinessDate,
                 count.Reason,

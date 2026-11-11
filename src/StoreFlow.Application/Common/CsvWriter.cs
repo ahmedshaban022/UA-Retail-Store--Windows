@@ -49,7 +49,10 @@ public static class CsvWriter
             _ => value.ToString() ?? string.Empty,
         };
 
-        if (text.Length > 0 && FormulaPrefixes.Contains(text[0]))
+        // The formula guard is for text. A number that begins with a minus sign is a number, and
+        // turning it into text would make a spreadsheet ignore it in a sum or in a pivot — and a
+        // loss-making product's margin is exactly the figure that is negative.
+        if (value is string && text.Length > 0 && FormulaPrefixes.Contains(text[0]))
         {
             text = string.Concat("'", text);
         }

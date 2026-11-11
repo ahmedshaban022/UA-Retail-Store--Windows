@@ -120,7 +120,7 @@ public sealed class DatabaseTests : IClassFixture<DatabaseFixture>
 
         int productId = await SeedProductAsync(context);
 
-        context.StockMovements.Add(new StockMovement
+        var movement = new StockMovement
         {
             ProductId = productId,
             MovementType = StockMovementType.Opening,
@@ -131,13 +131,21 @@ public sealed class DatabaseTests : IClassFixture<DatabaseFixture>
             RunningBalanceScaled = 10,
             PostedUtc = DateTimeOffset.UnixEpoch,
             BusinessDate = new DateOnly(2026, 1, 1),
-        });
+        };
+
+        context.StockMovements.Add(movement);
 
         await context.SaveChangesAsync();
 
+        // The database is shared by the whole class, so the movement is fetched by the id it was
+        // given. The first movement in the file would be another test's, and this test would
+        // then be about a row it never wrote.
         await using StoreFlowDbContext second = await _fixture.Factory.CreateDbContextAsync();
-        StockMovement movement = await second.StockMovements.FirstAsync();
-        movement.QuantityDeltaScaled = 999;
+        StockMovement stored = await second.StockMovements.SingleAsync(entry => entry.Id == movement.Id);
+        stored.ProductId.ShouldBe(productId);
+        stored.QuantityDeltaScaled.ShouldBe(10);
+
+        stored.QuantityDeltaScaled = 999;
 
         await Should.ThrowAsync<DbUpdateException>(async () => await second.SaveChangesAsync());
     }

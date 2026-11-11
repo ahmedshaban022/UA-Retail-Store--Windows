@@ -139,6 +139,11 @@ public sealed class PostReturnCommandHandler(
                         : "More is being returned than is left to return on that line.");
             }
 
+            // Two lines of the same command may name the same line of the invoice. What the first
+            // one takes back counts towards the second one, or the shop could take back more than
+            // it sold.
+            alreadyReturned[line.Id] = returned + quantityScaled;
+
             planned.Add(new PlannedReturnLine(
                 line,
                 quantityScaled,

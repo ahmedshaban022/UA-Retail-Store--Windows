@@ -261,9 +261,11 @@ public sealed class WriteFaultMatrixTests : IAsyncLifetime
                 ?? throw new InvalidOperationException("The large adjustment needs an approval request.");
             _session.UserId = await CreateUserAsync("approver");
 
-            command = () => new ApproveStockAdjustmentCommandHandler(
+            command = () => new DecideApprovalRequestCommandHandler(
                 _fixture.Factory, _authorization, AuditWriter, _clock, _session)
-                .HandleAsync(new ApproveStockAdjustmentCommand(requestId, "Checked the shelf"), CancellationToken.None);
+                .HandleAsync(
+                    new DecideApprovalRequestCommand(requestId, true, "Checked the shelf"),
+                    CancellationToken.None);
         }
         else
         {

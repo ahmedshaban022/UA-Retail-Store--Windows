@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using StoreFlow.Application.Backup;
 using StoreFlow.Application.Common;
 using StoreFlow.Domain.Enumerations;
+using StoreFlow.Desktop.Composition;
 using StoreFlow.Desktop.Localization;
 
 namespace StoreFlow.Desktop.ViewModels;
@@ -46,6 +47,18 @@ public sealed partial class BackupViewModel : ObservableObject
     private readonly IBackupDialogs _dialogs;
     private readonly IStrings _strings;
     private readonly LanguageService _languageService;
+
+    /// <summary>
+    /// The read of the log that is on its way. It is cancelled when the owner changes the filter,
+    /// so the rows on screen are always the rows the filter asks for.
+    /// </summary>
+    private CancellationTokenSource? _historyCancellation;
+
+    /// <summary>
+    /// The read of the destinations that is on its way. It is cancelled when the screen is read
+    /// again, so an older answer cannot land on top of a newer one.
+    /// </summary>
+    private CancellationTokenSource? _targetsCancellation;
 
     [ObservableProperty]
     private BackupTargetOption? _selectedTarget;
@@ -408,7 +421,7 @@ public sealed partial class BackupViewModel : ObservableObject
                 cancellationToken);
 
             StatusMessage = saved.IsFailure
-                ? saved.Error.Message
+                ? ReportFailure("The backup schedule could not be saved.", saved.Error)
                 : _strings[StringKeys.BackupScheduleSaved];
         }
         finally
@@ -435,32 +448,62 @@ public sealed partial class BackupViewModel : ObservableObject
 
     private async Task LoadTargetsAsync(CancellationToken cancellationToken)
     {
-        Result<IReadOnlyList<BackupTargetSummary>> result =
-            await _listTargets.HandleAsync(new ListBackupTargetsQuery(), cancellationToken);
+        // A read that is already on its way is cancelled, because the newest answer is the one the
+        // screen means. The old source is not disposed: the read it belongs to may still be
+        // handing the token to the database.
+        _targetsCancellation?.Cancel();
+        _targetsCancellation = new CancellationTokenSource();
 
-        if (result.IsFailure)
+        CancellationToken token = _targetsCancellation.Token;
+
+        try
         {
-            StatusMessage = result.Error.Message;
+            Result<IReadOnlyList<BackupTargetSummary>> result =
+                await _listTargets.HandleAsync(new ListBackupTargetsQuery(), token);
 
-            return;
+            token.ThrowIfCancellationRequested();
+
+            if (result.IsFailure)
+            {
+                StatusMessage = ReportFailure("The backup destinations could not be read.", result.Error);
+
+                return;
+            }
+
+            string? selected = SelectedTarget?.Kind;
+
+            Targets.Clear();
+
+            foreach (BackupTargetSummary summary in result.Value)
+            {
+                Targets.Add(new BackupTargetOption(
+                    summary.Kind,
+                    DescribeKind(summary.Kind, summary.DisplayName),
+                    DescribeState(summary.State, summary.Detail),
+                    summary.IsConfigured));
+            }
+
+            SelectedTarget = Targets.FirstOrDefault(option => option.Kind == selected) ?? Targets.FirstOrDefault();
+
+            BuildLogTargetFilters();
         }
-
-        string? selected = SelectedTarget?.Kind;
-
-        Targets.Clear();
-
-        foreach (BackupTargetSummary summary in result.Value)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            Targets.Add(new BackupTargetOption(
-                summary.Kind,
-                DescribeKind(summary.Kind, summary.DisplayName),
-                DescribeState(summary.State, summary.Detail),
-                summary.IsConfigured));
+            // Another read of the destinations has taken over; this answer is stale and is dropped.
         }
+#pragma warning disable CA1031 // A read that fails must not take the screen down with it.
+        catch (Exception ex)
+        {
+            // A read that fails outright must not lose its exception in the void. The log keeps the
+            // detail and the owner is told that the destinations could not be read.
+            StartupDiagnostics.Write("The backup destinations could not be read.", ex);
 
-        SelectedTarget = Targets.FirstOrDefault(option => option.Kind == selected) ?? Targets.FirstOrDefault();
-
-        BuildLogTargetFilters();
+            if (!token.IsCancellationRequested)
+            {
+                StatusMessage = _strings[StringKeys.ErrorUnexpected];
+            }
+        }
+#pragma warning restore CA1031
     }
 
     /// <summary>
@@ -489,7 +532,7 @@ public sealed partial class BackupViewModel : ObservableObject
 
         if (result.IsFailure)
         {
-            StatusMessage = result.Error.Message;
+            StatusMessage = ReportFailure("The backup schedule could not be read.", result.Error);
 
             return;
         }
@@ -518,30 +561,74 @@ public sealed partial class BackupViewModel : ObservableObject
 
     private async Task LoadHistoryAsync(CancellationToken cancellationToken)
     {
-        Result<IReadOnlyList<BackupHistoryEntry>> result = await _listHistory.HandleAsync(
-            new ListBackupHistoryQuery(
-                string.IsNullOrWhiteSpace(FilterTarget) ? null : FilterTarget,
-                ReadResult(FilterResult?.Key),
-                ReadDate(FromText),
-                ReadDate(ToText),
-                500),
-            cancellationToken);
+        // A read that is already on its way is cancelled, because the newest filter is the one the
+        // owner means. The old source is not disposed: the read it belongs to may still be handing
+        // the token to the database.
+        _historyCancellation?.Cancel();
+        _historyCancellation = new CancellationTokenSource();
 
-        if (result.IsFailure)
+        CancellationToken token = _historyCancellation.Token;
+
+        try
         {
-            StatusMessage = result.Error.Message;
+            Result<IReadOnlyList<BackupHistoryEntry>> result = await _listHistory.HandleAsync(
+                new ListBackupHistoryQuery(
+                    string.IsNullOrWhiteSpace(FilterTarget) ? null : FilterTarget,
+                    ReadResult(FilterResult?.Key),
+                    ReadDate(FromText),
+                    ReadDate(ToText),
+                    500),
+                token);
 
-            return;
+            token.ThrowIfCancellationRequested();
+
+            if (result.IsFailure)
+            {
+                StatusMessage = ReportFailure("The backup log could not be read.", result.Error);
+
+                return;
+            }
+
+            History.Clear();
+
+            foreach (BackupHistoryEntry entry in result.Value)
+            {
+                History.Add(entry);
+            }
+
+            OnPropertyChanged(nameof(IsLogEmpty));
         }
-
-        History.Clear();
-
-        foreach (BackupHistoryEntry entry in result.Value)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            History.Add(entry);
+            // Another read of the log has taken over; this answer is stale and is dropped.
         }
+#pragma warning disable CA1031 // A read that fails must not take the screen down with it.
+        catch (Exception ex)
+        {
+            // A read that fails outright must not lose its exception in the void. The log keeps the
+            // detail and the owner is told that the log could not be read.
+            StartupDiagnostics.Write("The backup log could not be read.", ex);
 
-        OnPropertyChanged(nameof(IsLogEmpty));
+            if (!token.IsCancellationRequested)
+            {
+                StatusMessage = _strings[StringKeys.ErrorUnexpected];
+            }
+        }
+#pragma warning restore CA1031
+    }
+
+    /// <summary>
+    /// Turns a failed operation into the message the owner reads, and keeps the technical detail —
+    /// a file path, a reason from the operating system — in the log.
+    /// </summary>
+    /// <param name="what">What the screen was trying to do.</param>
+    /// <param name="error">The failure the operation answered with.</param>
+    /// <returns>The message to show the owner.</returns>
+    private string ReportFailure(string what, Error error)
+    {
+        StartupDiagnostics.Write(what + ": " + error.Message);
+
+        return BackupErrorMessages.Resolve(_strings, error.Code);
     }
 
     /// <summary>
@@ -627,18 +714,24 @@ public sealed partial class BackupViewModel : ObservableObject
             $"{clamped / 60:00}:{clamped % 60:00}");
     }
 
-    partial void OnFilterTargetChanged(string value) => _ = LoadHistoryAsync(CancellationToken.None);
+    partial void OnFilterTargetChanged(string value) => ScheduleHistoryLoad();
 
     partial void OnSelectedLogTargetChanged(BackupTargetOption? value)
     {
         FilterTarget = value?.Kind ?? string.Empty;
     }
 
-    partial void OnFilterResultChanged(BackupResultFilterOption? value) => _ = LoadHistoryAsync(CancellationToken.None);
+    partial void OnFilterResultChanged(BackupResultFilterOption? value) => ScheduleHistoryLoad();
 
-    partial void OnFromTextChanged(string value) => _ = LoadHistoryAsync(CancellationToken.None);
+    partial void OnFromTextChanged(string value) => ScheduleHistoryLoad();
 
-    partial void OnToTextChanged(string value) => _ = LoadHistoryAsync(CancellationToken.None);
+    partial void OnToTextChanged(string value) => ScheduleHistoryLoad();
+
+    /// <summary>
+    /// Reads the log again, and forgets the read that was waiting, so the rows on screen are the
+    /// rows the filter the owner has just set asks for.
+    /// </summary>
+    private void ScheduleHistoryLoad() => _ = LoadHistoryAsync(CancellationToken.None);
 
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
