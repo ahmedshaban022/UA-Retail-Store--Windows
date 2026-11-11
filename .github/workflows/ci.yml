@@ -55,7 +55,7 @@ jobs:
       # The gate. Nothing is published and nothing is merged while this is red.
       - name: Test
         shell: pwsh
-        run: dotnet test StoreFlow.sln -c Release --nologo --no-build -v q
+        run: dotnet test StoreFlow.sln -c Release --nologo --no-build -v q --logger "trx" --results-directory TestResults
 
       - name: The test counts
         shell: pwsh

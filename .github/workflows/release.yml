@@ -127,6 +127,18 @@ jobs:
 
           $body = Get-Content 'docs/RELEASE-NOTES.md' -Raw
 
+          # The notes carry a line that says whether this release has been published. It is
+          # true of the repository, not of the release page — the page only exists once the
+          # release is made — so it is taken out of the body the shop reads. The suite's
+          # release guard checks that the line is there and says the right thing; this check
+          # stops a body being published with a line about the repository's own bookkeeping
+          # still in it.
+          $status = '(?m)^\*\*Release status:[^\r\n]*\r?\n(\r?\n)?'
+          if ($body -notmatch $status) {
+            throw 'The release notes do not carry the status line the release guard reads.'
+          }
+          $body = [regex]::Replace($body, $status, '')
+
           # The hash of the installer that was actually built, so the notes can never quote a
           # hash that belongs to a different file.
           $body += "`n`n## The installer's SHA-256`n`n"

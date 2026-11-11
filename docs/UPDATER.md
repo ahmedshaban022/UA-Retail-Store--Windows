@@ -148,7 +148,7 @@ version that is installed.
 `src\StoreFlow.Desktop\StoreFlow.Desktop.csproj` holds the version:
 
 ```xml
-<Version>1.0.0</Version>
+<Version>1.0.2</Version>
 ```
 
 The installer passes the version it is building into the assembly

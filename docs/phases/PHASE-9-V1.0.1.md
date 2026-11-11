@@ -55,7 +55,7 @@ The additions are:
   transaction and then checks that **neither the change nor the entry is left behind**, for the
   catalogue, the accounts, the shelf, the counter, the drawer count and the first-run setup. The
   write-fault matrix gained a write point, `WriteAuditEntryInTransaction`, which brings the
-  catalogue of named write points to fifty-four.
+  catalogue of named write points to fifty-five.
 - **Six tests for the updater's quiet failures.** The feed that cannot be reached, the feed that
   answers *too many requests*, the release that carries no installer, the download that breaks in
   the middle, the download that is cancelled, and the proof that an update never writes inside

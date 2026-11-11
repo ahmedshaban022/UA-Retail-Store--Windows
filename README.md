@@ -8,7 +8,7 @@ append-only stock ledger that reconciles to the piastre, and is **rebrandable by
 name, logo, colours, receipt content, currency, tax and locale are data, so the same binary can be resold to
 another shop without a recompile.
 
-**Status: version 1.0.0 is published, and the release cadence is running.** The application builds, the database migrates, the theme switches
+**Status: version 1.0.1 is published, and the release cadence is running.** The application builds, the database migrates, the theme switches
 live, the AR/EN switch works, login is enforced, and the automated test suite is green. The
 catalogue — products, categories, units and suppliers, with the product editor, the search, the
 spreadsheet import and export, product pictures and the audit trail — is built and proved by
@@ -26,7 +26,7 @@ the roles, and the audit trail read as a report. And the **backup**: the shop ta
 on a schedule as a single `.sfb` file that proves its own integrity, the copy goes to a local folder
 or to an S3-compatible object store, and the shop can be put back from it — on the same machine or
 on another one — with the recovery wizard as the way back in for the day the database will not open
-at all. Phase 7 added the write-fault matrix, crash probe, per-user installer, performance harness, accessibility pass, user guide and recovery runbook. Phase 8 drove the **installed** copy as well as the development build, found and fixed a first-run crash that had been hiding since Phase 7, and wrote the two gate tables. **Version 1.0.0 is published** with its installer and its SHA-256; the manual acceptance test still needs the shop's own hardware. The programme also updates itself from GitHub Releases: it notices a newer version in the background and asks the shopkeeper before anything is installed — see [`docs/UPDATER.md`](docs/UPDATER.md). Every push is now built and tested by CI, and every release is built by a workflow that refuses to publish unless the whole suite is green.
+at all. Phase 7 added the write-fault matrix, crash probe, per-user installer, performance harness, accessibility pass, user guide and recovery runbook. Phase 8 drove the **installed** copy as well as the development build, found and fixed a first-run crash that had been hiding since Phase 7, and wrote the two gate tables. **Version 1.0.1 is published** with its installer and its SHA-256. It is the newest release a shop can download today: v1.0.2 is prepared, but not published yet. The manual acceptance test still needs the shop's own hardware. The programme also updates itself from GitHub Releases: it notices a newer version in the background and asks the shopkeeper before anything is installed — see [`docs/UPDATER.md`](docs/UPDATER.md). Every push is now built and tested by CI, and every release is built by a workflow that refuses to publish unless the whole suite is green.
 
 ---
 
@@ -171,7 +171,7 @@ D:\Coding\UA Retail Store\
 ├── DESIGN.md                      # the design system (Impeccable), generated from the code
 ├── .impeccable/design.json        # machine-readable design tokens sidecar
 ├── docs\
-│   ├── decisions\                 # ADR-0001 stack, ADR-0002 money, ADR-0003 valuation, ADR-0004 typography
+│   ├── decisions\                 # ADR-0001 stack, ADR-0002 money, ADR-0003 valuation, ADR-0004 typography, ADR-0005 archive encryption
 │   ├── samples\                   # reference samples (the WPF composite font format)
 │   └── uat\UAT-PLAN.md            # the manual acceptance script
 ├── src\
@@ -371,7 +371,7 @@ Every phase wrote down what it left rough. This is where all of that comes to. E
   [`docs/ACCESSIBILITY-REVIEW.md`](docs/ACCESSIBILITY-REVIEW.md) for what was fixed and what is
   still outstanding.
 - **Every write in the application can be failed on purpose, and every one of them is proved.**
-  Fifty-four named write points, one scenario each, and a test that fails the build if a write
+  Fifty-five named write points, one scenario each, and a test that fails the build if a write
   point is not covered. Writing the matrix found two write points that named a commit the code
   never made, and one that was doing three jobs at once; all three are fixed.
 - **The shop survives the power going off.** A test kills a process in the middle of a sale and
@@ -409,7 +409,7 @@ Every phase wrote down what it left rough. This is where all of that comes to. E
 | Left out | Why |
 |---|---|
 | A price override that asks a manager | A till price that is not the catalogue price needs a second pair of hands at the till, and the flow needs a manager prompt of its own. In v1.0 the till refuses the sale instead, which is safe and unhelpful; it is not wrong. |
-| Selling by weight from a till | It needs a scale on the keyboard. |
+| A scale on the keyboard | The till already sells by weight: the Kilogram unit is seeded and the cart takes a fractional quantity. What is missing is the weighing itself — the weight is typed in, not read off a scale. |
 | A customer on the sale | The PRD does not ask for one, and a till that asks for a name on every sale is a till that slows down. |
 | More than one tender on one sale | The PRD does not ask for it, and a split-tender sale is a bigger change to the sale document than it looks. |
 | A second pair of eyes on a stock count | The count is approved, but it is not blind. |
@@ -474,6 +474,7 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [`docs/decisions/ADR-0002-money-and-rounding.md`](docs/decisions/ADR-0002-money-and-rounding.md) | Money representation, the single rounding policy, quantity scaling |
 | [`docs/decisions/ADR-0003-valuation.md`](docs/decisions/ADR-0003-valuation.md) | Moving weighted average, posting order, returns, damaged stock |
 | [`docs/decisions/ADR-0004-typography.md`](docs/decisions/ADR-0004-typography.md) | One face per locale, the embedded Arabic face, and why a composite family is not possible on WPF |
+| [`docs/decisions/ADR-0005-archive-encryption.md`](docs/decisions/ADR-0005-archive-encryption.md) | Encrypted backup archives: the design, and why it is not in v1.0.1 |
 | [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN.md) | The manual acceptance script, one row per PRD case, with sign-off columns |
 | [`docs/phases/PHASE-0-FOUNDATION.md`](docs/phases/PHASE-0-FOUNDATION.md) | The Phase 0 report: what was built, how it was verified, and what was found by running it |
 | [`docs/phases/phase0-screens/`](docs/phases/phase0-screens/) | The pictures of the first-run wizard, the sign-in and the shell that the Phase 0 report leans on |
@@ -501,7 +502,7 @@ The manual acceptance script lives in [`docs/uat/UAT-PLAN.md`](docs/uat/UAT-PLAN
 | [Update probe](tools/StoreFlow.UpdateProbe/StoreFlow.UpdateProbe.csproj) | Asks the updater's own service to fetch a published release, and times it |
 | [Crash probe](tests/StoreFlow.CrashProbe/StoreFlow.CrashProbe.csproj) | Checks interrupted-sale recovery |
 | [Performance report](docs/PERFORMANCE-REPORT.md) | Performance results for the shop owner |
-| [Release notes](docs/RELEASE-NOTES.md) | v1.0 scope, open items, installation and installer SHA-256 |
+| [Release notes](docs/RELEASE-NOTES.md) | v1.0 scope, open items, installation, and where to find the installer's SHA-256 |
 | [Hardware sheet](docs/uat/HARDWARE-SHEET.md) | Printable hardware acceptance checklist |
 | [Release-candidate report](docs/phases/PHASE-8-RELEASE-CANDIDATE.md) | Release candidate and Definition of Done and UAT gate tables |
 | [v1.0.1 report](docs/phases/PHASE-9-V1.0.1.md) | The release cycle proved end to end, the three debts decided, and the updated gate tables |

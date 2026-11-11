@@ -18,6 +18,31 @@ the commit, so this table is a record of what a shop actually received — not a
    it.
 3. The row above is filled in from the published release, and the commit the tag points at is
    recorded here.
+4. The status line in `docs/RELEASE-NOTES.md` is changed from `unpublished` to `published`, in the
+   same commit as the row.
+
+The installer's size and SHA-256 in the table are read from the published release's own asset — the
+file the shop downloads — and are not written down from memory.
+
+## How a release that has not been made yet says so
+
+`docs/RELEASE-NOTES.md` carries one line that says whether the release has been published:
+
+```
+**Release status: `unpublished`.**
+```
+
+It is there because a release that has been written, tested and committed but never published
+looks exactly like a release that has been published — the same heading, the same notes, the same
+version in the project file. Nothing in the repository would have said otherwise, and a shop
+waiting for the fix would wait for ever. The line is taken out of the body the release workflow
+publishes, because it is bookkeeping about the repository and not something a shop needs to read.
+
+The guard test in `tests/StoreFlow.Desktop.Tests/ReleaseStatusTests.cs` holds the three files to
+each other: the version in the project file is the version the notes describe, the status line is
+there and holds one of the two words, and the status agrees with the table above — a release that
+says `published` has a row, and a release that says `unpublished` has not. That test is what
+would have caught v1.0.2 sitting in the tree, ready and never published.
 
 **The tag is the truth.** A release is built from the commit the tag points at, which is why a
 tag may sit one commit behind `main` — `main` can carry documentation and pipeline changes that

@@ -82,9 +82,14 @@ Constraints that bind the design:
 * Arabic is the first locale; the interface must be usable right-to-left.
 * The visual layer is entirely configurable from a versioned JSON theme file.
 
-Explicitly undecided / out of scope for MVP: customer credit and receivables, shifts and cash-drawer
-variance, expiry/lot tracking, serial numbers, variants, multiple branches, e-invoicing compliance, and
-any hosted or multi-device component.
+Explicitly undecided / out of scope for MVP: customer credit and receivables, cashier shifts as a
+staffing record, expiry/lot tracking, serial numbers, variants, multiple branches, e-invoicing
+compliance, and any hosted or multi-device component.
+
+The cash drawer is not on that list. The drawer cash count is built: what the drawer held when the
+day began and what it was counted to hold at the end of it are recorded, and the cashier-shift report
+reconciles them against what was taken and refunded. What is not built is the shift itself — a
+roster, a clock-on and a clock-off.
 
 ## Brand Commitments
 
@@ -121,7 +126,7 @@ PRD are **targets**, not measurements, and no report may present them as achieve
 ## Accessibility & Inclusion
 
 * Right-to-left is a first-class layout, not a mirrored afterthought.
-* Status is never communicated by colour alone — every state carries an icon and a text label.
+* Status is never communicated by colour alone — every state badge is text only, and the colour reinforces the label rather than replacing it.
 * Full keyboard operability: the POS flow completes without a mouse, and every control is reachable by Tab
   with a visible focus ring.
 * Minimum interactive target size 44 px on the POS and 32 px rows in management tables.
