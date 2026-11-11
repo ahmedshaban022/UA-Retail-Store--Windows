@@ -1,6 +1,6 @@
 # StoreFlow Desktop v1.0.2 — release notes
 
-**Release status: `unpublished`.**
+**Release status: `published`.**
 
 StoreFlow is an offline shop programme for keeping a catalogue, tracking stock and purchases, making sales and returns, reviewing reports, and taking backups. It can be used in Arabic or English.
 

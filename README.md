@@ -8,7 +8,7 @@ append-only stock ledger that reconciles to the piastre, and is **rebrandable by
 name, logo, colours, receipt content, currency, tax and locale are data, so the same binary can be resold to
 another shop without a recompile.
 
-**Status: version 1.0.1 is published, and the release cadence is running.** The application builds, the database migrates, the theme switches
+**Status: version 1.0.2 is published, and the release cadence is running.** The application builds, the database migrates, the theme switches
 live, the AR/EN switch works, login is enforced, and the automated test suite is green. The
 catalogue — products, categories, units and suppliers, with the product editor, the search, the
 spreadsheet import and export, product pictures and the audit trail — is built and proved by
@@ -26,7 +26,7 @@ the roles, and the audit trail read as a report. And the **backup**: the shop ta
 on a schedule as a single `.sfb` file that proves its own integrity, the copy goes to a local folder
 or to an S3-compatible object store, and the shop can be put back from it — on the same machine or
 on another one — with the recovery wizard as the way back in for the day the database will not open
-at all. Phase 7 added the write-fault matrix, crash probe, per-user installer, performance harness, accessibility pass, user guide and recovery runbook. Phase 8 drove the **installed** copy as well as the development build, found and fixed a first-run crash that had been hiding since Phase 7, and wrote the two gate tables. **Version 1.0.1 is published** with its installer and its SHA-256. It is the newest release a shop can download today: v1.0.2 is prepared, but not published yet. The manual acceptance test still needs the shop's own hardware. The programme also updates itself from GitHub Releases: it notices a newer version in the background and asks the shopkeeper before anything is installed — see [`docs/UPDATER.md`](docs/UPDATER.md). Every push is now built and tested by CI, and every release is built by a workflow that refuses to publish unless the whole suite is green.
+at all. Phase 7 added the write-fault matrix, crash probe, per-user installer, performance harness, accessibility pass, user guide and recovery runbook. Phase 8 drove the **installed** copy as well as the development build, found and fixed a first-run crash that had been hiding since Phase 7, and wrote the two gate tables. **Version 1.0.2 is published** with its installer and its SHA-256. It is the newest release a shop can download today. v1.0.2 is the repair release for the shop that could not be migrated: a shop behind the migrations can be brought up to date again, and the fault under that fix is gone too. The manual acceptance test still needs the shop's own hardware. The programme also updates itself from GitHub Releases: it notices a newer version in the background and asks the shopkeeper before anything is installed — see [`docs/UPDATER.md`](docs/UPDATER.md). Every push is now built and tested by CI, and every release is built by a workflow that refuses to publish unless the whole suite is green.
 
 ---
 
